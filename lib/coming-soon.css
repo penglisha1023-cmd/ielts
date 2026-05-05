@@ -1,0 +1,27 @@
+/* Shared placeholder page styles for tabs that aren't built yet */
+
+.coming-wrap {
+  max-width: 600px;
+  margin: 80px auto;
+  padding: 48px 32px;
+  background: var(--panel);
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.coming-icon {
+  font-size: 3em;
+  margin-bottom: 12px;
+  opacity: .5;
+}
+.coming-title {
+  font-size: 1.3em;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+.coming-msg {
+  color: var(--muted);
+  font-size: .95em;
+  margin: 0 0 24px;
+  line-height: 1.6;
+}

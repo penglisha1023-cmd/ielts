@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>雅思写作 — DNL雅思机经</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #ebe4d9; --panel: #f7f1e7; --text: #3d362e; --muted: #8c8175;
+    --border: #d7cdbe; --accent: #8fa394; --accent-hover: #748a7a;
+    --shadow: 0 4px 16px rgba(60,52,44,.07);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh;
+  }
+  .btn {
+    background: var(--accent); color: #fff; border: 0; padding: 8px 14px; border-radius: 8px;
+    cursor: pointer; font-size: .9em; font-weight: 500; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { background: var(--accent-hover); }
+</style>
+<link rel="stylesheet" href="/lib/nav.css">
+<link rel="stylesheet" href="/lib/coming-soon.css">
+</head>
+<body>
+
+<div class="coming-wrap">
+  <div class="coming-icon">✍️</div>
+  <h2 class="coming-title">雅思写作</h2>
+  <p class="coming-msg">题库正在筹备中,敬请期待。<br>已上线模块:雅思听力(88 篇高/非高频机经)。</p>
+  <a href="/listening.html" class="btn">先去练听力 →</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/lib/config.js"></script>
+<script src="/lib/supabase.js"></script>
+<script src="/lib/nav.js"></script>
+<script>
+(async function () {
+  const user = await IELTS.requireAuth();
+  if (!user) return;
+  await IELTS_NAV.mount('writing');
+})();
+</script>
+</body>
+</html>

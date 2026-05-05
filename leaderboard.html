@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>排行榜 — DNL雅思机经</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #ebe4d9;
+    --panel: #f7f1e7;
+    --text: #3d362e;
+    --muted: #8c8175;
+    --border: #d7cdbe;
+    --accent: #8fa394;
+    --accent-hover: #748a7a;
+    --high: #d8c1ac;
+    --high-text: #6b4a36;
+    --good: #7d9282;
+    --bad: #b58575;
+    --gold: #c4a45a;
+    --silver: #a89c8a;
+    --bronze: #b08770;
+    --shadow: 0 4px 16px rgba(60,52,44,.07);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh;
+  }
+  .btn {
+    background: var(--accent); color: #fff; border: 0; padding: 8px 14px; border-radius: 8px;
+    cursor: pointer; font-size: .9em; font-weight: 500; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { background: var(--accent-hover); }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 24px; }
+  .page-title { font-size: 1.4em; font-weight: 600; margin: 0 0 8px; }
+  .page-sub { color: var(--muted); font-size: .9em; margin: 0 0 18px; }
+
+  .sort-bar {
+    display: flex; gap: 8px; margin-bottom: 16px; align-items: center;
+    background: var(--panel); padding: 12px 16px; border-radius: 12px; box-shadow: var(--shadow);
+  }
+  .sort-bar label { font-size: .85em; color: var(--muted); margin-right: 6px; }
+  .sort-bar button {
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    padding: 6px 12px; border-radius: 6px; font-size: .85em; cursor: pointer;
+  }
+  .sort-bar button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  table.list {
+    width: 100%; border-collapse: collapse; background: var(--panel);
+    border-radius: 12px; overflow: hidden; box-shadow: var(--shadow);
+  }
+  table.list th, table.list td { padding: 12px 14px; text-align: left; font-size: .94em; }
+  table.list thead { background: var(--bg); }
+  table.list th { font-weight: 500; color: var(--muted); font-size: .85em; }
+  table.list tbody tr { border-top: 1px solid var(--border); }
+  table.list tbody tr.is-me { background: #ecdec9; }
+  table.list .rank {
+    width: 36px; text-align: center; font-weight: 600;
+    font-variant-numeric: tabular-nums; color: var(--muted);
+  }
+  table.list .rank.medal {
+    color: #fff; border-radius: 999px; padding: 2px 0;
+  }
+  table.list .rank.medal.r1 { background: var(--gold); }
+  table.list .rank.medal.r2 { background: var(--silver); }
+  table.list .rank.medal.r3 { background: var(--bronze); }
+  table.list .name { font-weight: 500; }
+  table.list .me-tag { font-size: .7em; padding: 1px 6px; background: var(--accent); color: #fff; border-radius: 4px; margin-left: 6px; }
+  table.list .num { font-variant-numeric: tabular-nums; text-align: right; }
+
+  .empty { text-align: center; padding: 48px; color: var(--muted); }
+  .loading { padding: 24px; color: var(--muted); text-align: center; }
+
+  @media (max-width: 700px) {
+    .container { padding: 14px; }
+    table.list .col-time { display: none; }
+  }
+</style>
+<link rel="stylesheet" href="/lib/nav.css">
+</head>
+<body>
+
+<div class="container">
+  <h2 class="page-title">排行榜</h2>
+  <p class="page-sub">基于雅思听力的练习数据,展示前 100 名。</p>
+
+  <div class="sort-bar">
+    <label>排序</label>
+    <button data-sort="tests_completed" class="active">完成题数</button>
+    <button data-sort="avg_score_pct">平均正确率</button>
+    <button data-sort="total_time_secs">练习时长</button>
+  </div>
+
+  <div id="board"><div class="loading">加载中…</div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/lib/config.js"></script>
+<script src="/lib/supabase.js"></script>
+<script src="/lib/nav.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+let RAW = [];
+let SORT = 'tests_completed';
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtTime(secs) {
+  if (!secs) return '0m';
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  return h ? `${h}h ${m}m` : `${m}m`;
+}
+
+(async function () {
+  const user = await IELTS.requireAuth();
+  if (!user) return;
+  await IELTS_NAV.mount('leaderboard');
+  await load();
+  document.querySelectorAll('.sort-bar button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.sort-bar button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    SORT = b.dataset.sort;
+    render();
+  }));
+})();
+
+async function load() {
+  const { data, error } = await sb.rpc('get_leaderboard', { p_subject: 'listening', p_limit: 100 });
+  if (error) {
+    $('#board').innerHTML = `<div class="empty">无法加载排行榜:${escapeHtml(error.message)}<br><br>(管理员注意:请在 Supabase SQL Editor 跑 scripts/04-leaderboard.sql)</div>`;
+    return;
+  }
+  RAW = data || [];
+  render();
+}
+
+function render() {
+  const sorted = [...RAW].sort((a, b) => {
+    if (SORT === 'tests_completed') return b.tests_completed - a.tests_completed || (b.avg_score_pct ?? 0) - (a.avg_score_pct ?? 0);
+    if (SORT === 'avg_score_pct')   return (b.avg_score_pct ?? 0) - (a.avg_score_pct ?? 0) || b.tests_completed - a.tests_completed;
+    if (SORT === 'total_time_secs') return (b.total_time_secs ?? 0) - (a.total_time_secs ?? 0);
+    return 0;
+  });
+
+  if (sorted.length === 0) {
+    $('#board').innerHTML = '<div class="empty">榜单暂无数据,等待第一位完成测试的同学。</div>';
+    return;
+  }
+
+  let html = `<table class="list"><thead><tr>
+    <th>排名</th><th>用户</th><th class="num">完成题数</th><th class="num">平均正确率</th><th class="num col-time">练习时长</th>
+  </tr></thead><tbody>`;
+  sorted.forEach((row, i) => {
+    const rank = i + 1;
+    const medalClass = rank <= 3 ? `medal r${rank}` : '';
+    html += `<tr class="${row.is_me ? 'is-me' : ''}">
+      <td class="rank ${medalClass}">${rank}</td>
+      <td class="name">${escapeHtml(row.display_name)}${row.is_me ? '<span class="me-tag">我</span>' : ''}</td>
+      <td class="num">${row.tests_completed}</td>
+      <td class="num">${row.avg_score_pct ?? '—'}%</td>
+      <td class="num col-time">${fmtTime(row.total_time_secs)}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  $('#board').innerHTML = html;
+}
+</script>
+</body>
+</html>
