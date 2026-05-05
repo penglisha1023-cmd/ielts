@@ -76,29 +76,29 @@ Write-Host "Cleared existing scores/notes/progress for this user." -ForegroundCo
 # ---- Build score rows (id, score, dur, days_ago) ----
 $now = Get-Date
 $scoreSeed = @(
-    # Week 1: warming up, lower scores
-    @{id=1;  s=6; d=1980; ago=22}, @{id=17; s=7; d=1950; ago=21},
-    @{id=32; s=5; d=2100; ago=21}, @{id=34; s=7; d=1920; ago=20},
-    @{id=3;  s=6; d=1880; ago=20}, @{id=10; s=7; d=1860; ago=19},
-    @{id=13; s=6; d=2000; ago=19}, @{id=26; s=5; d=2050; ago=18},
-    # Week 2: getting into rhythm
-    @{id=41; s=8; d=1850; ago=17}, @{id=50; s=8; d=1820; ago=16},
-    @{id=55; s=7; d=1900; ago=16}, @{id=64; s=9; d=1780; ago=15},
-    @{id=68; s=8; d=1830; ago=15}, @{id=29; s=8; d=1810; ago=14},
-    @{id=16; s=7; d=1870; ago=14}, @{id=40; s=8; d=1850; ago=13},
-    @{id=27; s=7; d=1890; ago=13}, @{id=39; s=8; d=1820; ago=12},
-    @{id=48; s=8; d=1830; ago=12}, @{id=75; s=7; d=1880; ago=11},
-    # Week 3: stable performance
-    @{id=80; s=9; d=1750; ago=10}, @{id=83; s=9; d=1780; ago=10},
-    @{id=73; s=8; d=1810; ago=9},  @{id=70; s=9; d=1750; ago=9},
-    @{id=24; s=8; d=1800; ago=8},  @{id=30; s=9; d=1770; ago=8},
-    @{id=33; s=8; d=1790; ago=7},  @{id=45; s=9; d=1730; ago=7},
-    @{id=53; s=8; d=1810; ago=6},  @{id=65; s=9; d=1740; ago=6},
-    @{id=74; s=9; d=1750; ago=5},  @{id=87; s=8; d=1780; ago=5},
-    # Recent days: re-attempts showing improvement
-    @{id=1;  s=9; d=1620; ago=4},  @{id=17; s=9; d=1580; ago=3},
-    @{id=26; s=8; d=1700; ago=2},  @{id=84; s=10; d=1600; ago=1},
-    @{id=86; s=9; d=1650; ago=1}
+    # Week 1: a few first attempts at 8 or 9 (will be re-done for 10 later)
+    @{id=1;  s=8;  d=1820; ago=22}, @{id=17; s=9;  d=1780; ago=21},
+    @{id=32; s=10; d=1700; ago=21}, @{id=34; s=10; d=1680; ago=20},
+    @{id=3;  s=9;  d=1750; ago=20}, @{id=10; s=10; d=1640; ago=19},
+    @{id=13; s=10; d=1690; ago=19}, @{id=26; s=8;  d=1830; ago=18},
+    # Week 2: mostly perfect, occasional 9
+    @{id=41; s=10; d=1620; ago=17}, @{id=50; s=10; d=1640; ago=16},
+    @{id=55; s=10; d=1660; ago=16}, @{id=64; s=10; d=1610; ago=15},
+    @{id=68; s=10; d=1600; ago=15}, @{id=29; s=10; d=1620; ago=14},
+    @{id=16; s=10; d=1640; ago=14}, @{id=40; s=10; d=1610; ago=13},
+    @{id=27; s=9;  d=1700; ago=13}, @{id=39; s=9;  d=1720; ago=12},
+    @{id=48; s=10; d=1620; ago=12}, @{id=75; s=9;  d=1740; ago=11},
+    # Week 3: full perfect run
+    @{id=80; s=10; d=1580; ago=10}, @{id=83; s=10; d=1600; ago=10},
+    @{id=73; s=10; d=1620; ago=9},  @{id=70; s=10; d=1590; ago=9},
+    @{id=24; s=10; d=1610; ago=8},  @{id=30; s=10; d=1600; ago=8},
+    @{id=33; s=10; d=1580; ago=7},  @{id=45; s=10; d=1550; ago=7},
+    @{id=53; s=10; d=1620; ago=6},  @{id=65; s=10; d=1590; ago=6},
+    @{id=74; s=10; d=1600; ago=5},  @{id=87; s=9;  d=1670; ago=5},
+    # Recent re-attempts: nail the previously-imperfect ones
+    @{id=1;  s=10; d=1500; ago=4},  @{id=17; s=10; d=1480; ago=3},
+    @{id=26; s=9;  d=1620; ago=2},  @{id=84; s=10; d=1530; ago=1},
+    @{id=86; s=10; d=1560; ago=1}
 )
 # Realistic time-of-day: weighted toward evenings (the times most students
 # actually practice). Pool repeats hot hours so they get picked more often.
