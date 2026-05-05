@@ -6,15 +6,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root {
-    --bg: #f6f7fb;
-    --panel: #ffffff;
-    --text: #1f2937;
-    --muted: #6b7280;
-    --border: #e5e7eb;
-    --accent: #3b82f6;
-    --good: #16a34a;
-    --bad: #dc2626;
-    --shadow: 0 4px 16px rgba(0,0,0,.06);
+    /* Morandi palette — muted, warm, low-saturation */
+    --bg: #ebe4d9;
+    --panel: #f7f1e7;
+    --text: #3d362e;
+    --muted: #8c8175;
+    --border: #d7cdbe;
+    --accent: #8fa394;
+    --good: #7d9282;
+    --bad: #b58575;
+    --shadow: 0 4px 16px rgba(60,52,44,.07);
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -73,7 +74,7 @@
     font-size: .72em; padding: 2px 8px; border-radius: 999px;
     background: var(--bg); color: var(--muted); border: 1px solid var(--border);
   }
-  table.list .badge.high { background: #fef3c7; color: #92400e; border-color: transparent; }
+  table.list .badge.high { background: #d8c1ac; color: #6b4a36; border-color: transparent; }
 
   .notes-list {
     display: grid; gap: 10px;
@@ -86,7 +87,7 @@
     display: flex; gap: 8px; font-size: .78em; color: var(--muted); margin-bottom: 8px; align-items: center;
   }
   .note-item .quote {
-    background: #fef3c7; padding: 6px 10px; border-radius: 6px; font-size: .95em;
+    background: #d8c1ac; color: #6b4a36; padding: 6px 10px; border-radius: 6px; font-size: .95em;
     margin-bottom: 8px; display: inline-block;
   }
   .note-item .text { font-size: .92em; line-height: 1.5; white-space: pre-wrap; }
