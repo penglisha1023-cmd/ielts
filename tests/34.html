@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>IELTS Listening Practice - Wedding Arrangements</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  /* --- Global & Layout --- */
+  :root { 
+    --splitter-width: 5px; 
+    --splitter-color: #eaecef; 
+    --bg-color: #f6f7fb;
+    --panel-color: #ffffff;
+    --text-color: #222;
+    --border-color: #eef0f6;
+    --accent-color: #3b82f6;
+    --answered-bg: #e0e7ff;
+    --answered-border: #a5b4fc;
+    --answered-text: #3730a3;
+    --correct-bg: #dcfce7;
+    --correct-border: #4ade80;
+    --correct-text: #15803d;
+    --incorrect-bg: #fee2e2;
+    --incorrect-border: #f87171;
+    --incorrect-text: #b91c1c;
+    --shadow: 0 8px 24px rgba(0,0,0,.12);
+  }
+  html.font-regular { font-size: 16px; }
+  html.font-large { font-size: 18px; }
+  html.font-xlarge { font-size: 20px; }
+
+  body.dark-mode {
+    --bg-color: #111827;
+    --panel-color: #1f2937;
+    --text-color: #d1d5db;
+    --border-color: #374151;
+    --splitter-color: #374151;
+    --accent-color: #60a5fa;
+    --answered-bg: #312e81;
+    --answered-border: #4f46e5;
+    --answered-text: #c7d2fe;
+    --correct-bg: #14532d;
+    --correct-border: #22c55e;
+    --correct-text: #bbf7d0;
+    --incorrect-bg: #991b1b;
+    --incorrect-border: #ef4444;
+    --incorrect-text: #fecaca;
+  }
+
+  html, body { height: 100%; margin: 0; overflow: hidden; font-weight: 400; }
+  body, .shell { background: var(--bg-color); font-family: 'Segoe UI','Helvetica Neue',Arial,sans-serif; color: var(--text-color); font-size: 1em; }
+  .shell { display: flex; flex-direction: column; height: 100vh; }
+  
+  /* --- Header --- */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px;
+    background: var(--panel-color);
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+  }
+  .header h1 { font-size: 1.2em; font-weight: 500; margin: 0; }
+  .header-controls { display: flex; gap: 10px; }
+  .header-btn {
+    background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px;
+    padding: 6px 12px; cursor: pointer; color: var(--text-color);
+  }
+  #settings-panel {
+    position: fixed; top: 65px; right: 20px; width: 220px; background: var(--panel-color);
+    border-radius: 10px; box-shadow: var(--shadow); border: 1px solid var(--border-color);
+    z-index: 1001; padding: 8px; display: none;
+  }
+  .settings-group { padding: 8px 0; }
+  .settings-title { font-size: 0.8em; color: #6b7280; margin-bottom: 8px; padding: 0 8px; }
+  .settings-options { display: flex; gap: 5px; padding: 0 8px; }
+  .settings-option { flex: 1; text-align: center; padding: 6px 8px; border: 1px solid var(--border-color); background: var(--bg-color); cursor: pointer; font-size: 0.9em; border-radius: 6px; color: var(--text-color); }
+  .settings-option.active { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+  .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.1); z-index: 1000; display: none; }
+  body.dark-mode .overlay { background: rgba(0,0,0,0.4); }
+
+  /* --- Split Pane & Page Layout --- */
+  #main-shell { display: flex; flex-grow: 1; overflow: hidden; }
+  #left-pane { flex: 1 1 100%; overflow-y: auto; background: var(--panel-color); transition: flex-basis 0.4s ease-in-out; }
+  #splitter { width: var(--splitter-width); background: var(--splitter-color); cursor: col-resize; display: none; }
+  #right-pane { flex: 0 0 0; overflow-y: auto; background: var(--bg-color); display: none; position: relative; }
+  #main-shell.split-view #left-pane { flex-basis: 50%; }
+  #main-shell.split-view #splitter { display: block; }
+  #main-shell.split-view #right-pane { display: block; flex-basis: calc(50% - var(--splitter-width)); padding: 0 24px; }
+
+  /* --- Sticky Header & Audio Player --- */
+  #sticky-header { position: sticky; top: 0; z-index: 10; background: var(--panel-color); padding: 20px 24px 0; }
+  .audio-player-wrapper { border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 10px; }
+  .audio-player { display: flex; align-items: center; gap: 15px; }
+  .play-pause-btn { background: var(--accent-color); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 1.1em; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .progress-container { flex-grow: 1; height: 20px; display: flex; align-items: center; cursor: pointer; }
+  .progress-bar-wrapper { width: 100%; height: 8px; background-color: #e0e0e0; border-radius: 4px; position: relative; }
+  body.dark-mode .progress-bar-wrapper { background-color: #4b5563; }
+  .progress-bar { width: 0; height: 100%; background-color: var(--accent-color); border-radius: 4px; }
+  .time-display { font-size: 0.8em; min-width: 90px; text-align: center; }
+  .speed-control select { padding: 4px 8px; border-radius: 5px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-color); font-size: 0.8em; }
+
+  /* --- Content & Bottom Bar --- */
+  #test-pages-container { padding: 0 24px; }
+  .bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; height: 64px; background: var(--panel-color); border-top: 1px solid var(--border-color); box-shadow: 0 -6px 18px rgba(0,0,0,.06); display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 16px; z-index: 100; }
+  .bb-left, .bb-center { display: flex; align-items: center; gap: 12px; }
+  .bb-center button { height: 36px; padding: 0 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-color); cursor: pointer; color: var(--text-color); }
+  .q-nav-container { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .q-nav-item { display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; padding: 0 5px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); font-size: 0.9em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; }
+  .q-nav-item.answered { background: var(--answered-bg); border-color: var(--answered-border); color: var(--answered-text); }
+  .q-nav-item.correct { background: var(--correct-bg); border-color: var(--correct-border); color: var(--correct-text); }
+  .q-nav-item.incorrect { background: var(--incorrect-bg); border-color: var(--incorrect-border); color: var(--incorrect-text); }
+
+  /* --- Side Panels (Notes Only) --- */
+  body { transition: padding-right .25s ease; }
+  body.notes-open { padding-right: 420px; }
+  #notes { position: fixed; right: -420px; top: 0; bottom: 64px; width: 420px; background: var(--bg-color); border-left: 1px solid var(--border-color); transition: right .25s ease; z-index: 99; display: flex; flex-direction: column; }
+  body.notes-open #notes { right: 0; }
+  .side-panel-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border-color); background: var(--panel-color); flex-shrink: 0; }
+  .side-panel-header span { font-weight: 500; }
+  .side-panel-close { background: transparent; border: none; font-size: 1.5em; font-weight: 300; cursor: pointer; color: var(--text-color); }
+  #notes-list { overflow-y: auto; padding: 12px; flex-grow: 1; }
+
+  /* --- Note Cards & Highlighter --- */
+  .note-card { 
+    background: var(--panel-color); 
+    border-radius: 10px; 
+    padding: 12px; 
+    margin: 0 0 10px; 
+    border: 1px solid var(--border-color); 
+  }
+  .note-quote { /* This div holds the highlighted quote */
+    font-weight: 500;
+    font-size: 1.1em;
+    margin-bottom: 12px;
+  }
+  .note-actions { 
+    margin-top: 8px; 
+  }
+  .note-actions button[data-act="del-note"] { 
+    border: 1px solid var(--incorrect-border); 
+    background: transparent;
+    border-radius: 8px; 
+    padding: 6px 12px; 
+    cursor: pointer; 
+    color: var(--incorrect-text);
+    font-size: 0.9em;
+    font-weight: 500;
+  }
+  .note-card textarea { 
+    width: 100%; 
+    min-height: 64px; 
+    border: 1px solid var(--border-color); 
+    border-radius: 8px; 
+    padding: 8px; 
+    box-sizing: border-box; 
+    background: var(--bg-color); 
+    color: var(--text-color); 
+    font-size: 1em;
+  }
+
+  .hl { background: #fff59d; }
+  body.dark-mode .hl { background: #a16207; }
+  .hl-blue { background: #CEDDFE; cursor: pointer; }
+  body.dark-mode .hl-blue { background: #312e81; }
+  #selbar { position: absolute; background: #ffffff; color: #333; border: 1px solid #ccc; border-radius: 10px; box-shadow: var(--shadow); padding: 6px; gap: 6px; display: inline-flex; z-index: 101; }
+  #selbar[hidden] { display: none; }
+  #selbar button { border: 1px solid #ccc; border-radius: 8px; padding: 4px 8px; background: #f0f0f0; color: #333; cursor: pointer; }
+  body.dark-mode #selbar { background: #f9fafb; color: #1f2937; border: 1px solid #9ca3af; }
+  body.dark-mode #selbar button { background: #e5e7eb; color: #1f2937; border: 1px solid #9ca3af; }
+
+  /* --- General Question Styles --- */
+  .group { border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin: 24px 0; }
+  .test-title, .group h4, .test-main-title { margin: 0 0 12px; font-size: 1.1em; color: var(--text-color); font-weight: 500; }
+  .test-main-title { text-align: center; font-size: 1.5em; margin-bottom: 24px; }
+  .group .instructions { margin-bottom: 16px; background: var(--bg-color); padding: 10px; border-radius: 8px; font-weight: 400; }
+  .group p, .group li, .group label { line-height: 2; }
+  b, strong { font-weight: 500; }
+  label { display: block; cursor: pointer; }
+
+  /* --- Fill in the blank --- */
+  input.blank { border: 1.5px solid #777; border-radius: 4px; width: 10em; padding: 4px 6px; vertical-align: middle; text-align: center; margin: 0 4px; font-size: 1em; transition: all 0.2s ease-in-out; background: transparent; color: var(--text-color); }
+  input.blank:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 3px var(--accent-color); }
+  input.blank.input-correct { border-color: var(--correct-border); background-color: var(--correct-bg); }
+  input.blank.input-incorrect { border-color: var(--incorrect-border); background-color: var(--incorrect-bg); }
+
+  /* --- Post-Submission Results & Transcript --- */
+  .results-in-page { margin-top: 30px; border-top: 2px solid var(--border-color); padding-top: 20px; }
+  .results-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.9em; }
+  .results-table th, .results-table td { border: 1px solid var(--border-color); padding: 8px 12px; text-align: left; }
+  .results-table th { background: var(--bg-color); font-weight: 500; }
+  .result-correct { color: var(--correct-text); font-weight: 500; }
+  .result-incorrect { color: var(--incorrect-text); font-weight: 500; }
+  
+  #transcript-content { position: relative; }
+  #transcript-content h4 { font-weight: 500; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; margin: 24px 0 16px 0; font-size: 1.2em; }
+  #transcript-content p { margin-bottom: 0.5em; line-height: 1.7; font-weight: 400; }
+  .answer-highlight { background-color: #dbeafe; padding: 2px 5px; border-radius: 4px; border-bottom: 2px solid #93c5fd; }
+  body.dark-mode .answer-highlight { background-color: #1e3a8a; }
+  .t-line { padding:2px 6px; border-radius:6px; transition: background-color 0.2s; }
+  #close-transcript-btn { position: absolute; top: 24px; right: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 50%; width: 32px; height: 32px; font-size: 1.2em; cursor: pointer; z-index: 5; }
+  
+  /* --- Save Toast Notification --- */
+  #toast { position: fixed; right: 20px; bottom: 84px; background: #26a269; color: #fff; padding: 10px 14px; border-radius: 8px; box-shadow: var(--shadow); font-size: 0.9em; z-index: 200; opacity: 0; pointer-events: none; transform: translateY(10px); transition: opacity .2s ease, transform .2s ease; }
+  #toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body class="font-regular">
+
+<div class="shell">
+  <header class="header">
+    <h1>IELTS Listening Practice - Wedding Arrangements</h1>
+    <div class="header-controls">
+        <button id="settings-btn" class="header-btn">Text Size/Color</button>
+    </div>
+  </header>
+
+  <div id="settings-panel">
+    <div class="settings-group">
+        <div class="settings-title">Font Size</div>
+        <div class="settings-options">
+            <button class="settings-option active" data-size="regular">Regular</button>
+            <button class="settings-option" data-size="large">Large</button>
+            <button class="settings-option" data-size="xlarge">X-Large</button>
+        </div>
+    </div>
+    <div class="settings-group">
+        <div class="settings-title">Color Mode</div>
+        <div class="settings-options">
+            <button class="settings-option active" data-mode="light">Light</button>
+            <button class="settings-option" data-mode="dark">Dark</button>
+        </div>
+    </div>
+  </div>
+  <div class="overlay"></div>
+
+  <div id="main-shell">
+    <div id="left-pane">
+      <div id="sticky-header">
+        <div class="audio-player-wrapper" id="audio-player-container"></div>
+      </div>
+      <div id="test-pages-container"></div>
+    </div>
+    <div id="splitter"></div>
+    <div id="right-pane">
+      <div id="transcript-content"></div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-bar">
+  <div class="bb-left">
+    <div id="q-nav-container" class="q-nav-container"></div>
+  </div>
+  <div class="bb-center">
+    <span id="timer">00:00</span>
+    <button id="finish-btn" type="button">Finish</button>
+    <button id="save-btn" type="button">Save</button>
+    <button id="clear-btn" type="button">Clear</button>
+    <button id="toggle-notes-btn" type="button">Notes</button>
+    <button id="toggle-transcript-btn" type="button">Transcript</button>
+  </div>
+</div>
+
+<div id="notes" aria-hidden="true"><div class="side-panel-header"><span>My Notes</span><button id="notes-close" type="button" class="side-panel-close">&times;</button></div><div id="notes-list"></div></div>
+<div id="selbar" hidden>
+    <button data-act="hl">Highlight</button>
+    <button data-act="note">Note</button>
+    <button data-act="del">Clear</button>
+</div>
+<div id="toast" role="status" aria-live="polite">Progress saved!</div>
+
+<script id="task-configuration">
+const CONFIG_DATA = {
+  localStorageKey: 'ieltsListening_wedding_v1',
+  questionList: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+  answerKey: {
+    text: { 
+        'q1': 'city', 
+        'q2': 'photos',
+        'q3': 'round',
+        'q4': 'decorations',
+        'q5': 'menu',
+        'q6': 'sandwiches',
+        'q7': '5995',
+        'q8': 'cake',
+        'q9': 'izard',
+        'q10': '15th October'
+    }
+  },
+  transcriptLines: [
+    ["00:00", "00:18", "Now listen carefully and answer questions one to five."],
+    ["00:18", "00:22", "Hello, Clarence House."],
+    ["00:22", "00:23", "Oh hello."],
+    ["00:23", "00:29", "I'm getting married next year and I understand your license to hold weddings at the hotel"],
+    ["00:30", "00:32", "Yes, we are."],
+    ["00:32", "00:34", "Can I ask what date you were thinking of?"],
+    ["00:34", "00:38", "Either the 1st or the 7th of June."],
+    ["00:38", "00:42", "Right, let me see."],
+    ["00:42", "00:48", "Oh, I'm afraid we already have a booking for the 7th, but we still have availability on June"],
+    ["00:48", "00:50", "the 1st."],
+    ["00:50", "00:51", "That would be fine."],
+    ["00:51", "00:55", "So, how many guests are you going to be inviting?"],
+    ["00:55", "00:56", "About 80."],
+    ["00:56", "01:01", "So for that number, we'd recommend the Oxford suite."],
+    ["01:01", "01:03", "I don't know if you've been to the hotel."],
+    ["01:03", "01:04", "Yes."],
+    ["01:04", "01:09", "In fact, I went to a wedding there a few years ago and I was really impressed."],
+    ["01:09", "01:10", "Very good."],
+    ["01:10", "01:14", "I think we're in the Oxford suite then."],
+    ["01:14", "01:19", "The room where we were eating had big windows with really good views."],
+    ["01:19", "01:22", "You could see right across the <span class='answer-highlight'>(Q1) city</span>."],
+    ["01:22", "01:23", "That's it."],
+    ["01:23", "01:28", "If you'd have exclusive access to the garden, it'll be at its best in June."],
+    ["01:28", "01:30", "So we could have the <span class='answer-highlight'>(Q2) photos</span> there."],
+    ["01:30", "01:31", "Sure."],
+    ["01:31", "01:35", "In fact, you can even have the ceremony there if you want."],
+    ["01:35", "01:37", "It makes a lovely background."],
+    ["01:37", "01:39", "Oh, I hadn't thought of that."],
+    ["01:39", "01:43", "Yes, that's certainly an idea."],
+    ["01:43", "01:45", "And is there somewhere for dancing?"],
+    ["01:45", "01:46", "Yes."],
+    ["01:46", "01:49", "There's plenty of space in the middle of the dining room."],
+    ["01:49", "01:50", "Oh, yeah."],
+    ["01:50", "01:52", "I remember now."],
+    ["01:52", "01:57", "So just to give you an idea, would you like me to tell you about our special wedding"],
+    ["01:57", "01:58", "package?"],
+    ["01:58", "01:59", "Sure."],
+    ["01:59", "02:00", "Right."],
+    ["02:00", "02:06", "So for 80 guests, you'd have the exclusive use of the Oxford suite, as I said, and then"],
+    ["02:06", "02:08", "a meal."],
+    ["02:08", "02:13", "So that would be in the dining room and that would be a sit-down meal with three courses."],
+    ["02:13", "02:15", "And how's the room arranged?"],
+    ["02:15", "02:19", "I seem to remember you have <span class='answer-highlight'>(Q3) round</span> tables."],
+    ["02:19", "02:20", "That's right."],
+    ["02:20", "02:22", "Most people prefer them to long tables."],
+    ["02:22", "02:26", "Long tables aren't really very friendly, are they?"],
+    ["02:26", "02:29", "And what about decorations on the tables?"],
+    ["02:29", "02:31", "They're included in the package."],
+    ["02:31", "02:35", "And we have white linen tablecloths and white chair covers."],
+    ["02:35", "02:41", "And we also include an individually designed <span class='answer-highlight'>(Q5) menu</span> specially printed for you."],
+    ["02:41", "02:45", "It's something that people can take away to remember the occasion."],
+    ["02:45", "02:47", "That's something we've just started doing this year."],
+    ["02:47", "02:52", "All right."],
+    ["02:52", "02:58", "Before you hear the rest of the conversation, you have some time to look at question 6-10."],
+    ["03:17", "03:36", "And then towards the end of the evening, when everyone's beginning to run out of energy,"],
+    ["03:36", "03:42", "we bring in a buffet, nothing too complicated, just a selection of <span class='answer-highlight'>(Q6) sandwiches</span> together with"],
+    ["03:42", "03:44", "tea or coffee."],
+    ["03:44", "03:46", "That's always very popular."],
+    ["03:46", "03:47", "Right."],
+    ["03:47", "03:49", "And we want some music."],
+    ["03:49", "03:51", "Is that included in the package?"],
+    ["03:51", "03:52", "No."],
+    ["03:52", "03:55", "But we could probably get you a DJ."],
+    ["03:55", "03:59", "Or we know of a very good band if you'd prefer that."],
+    ["03:59", "04:01", "Yes, that'd be better, actually."],
+    ["04:01", "04:04", "Something to get everyone on their feet."],
+    ["04:04", "04:05", "Good."],
+    ["04:05", "04:10", "So apart from the music, you said that's an all-inclusive package."],
+    ["04:10", "04:14", "So how much does that package come to?"],
+    ["04:14", "04:19", "£<span class='answer-highlight'>(Q7) 5,995</span>."],
+    ["04:19", "04:23", "That's a bit more than the package they quoted for me at the Stanley Hotel."],
+    ["04:23", "04:26", "There's was £4,500."],
+    ["04:26", "04:27", "Yes."],
+    ["04:27", "04:30", "But I think if you look at what you're getting for the money,"],
+    ["04:30", "04:33", "you'll find where the best value."],
+    ["04:33", "04:35", "And it is a big day after all."],
+    ["04:35", "04:38", "Yes, you're probably right."],
+    ["04:38", "04:40", "Oh, and I nearly forgot."],
+    ["04:40", "04:44", "I'm looking for someone who can make me a really special <span class='answer-highlight'>(Q8) cake</span>."],
+    ["04:44", "04:46", "Can you suggest one?"],
+    ["04:46", "04:47", "Certainly."],
+    ["04:47", "04:50", "There's a new company that we've started using."],
+    ["04:50", "04:51", "They're very good."],
+    ["04:51", "04:56", "In fact, our wedding coordinator will be able to give you all sorts of advice."],
+    ["04:57", "05:01", "We can offer you a free consultation and a tour of the venue."],
+    ["05:01", "05:04", "Yes, well, I'd definitely be interested."],
+    ["05:04", "05:05", "Right."],
+    ["05:05", "05:09", "Well, the coordinator's name is Sarah <span class='answer-highlight'>(Q9) Izard</span>."],
+    ["05:09", "05:13", "That's I-Z-A-R-D."],
+    ["05:14", "05:16", "Now, when would you like to meet her?"],
+    ["05:17", "05:21", "She's available from nine to five most weekdays,"],
+    ["05:21", "05:23", "or later, if that's more convenient."],
+    ["05:25", "05:29", "I'm three on the 12th of October in the morning,"],
+    ["05:29", "05:32", "sometime, or the <span class='answer-highlight'>(Q10) 15th of October</span>."],
+    ["05:32", "05:34", "That would be better, thanks."],
+    ["05:35", "05:37", "Should we say 11.30?"],
+    ["05:37", "05:38", "Fine."],
+    ["05:38", "05:41", "Can I just take your name and a contact number?"],
+    ["05:41", "05:43", "Sure. It's Debbie."],
+    ["05:47", "05:48", "That is the end of part one."],
+    ["05:49", "05:54", "You now have one minute to check your answers to part one."]
+  ]
+};
+</script>
+
+<script>
+(function() {
+'use strict';
+
+const App = {
+    init() {
+        this.config = CONFIG_DATA;
+        this.state = { timerSecs:0, timerInterval:null, isReviewing: false, settingsOpen: false, currentDragData:null, draggingEl:null };
+        this.buildLayout();
+        this.cacheElements();
+        this.bindEvents();
+        this.loadState();
+        this.AudioPlayer.init();
+        this.Splitter.init();
+        this.applySafeArea();
+        this.startTimer();
+        this.buildQuestionNav();
+        this.updateNavState();
+    },
+
+    buildLayout() {
+        const audioContainer = document.getElementById('audio-player-container');
+        const pagesContainer = document.getElementById('test-pages-container');
+        const transcriptContainer = document.getElementById('transcript-content');
+        
+        audioContainer.innerHTML = this.Templates.audioPlayer();
+        pagesContainer.innerHTML = this.Templates.questionsPage();
+        transcriptContainer.innerHTML = this.Templates.transcriptPage();
+    },
+
+    cacheElements() {
+        const $ = s => document.querySelector(s);
+        this.el = {
+            mainShell: $('#main-shell'), leftPane: $('#left-pane'), testPagesContainer: $('#test-pages-container'),
+            transcriptContent: $('#transcript-content'), notesList: $('#notes-list'),
+            bottomBar: $('.bottom-bar'), timer: $('#timer'), finishBtn: $('#finish-btn'),
+            saveBtn: $('#save-btn'), clearBtn: $('#clear-btn'), toggleNotesBtn: $('#toggle-notes-btn'), toggleTranscriptBtn: $('#toggle-transcript-btn'),
+            notes: $('#notes'), notesCloseBtn: $('#notes-close'), selbar: $('#selbar'), 
+            allPanes: [$('#left-pane'), $('#right-pane'), $('#notes')],
+            toast: $('#toast'),
+            settingsBtn: $('#settings-btn'), settingsPanel: $('#settings-panel'), overlay: $('.overlay'),
+            qNavContainer: $('#q-nav-container')
+        };
+    },
+    
+    bindEvents() {
+        document.addEventListener('input', e => this.handleFormChange(e));
+        window.addEventListener('resize', () => this.applySafeArea());
+        this.el.allPanes.forEach(p => p.addEventListener('scroll', () => this.highlighter.hideSelbar()));
+        this.el.finishBtn.addEventListener('click', () => this.toggleFinishMode());
+        this.el.saveBtn.addEventListener('click', () => this.saveState());
+        this.el.clearBtn.addEventListener('click', () => this.clearAll());
+        this.el.toggleNotesBtn.addEventListener('click', () => this.notes.toggle(true));
+        this.el.toggleTranscriptBtn.addEventListener('click', () => {
+            this.el.mainShell.classList.toggle('split-view');
+            this.Transcript.buildOnce();
+        });
+        this.el.notesCloseBtn.addEventListener('click', () => this.notes.toggle(false));
+        
+        document.addEventListener('mouseup', e => this.highlighter.handleMouseUp(e));
+        this.el.selbar.addEventListener('click', e => this.highlighter.handleAction(e));
+        
+        // Settings Panel Events
+        this.el.settingsBtn.addEventListener('click', e => { e.stopPropagation(); this.toggleSettingsPanel(); });
+        this.el.overlay.addEventListener('click', () => this.toggleSettingsPanel(false));
+        document.addEventListener('click', e => { if (this.state.settingsOpen && !this.el.settingsPanel.contains(e.target) && !this.el.settingsBtn.contains(e.target)) this.toggleSettingsPanel(false); });
+        this.el.settingsPanel.querySelectorAll('.settings-option[data-size]').forEach(btn => btn.addEventListener('click', () => { document.documentElement.className = `font-${btn.dataset.size}`; this.el.settingsPanel.querySelectorAll('.settings-option[data-size]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }));
+        this.el.settingsPanel.querySelectorAll('.settings-option[data-mode]').forEach(btn => btn.addEventListener('click', () => { document.body.classList.toggle('dark-mode', btn.dataset.mode === 'dark'); this.el.settingsPanel.querySelectorAll('.settings-option[data-mode]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }));
+    },
+
+    applySafeArea() {
+        const h = this.el.bottomBar.offsetHeight;
+        this.el.allPanes.forEach(p => p.style.bottom = p.matches('#notes') ? `${h}px` : 'auto');
+        this.el.leftPane.style.paddingBottom = `${h + 20}px`;
+    },
+
+    startTimer() { this.state.timerInterval = setInterval(() => this.tick(), 1000); },
+    tick() { this.state.timerSecs++; this.updateTimerUI(); },
+    updateTimerUI() { const m = String(Math.floor(this.state.timerSecs / 60)).padStart(2, '0'), s = String(this.state.timerSecs % 60).padStart(2, '0'); this.el.timer.textContent = `${m}:${s}`; },
+    
+    handleFormChange(e) {
+        if (e.target.matches('input, textarea, select')) {
+            this.updateNavState();
+        }
+    },
+    
+    toggleSettingsPanel(forceOpen) {
+        const open = forceOpen === undefined ? !this.state.settingsOpen : forceOpen;
+        this.state.settingsOpen = open;
+        this.el.settingsPanel.style.display = open ? 'block' : 'none';
+        this.el.overlay.style.display = open ? 'block' : 'none';
+    },
+
+    notes: {
+        toggle(forceOpen) { const open = forceOpen === undefined ? !document.body.classList.contains('notes-open') : forceOpen; document.body.classList.toggle('notes-open', open); },
+        create(targetSpan) {
+            if (!targetSpan) return; 
+            const hid = targetSpan.dataset.hid || `h_${Date.now()}`; 
+            targetSpan.dataset.hid = hid;
+            
+            const existed = App.el.notesList.querySelector(`.note-card[data-hid="${hid}"]`); 
+            if (existed) { 
+                App.notes.toggle(true); 
+                existed.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); 
+                return; 
+            }
+
+            const text = (targetSpan.textContent || '').trim(); 
+            const card = document.createElement('div'); 
+            card.className = 'note-card'; 
+            card.dataset.hid = hid;
+            
+            const quoteDiv = document.createElement('div');
+            quoteDiv.className = 'note-quote';
+            quoteDiv.innerHTML = escapeHtml(text) || '(no text selected)';
+
+            const textarea = document.createElement('textarea');
+            textarea.placeholder = "Write note here...";
+
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'note-actions';
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.dataset.act = 'del-note';
+            deleteBtn.textContent = 'Delete';
+
+            deleteBtn.onclick = () => {
+                const originalHighlight = document.querySelector(`[data-hid="${hid}"]`);
+                if (originalHighlight) {
+                    App.highlighter.unWrap(originalHighlight);
+                }
+                card.remove();
+            };
+
+            actionsDiv.appendChild(deleteBtn);
+            card.append(quoteDiv, textarea, actionsDiv);
+            App.el.notesList.prepend(card); 
+            App.notes.toggle(true);
+        }
+    },
+
+    highlighter: {
+        unWrap(el) { if (el && el.parentNode) { const p = el.parentNode; while (el.firstChild) p.insertBefore(el.firstChild, el); p.removeChild(el); p.normalize(); } },
+        hideSelbar() { if (App.el && App.el.selbar) { App.el.selbar.hidden = true; App.el.selbar.style.transform = ''; } },
+        positionToolbar(rect, w) { let left = rect.left + rect.width / 2 - w / 2; App.el.selbar.style.left = `${window.scrollX + left}px`; App.el.selbar.style.top = `${window.scrollY + rect.top}px`; App.el.selbar.style.transform = 'translateY(-100%) translateY(-8px)'; },
+        handleMouseUp(e) {
+            if (e.target.closest('#selbar, #notes, .bottom-bar')) return;
+            const clickedHl = e.target.closest('.hl,.hl-blue');
+            const s = window.getSelection();
+            App.el.selbar.targetElement = null;
+            if (clickedHl && s.isCollapsed) {
+                s.removeAllRanges();
+                App.el.selbar.querySelector('[data-act="hl"]').hidden = true;
+                App.el.selbar.querySelector('[data-act="note"]').hidden = false;
+                App.el.selbar.querySelector('[data-act="del"]').hidden = false;
+                App.el.selbar.hidden = false;
+                this.positionToolbar(clickedHl.getBoundingClientRect(), App.el.selbar.offsetWidth);
+                App.el.selbar.targetElement = clickedHl;
+            } else if (s && !s.isCollapsed) {
+                const rect = s.getRangeAt(0).getBoundingClientRect();
+                if (!rect || (!rect.width && !rect.height)) return this.hideSelbar();
+                App.el.selbar.querySelector('[data-act="hl"]').hidden = false;
+                App.el.selbar.querySelector('[data-act="note"]').hidden = false;
+                App.el.selbar.querySelector('[data-act="del"]').hidden = true;
+                App.el.selbar.hidden = false;
+                this.positionToolbar(rect, App.el.selbar.offsetWidth);
+            } else {
+                this.hideSelbar();
+            }
+        },
+        handleAction(e) {
+            const act = e.target.closest('button')?.dataset.act;
+            if (!act) return;
+            if (act === 'hl' || act === 'note') {
+                const s = window.getSelection();
+                if (!s || s.isCollapsed) return;
+                const r = s.getRangeAt(0);
+                const span = document.createElement('span');
+                span.className = act === 'hl' ? 'hl' : 'hl-blue';
+                try { r.surroundContents(span); } catch { span.appendChild(r.extractContents()); r.insertNode(span); }
+                if (act === 'note') { span.dataset.hid = `h_${Date.now()}`; App.notes.create(span); }
+            } else if (act === 'del' && App.el.selbar.targetElement) {
+                this.unWrap(App.el.selbar.targetElement);
+            }
+            this.hideSelbar();
+        }
+    },
+    
+    buildQuestionNav() {
+        this.el.qNavContainer.innerHTML = '';
+        this.config.questionList.forEach(qNum => {
+            const navItem = document.createElement('div');
+            navItem.className = 'q-nav-item';
+            navItem.textContent = qNum;
+            navItem.dataset.qnum = qNum;
+            navItem.addEventListener('click', () => {
+                const input = document.querySelector(`[name="q${qNum}"]`);
+                if (input) {
+                    const group = input.closest('.group');
+                    if (group) group.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    input.focus();
+                }
+            });
+            this.el.qNavContainer.appendChild(navItem);
+        });
+    },
+
+    updateNavState() {
+        this.config.questionList.forEach(qNum => {
+            const navItem = this.el.qNavContainer.querySelector(`[data-qnum="${qNum}"]`);
+            if (!navItem) return;
+
+            const qKey = `q${qNum}`;
+            const textInput = document.querySelector(`input[name="${qKey}"]`);
+            let isAnswered = false;
+            
+            if (textInput && textInput.value.trim() !== '') {
+                isAnswered = true;
+            }
+            
+            navItem.classList.toggle('answered', isAnswered);
+        });
+    },
+
+    saveState() {
+        const answers = { text: {}, single: {}, multiple: {}, matching: {} };
+        const notesText = {};
+
+        document.querySelectorAll('input.blank').forEach(i => { answers.text[i.name] = i.value; });
+        
+        this.el.notesList.querySelectorAll('.note-card').forEach(card => { 
+            const hid = card.dataset.hid; 
+            const textarea = card.querySelector('textarea'); 
+            if (hid && textarea) { notesText[hid] = textarea.value; } 
+        });
+        
+        const settings = { 
+            fontSize: document.documentElement.className, 
+            darkMode: document.body.classList.contains('dark-mode') 
+        };
+
+        const data = {
+            answers,
+            testPagesHTML: this.el.testPagesContainer.innerHTML,
+            notesHTML: this.el.notesList.innerHTML,
+            notesText,
+            timerSecs: this.state.timerSecs,
+            settings
+        };
+        localStorage.setItem(this.config.localStorageKey, JSON.stringify(data));
+        this.toast('Progress saved!');
+    },
+
+    loadState() {
+        const savedData = localStorage.getItem(this.config.localStorageKey);
+        if (!savedData) return;
+        try {
+            const data = JSON.parse(savedData);
+            
+            if (data.testPagesHTML) this.el.testPagesContainer.innerHTML = data.testPagesHTML;
+            if (data.notesHTML) this.el.notesList.innerHTML = data.notesHTML;
+            if (data.timerSecs) { this.state.timerSecs = data.timerSecs; this.updateTimerUI(); }
+
+            if (data.notesText) {
+                for (const [hid, text] of Object.entries(data.notesText)) {
+                    const card = this.el.notesList.querySelector(`.note-card[data-hid="${hid}"]`);
+                    if (card) { const textarea = card.querySelector('textarea'); if (textarea) textarea.value = text; }
+                }
+            }
+
+            if (data.answers) {
+                Object.entries(data.answers.text || {}).forEach(([n, v]) => { 
+                    const i = document.querySelector(`[name="${n}"]`); 
+                    if(i) i.value=v; 
+                });
+            }
+
+            if (data.settings) {
+                document.documentElement.className = data.settings.fontSize || 'font-regular';
+                document.body.classList.toggle('dark-mode', data.settings.darkMode);
+                this.el.settingsPanel.querySelectorAll('.settings-option[data-size]').forEach(b => b.classList.toggle('active', `font-${b.dataset.size}` === data.settings.fontSize));
+                this.el.settingsPanel.querySelectorAll('.settings-option[data-mode]').forEach(b => b.classList.toggle('active', (b.dataset.mode === 'dark') === data.settings.darkMode));
+            }
+            
+            this.updateNavState();
+        } catch (e) {
+            console.error("Failed to load state:", e);
+            localStorage.removeItem(this.config.localStorageKey);
+        }
+    },
+    
+    clearAll() {
+        if (!confirm('Are you sure you want to clear all progress? This will remove all answers and highlights.')) return;
+        localStorage.removeItem(this.config.localStorageKey);
+        window.location.reload();
+    },
+
+    toggleFinishMode() {
+        if (this.state.isReviewing) {
+            this.returnToTest();
+        } else {
+            if (confirm('Are you sure you want to finish and submit your answers?')) {
+                this.finishTest();
+            }
+        }
+    },
+
+    finishTest() {
+        this.state.isReviewing = true;
+        this.el.finishBtn.textContent = 'Return to Test';
+        this.el.mainShell.classList.add('split-view');
+        this.Transcript.buildOnce();
+        
+        const resultsTableHTML = this.generateResultsTable();
+        document.querySelector('.results-in-page').innerHTML = resultsTableHTML;
+        
+        document.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
+        clearInterval(this.state.timerInterval);
+        this.gradeAndHighlight();
+    },
+
+    gradeAndHighlight() {
+        const { answerKey } = this.config;
+        const norm = v => String(v ?? '').trim().toLowerCase();
+        
+        this.config.questionList.forEach(qNum => {
+            let isCorrect = false;
+            const qKey = `q${qNum}`;
+            
+            if (answerKey.text[qKey]) {
+                const userAns = document.querySelector(`input[name="${qKey}"]`).value;
+                isCorrect = norm(userAns) === norm(answerKey.text[qKey]);
+                document.querySelector(`input[name="${qKey}"]`).classList.add(isCorrect ? 'input-correct' : 'input-incorrect');
+            }
+            
+            const navItem = this.el.qNavContainer.querySelector(`[data-qnum="${qNum}"]`);
+            if (navItem) {
+                navItem.classList.remove('answered');
+                navItem.classList.add(isCorrect ? 'correct' : 'incorrect');
+            }
+        });
+    },
+
+    returnToTest() {
+        this.state.isReviewing = false;
+        this.el.finishBtn.textContent = 'Finish';
+        this.el.mainShell.classList.remove('split-view');
+        document.querySelector('.results-in-page').innerHTML = '';
+        document.querySelectorAll('input, select, textarea').forEach(el => el.disabled = false);
+        this.startTimer();
+
+        document.querySelectorAll('input.blank').forEach(i => i.classList.remove('input-correct', 'input-incorrect'));
+        this.el.qNavContainer.querySelectorAll('.q-nav-item').forEach(i => i.classList.remove('correct', 'incorrect'));
+        this.updateNavState();
+    },
+
+    generateResultsTable() {
+        let tableHTML = '<h4>Answer Review</h4><table class="results-table"><thead><tr><th>Question</th><th>Your Answer</th><th>Correct Answer</th><th>Result</th></tr></thead><tbody>';
+        const { answerKey } = this.config;
+        const norm = v => String(v ?? '').trim().toLowerCase();
+
+        this.config.questionList.forEach(qNumStr => {
+            let userAns, correctAns, isCorrect, userAnsStr, correctAnsStr;
+            const qKey = `q${qNumStr}`;
+            
+            if (answerKey.text[qKey]) {
+                userAns = document.querySelector(`[name="${qKey}"]`).value;
+                correctAns = answerKey.text[qKey];
+                isCorrect = norm(userAns) === norm(correctAns);
+            }
+            
+            userAnsStr = escapeHtml(userAns) || '<i>No Answer</i>';
+            correctAnsStr = escapeHtml(correctAns);
+            
+            tableHTML += `<tr><td><b>${qNumStr}</b></td><td>${userAnsStr}</td><td>${correctAnsStr}</td><td class="${isCorrect ? 'result-correct' : 'result-incorrect'}">${isCorrect ? '✔ Correct' : '✖ Incorrect'}</td></tr>`;
+        });
+        return tableHTML + '</tbody></table>';
+    },
+
+    toast(msg) { this.el.toast.textContent = msg; this.el.toast.classList.add('show'); setTimeout(() => this.el.toast.classList.remove('show'), 1200); },
+    
+    AudioPlayer: {
+        init() {
+            const player = document.querySelector('.audio-player-wrapper');
+            if (!player) return;
+            const audio = player.querySelector('.listening-audio'); const playPauseBtn = player.querySelector('.play-pause-btn'); const progressContainer = player.querySelector('.progress-container'); const progressBar = player.querySelector('.progress-bar'); const timeDisplay = player.querySelector('.time-display'); const speedSelect = player.querySelector('.playback-speed');
+            let isScrubbing = false;
+            const formatTime = (t) => { if (isNaN(t)) return "00:00"; const m = Math.floor(t / 60), s = Math.floor(t % 60); return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; };
+            const updateUI = () => { if (audio.duration && !isScrubbing) { progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`; timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`; } playPauseBtn.innerHTML = audio.paused ? '&#9658;' : '&#10074;&#10074;'; };
+            const scrub = (e) => { if (!isNaN(audio.duration)) { const rect = progressContainer.getBoundingClientRect(); const p = Math.min(Math.max(0, (e.clientX - rect.left) / rect.width), 1); audio.currentTime = p * audio.duration; updateUI(); } };
+            playPauseBtn.addEventListener('click', () => { if (audio.paused) audio.play(); else audio.pause(); });
+            speedSelect.addEventListener('change', (e) => audio.playbackRate = parseFloat(e.target.value));
+            audio.addEventListener('timeupdate', updateUI); audio.addEventListener('loadedmetadata', updateUI);
+            audio.addEventListener('play', updateUI); audio.addEventListener('pause', updateUI);
+            progressContainer.addEventListener('mousedown', (e) => { isScrubbing = true; scrub(e); });
+            document.addEventListener('mousemove', (e) => { if (isScrubbing) scrub(e); });
+            document.addEventListener('mouseup', () => { isScrubbing = false; });
+        }
+    },
+    
+    Splitter: {
+        init() {
+            const splitter = document.getElementById('splitter'), leftPane = document.getElementById('left-pane'), rightPane = document.getElementById('right-pane');
+            let isDragging = false;
+            splitter.addEventListener('mousedown', () => { isDragging = true; document.body.style.cursor = 'col-resize'; document.body.style.userSelect = 'none'; });
+            window.addEventListener('mouseup', () => { isDragging = false; document.body.style.cursor = 'default'; document.body.style.userSelect = 'auto'; });
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const totalWidth = leftPane.parentElement.offsetWidth, newLeftWidth = e.clientX, newRightWidth = totalWidth - newLeftWidth - splitter.offsetWidth;
+                if (newLeftWidth > 200 && newRightWidth > 200) { leftPane.style.flexBasis = `${newLeftWidth}px`; rightPane.style.flexBasis = `${newRightWidth}px`; }
+            });
+        }
+    },
+
+    Transcript: {
+        buildOnce() {
+            const tWrap = App.el.transcriptContent;
+            if (tWrap.dataset.built) return;
+            CONFIG_DATA.transcriptLines.forEach(([start, end, text]) => {
+                const lineEl = document.createElement('div');
+                lineEl.className = 't-line';
+                const textP = document.createElement('p');
+                textP.innerHTML = text;
+                lineEl.appendChild(textP);
+                tWrap.appendChild(lineEl);
+            });
+            const closeBtn = document.createElement('button');
+            closeBtn.id = 'close-transcript-btn';
+            closeBtn.innerHTML = '&times;';
+            closeBtn.addEventListener('click', () => App.el.mainShell.classList.remove('split-view'));
+            tWrap.prepend(closeBtn);
+            tWrap.dataset.built = '1';
+        }
+    },
+    
+    Templates: {
+      audioPlayer() { 
+        return `<div class="audio-player">
+            <button class="play-pause-btn">&#9658;</button>
+            <div class="progress-container">
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar"></div>
+                </div>
+            </div>
+            <div class="time-display">00:00 / 00:00</div>
+            <div class="speed-control">
+                <select class="playback-speed">
+                    <option value="0.7">0.7x</option>
+                    <option value="1.0" selected>1.0x</option>
+                    <option value="1.1">1.1x</option>
+                    <option value="1.2">1.2x</option>
+                    <option value="1.5">1.5x</option>
+                </select>
+            </div>
+            <audio class="listening-audio" src="https://qyccvyyigtjhzunumbqf.supabase.co/storage/v1/object/public/audio/34.mp3" preload="metadata"></audio>
+        </div>`; 
+      },
+      transcriptPage() { 
+        return `<h4>Transcript</h4><div style="margin-bottom: 40px;"></div>`; 
+      },
+      questionsPage() { 
+        return `
+        <div class="test-main-title">IELTS Listening Practice Test</div>
+        <div class="group">
+          <h4>Questions 1-10</h4>
+          <p class="instructions">Complete the notes below.<br>Write <b>ONE WORD AND/OR A NUMBER</b> for each answer.</p>
+          
+          <h5>Wedding arrangements - Clarence House Hotel</h5>
+          <p>Available date: 1st June</p>
+          
+          <p><b>The Oxford Suite has:</b></p>
+          <ul style="margin-left: 20px; padding-left: 0; list-style-type: none;">
+            <li>- a dining room with a good view of the <b>1</b> <input type="text" name="q1" data-q="1" class="blank" autocomplete="off"></li>
+            <li>- a private garden for <b>2</b> <input type="text" name="q2" data-q="2" class="blank" autocomplete="off"> and for the wedding ceremony</li>
+            <li>- an area suitable for dancing</li>
+          </ul>
+          
+          <p><b>The wedding package includes:</b></p>
+          <ul style="margin-left: 20px; padding-left: 0; list-style-type: none;">
+            <li>- use of the Oxford Suite</li>
+            <li>- a three-course meal</li>
+            <li>- room arranged with <b>3</b> <input type="text" name="q3" data-q="3" class="blank" autocomplete="off"> tables</li>
+            <li>- table <b>4</b> <input type="text" name="q4" data-q="4" class="blank" autocomplete="off"> included</li>
+            <li>- white tablecloths and chairs</li>
+            <li>- personalized printed <b>5</b> <input type="text" name="q5" data-q="5" class="blank" autocomplete="off"></li>
+            <li>- a late-evening buffet with a choice of <b>6</b> <input type="text" name="q6" data-q="6" class="blank" autocomplete="off"> and hot drinks</li>
+          </ul>
+          
+          <p><b>Music:</b> hotel will organize a band (not included in price)</p>
+          
+          <p>Total cost of package: £ <b>7</b> <input type="text" name="q7" data-q="7" class="blank" autocomplete="off"></p>
+          <p>Can also recommend a <b>8</b> <input type="text" name="q8" data-q="8" class="blank" autocomplete="off"> supplier (new company)</p>
+          <p>Wedding coordinator Sarah <b>9</b> <input type="text" name="q9" data-q="9" class="blank" autocomplete="off"></p>
+          <p>Date arranged for visit: <b>10</b> <input type="text" name="q10" data-q="10" class="blank" autocomplete="off"> at 11.30 a.m.</p>
+        </div>
+        
+        <div class="results-in-page"></div>
+      `; 
+      }
+    }
+};
+
+function escapeHtml(s) { return s ? s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) : ''; }
+document.addEventListener('DOMContentLoaded', () => App.init());
+
+window.App = App;
+}());
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/lib/config.js"></script>
+<script src="/lib/supabase.js"></script>
+<script>window.TEST_ID = 34;</script>
+<script src="/lib/test-bridge.js"></script>
+</body>
+</html>

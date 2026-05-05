@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>IELTS Listening Practice — Canadian Maple Syrup (Q31–40)</title>
+<style>
+  :root{
+    --bg:#ffffff; --fg:#222; --muted:#657083;
+    --primary:#1552d6; --accent:#28a745; --danger:#e53935;
+    --panel:#f7f9fc; --card:#ffffff; --border:#e6e9f1; --soft:#eef2fb;
+    --shadow:0 10px 24px rgba(0,0,0,.08);
+    --radius:14px; --font:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans","Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif;
+    --fs:16px; --hl:#fff59d; --bottom-h:120px;
+  }
+  html,body{height:100%}
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--fg); font-family:var(--font); font-size:var(--fs);
+    padding-bottom:calc(var(--bottom-h) + 140px);
+  }
+
+  header{position:sticky; top:0; z-index:20; background:var(--bg); border-bottom:1px solid var(--border); box-shadow:0 4px 14px rgba(0,0,0,.04);}.wrap{max-width:1120px; margin:auto; padding:16px; display:flex; align-items:center; gap:12px;}.title{font-size:28px; font-weight:700; letter-spacing:.2px;}.spacer{flex:1}.audioBar{display:flex; align-items:center; gap:12px; padding:12px 16px; border-top:1px solid var(--border); border-bottom:1px solid var(--border); background:#fff;}.btnIcon{width:44px; height:44px; border-radius:12px; border:1px solid var(--border); background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer}.icon-tri{width:0; height:0; border-left:12px solid var(--primary); border-top:8px solid transparent; border-bottom:8px solid transparent; margin-left:3px}.icon-pause{display:flex; gap:4px}.icon-pause span{width:6px; height:18px; background:var(--primary); display:inline-block}.icon-stop{width:14px; height:14px; background:var(--danger)}.progressWrap{flex:1; display:flex; align-items:center; gap:10px}.bar{flex:1; height:8px; background:var(--border); border-radius:999px; position:relative; cursor:pointer}.bar.pos{position:absolute; left:0; top:0; height:100%; width:0%; background:var(--primary); border-radius:999px}.bar.knob{position:absolute; top:50%; transform:translate(-50%,-50%); width:14px; height:14px; border-radius:50%; background:#fff; border:2px solid var(--primary); box-shadow:0 1px 3px rgba(0,0,0,.15); pointer-events:none}.time{min-width:110px; text-align:right; color:var(--muted)}.rateSel{min-width:74px}
+  audio{display:none}.container{max-width:980px; margin:16px auto; padding:0 16px;}.secCard{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:18px; overflow:hidden;}.secHead{padding:12px 16px; background:#fff; border-bottom:1px solid var(--border);}.secTitle{font-weight:700; font-size:18px;}.secBody{padding:10px 16px 14px 16px; background:#fff;}.qLine{padding:10px 8px; border-bottom:1px dashed var(--border); scroll-margin-top:140px; font-weight:700;}.qLine:last-child{border-bottom:none}.qNum{display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; background:var(--soft); border:1px solid var(--border); font-weight:700; margin-right:8px;}.qLine input[type="text"]{margin-left:6px; padding:8px 10px; border:1px solid var(--border); border-radius:10px; width:280px; max-width:90%; font-size:16px; font-weight:400;}.notes{position:fixed; right:16px; bottom:112px; z-index:50; width:300px; background:#fff; border:1px solid var(--border); border-radius:12px; box-shadow:0 10px 24px rgba(0,0,0,.18);}.notes header{display:flex; justify-content:space-between; align-items:center; padding:10px 12px; border-bottom:1px solid var(--border)}.notes.title{font-size:18px; font-weight:700}.notes textarea{width:100%; min-height:140px; border:0; outline:none; padding:12px; resize:vertical; background:transparent; color:var(--fg);}.notes.actions{display:flex; gap:8px; padding:8px 12px}.hidden{display:none !important}.bottom{position:fixed; left:0; right:0; bottom:0; z-index:30; background:#fff; border-top:1px solid var(--border); box-shadow:0 -6px 18px rgba(0,0,0,.06);}.bottom.wrap{max-width:1120px; margin:auto; padding:12px 16px; display:flex; gap:10px; align-items:center}.pager{display:flex; gap:8px; flex-wrap:wrap}.bubble{padding:8px 12px; border:1px solid var(--border); border-radius:999px; background:#fff; color:#222; cursor:pointer; font-weight:700; transition:.15s}.bubble.done{background:#1552d6; color:#fff; border-color:#1552d6;}.timer{margin-left:auto; margin-right:10px; font-variant-numeric:tabular-nums; background:#fff; border:1px solid var(--border); padding:6px 10px; border-radius:10px; min-width:84px; text-align:center; font-weight:700;}.actions{display:flex; gap:8px}
+  button{transition:.15s ease}
+  button:hover{border-color:var(--primary)}.primary{background:var(--primary); color:#fff; border:1px solid var(--primary); border-radius:10px; padding:8px 10px}.accent{background:var(--accent); color:#fff; border:1px solid var(--accent); border-radius:10px; padding:8px 10px}.danger{background:#fff; color:#e53935; border:1px solid #e53935; border-radius:10px; padding:8px 10px}.ghost{background:#fff; color:#222; border:1px solid var(--border); border-radius:10px; padding:8px 10px}
+
+  mark.hl{background:var(--hl); color:inherit; padding:0; border-radius:2px;}.selBubble{position:absolute; z-index:35; background:#fff; border:1px solid var(--border); border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.16); padding:6px; display:none;}.selBubble button{border:1px solid var(--border); background:#fff; padding:6px 10px; border-radius:10px; cursor:pointer; margin:0 4px; font-size:14px;}.review{position:fixed; inset:70px 16px 90px 16px; z-index:35; background:rgba(0,0,0,.25); display:none; align-items:center; justify-content:center; padding:10px;}.reviewCard{width:min(860px,94vw); max-height:80vh; overflow:auto; background:#fff; border:1px solid var(--border); border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.25)}.reviewCard.head{display:flex; justify-content:center; align-items:center; padding:16px; border-bottom:1px solid var(--border)}.reviewCard.title{font-size:22px; font-weight:700}.reviewCard.body{padding:18px 20px}.scoreBox{display:flex; justify-content:center; margin-bottom:12px}.score{background:#fdfdfd; border:1px solid var(--border); border-radius:12px; padding:12px 16px;}.badge{display:inline-block; padding:4px 8px; border-radius:999px; background:rgba(40,167,69,.12); color:#28a745; border:1px solid rgba(40,167,69,.35); font-weight:700;}.badge.bad{background:rgba(229,57,53,.12); color:#e53935; border-color:rgba(229,57,53,.35)}.rvItem{padding:12px 0; border-bottom:1px dashed var(--border)}.rvItem:last-child{border-bottom:0}.rvQ{font-weight:700; text-align:center; margin-bottom:8px}.rvRow{display:flex; justify-content:center; gap:8px; flex-wrap:wrap}.rvRow.label{color:#666}.toast{position:fixed; left:50%; transform:translateX(-50%); bottom:120px; z-index:40; background:#28a745; color:#fff; padding:10px 12px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.18); min-width:160px; text-align:center; font-weight:700; display:none;}
+</style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="title">IELTS Listening Practice — Canadian Maple Syrup (Q31–40)</div>
+      <div class="spacer"></div>
+    </div>
+    <div class="audioBar">
+      <button id="playBtn" class="btnIcon" title="Play/Pause"><div class="icon-tri"></div></button>
+      <button id="stopBtn" class="btnIcon" title="Stop"><div class="icon-stop"></div></button>
+      <div class="progressWrap">
+        <div class="bar" id="seekBar"><div class="pos" id="pos"></div><div class="knob" id="knob" style="left:0%"></div></div>
+        <div class="time" id="timeText">00:00 / 00:00</div>
+        <select id="rateSel" class="rateSel">
+          <option value="0.7">0.7x</option><option value="1" selected>1.0x</option><option value="1.1">1.1x</option><option value="1.2">1.2x</option><option value="1.5">1.5x</option>
+        </select>
+      </div>
+      <audio id="player" src="https://qyccvyyigtjhzunumbqf.supabase.co/storage/v1/object/public/audio/6.mp3" preload="metadata"></audio>
+    </div>
+  </header>
+
+  <main class="container" id="main">
+    <!-- Description -->
+    <section class="secCard" id="sec_desc">
+      <div class="secHead"><div class="secTitle">Description</div></div>
+      <div class="secBody">
+        <div id="anchor_q31" class="qLine" data-q="31" data-answer="different">
+          <span class="qNum">31</span>
+          The production of sap needs a climate where night and day temperatures are very
+          <input id="q31_inp" type="text">.
+        </div>
+      </div>
+    </section>
+
+    <!-- History -->
+    <section class="secCard" id="sec_hist">
+      <div class="secHead"><div class="secTitle">History</div></div>
+      <div class="secBody">
+        <div id="anchor_q32" class="qLine" data-q="32" data-answer="meat">
+          <span class="qNum">32</span>
+          Folk stories claim that maple syrup was first used to cook
+          <input id="q32_inp" type="text">.
+        </div>
+        <div id="anchor_q33" class="qLine" data-q="33" data-answer="tradition">
+          <span class="qNum">33</span>
+          Sap collection in spring developed into a First Nations
+          <input id="q33_inp" type="text">.
+        </div>
+        <div id="anchor_q34" class="qLine" data-q="34" data-answer="steam">
+          <span class="qNum">34</span>
+          Syrup was concentrated by using hot stones to produce
+          <input id="q34_inp" type="text">,
+        </div>
+        <div id="anchor_q35" class="qLine" data-q="35" data-answer="ice">
+          <span class="qNum">35</span>
+          and by leaving it outside at night and removing the layer of
+          <input id="q35_inp" type="text"> on top.
+        </div>
+      </div>
+    </section>
+
+    <!-- Uses -->
+    <section class="secCard" id="sec_uses">
+      <div class="secHead"><div class="secTitle">Uses</div></div>
+      <div class="secBody">
+        <div id="anchor_q36" class="qLine" data-q="36" data-answer="medicine">
+          <span class="qNum">36</span>
+          European settlers put the syrup in various types of
+          <input id="q36_inp" type="text">.
+        </div>
+        <div id="anchor_q37" class="qLine" data-q="37" data-answer="tax">
+          <span class="qNum">37</span>
+          Its use for making sugar declined after 1880, when the
+          <input id="q37_inp" type="text"> on Caribbean sugar was removed.
+        </div>
+      </div>
+    </section>
+
+    <!-- Threats -->
+    <section class="secCard" id="sec_threats">
+      <div class="secHead"><div class="secTitle">Threats</div></div>
+      <div class="secBody">
+        <div id="anchor_q38" class="qLine" data-q="38" data-answer="insects">
+          <span class="qNum">38</span>
+          Harvests may be affected by storms and destructive
+          <input id="q38_inp" type="text">.
+        </div>
+      </div>
+    </section>
+
+    <!-- Social -->
+    <section class="secCard" id="sec_social">
+      <div class="secHead"><div class="secTitle">Social</div></div>
+      <div class="secBody">
+        <div id="anchor_q39" class="qLine" data-q="39" data-answer="competition">
+          <span class="qNum">39</span>
+          Maple syrup is expensive and faces considerable
+          <input id="q39_inp" type="text">.
+        </div>
+      </div>
+    </section>
+
+    <!-- Reasons for optimism -->
+    <section class="secCard" id="sec_reason">
+      <div class="secHead"><div class="secTitle">Reasons for optimism</div></div>
+      <div class="secBody">
+        <div id="anchor_q40" class="qLine" data-q="40" data-answer="healthy">
+          <span class="qNum">40</span>
+          It is quite
+          <input id="q40_inp" type="text"> compared with other sweeteners.
+        </div>
+      </div>
+    </section>
+
+    <div id="endSpacer" style="height:80px"></div>
+  </main>
+
+  <div class="bottom" id="bottomBar">
+    <div class="wrap">
+      <div class="pager" id="pager">
+        <span class="bubble" data-q="31">31</span><span class="bubble" data-q="32">32</span><span class="bubble" data-q="33">33</span>
+        <span class="bubble" data-q="34">34</span><span class="bubble" data-q="35">35</span><span class="bubble" data-q="36">36</span>
+        <span class="bubble" data-q="37">37</span><span class="bubble" data-q="38">38</span><span class="bubble" data-q="39">39</span><span class="bubble" data-q="40">40</span>
+      </div>
+      <div class="timer" id="timer">00:00</div>
+      <div class="actions">
+        <button id="btnFinish" class="primary">Finish</button>
+        <button id="btnSave" class="accent">Save</button>
+        <button id="btnClear" class="danger">Clear</button>
+        <button id="btnNotes" class="ghost">Notes</button>
+        <button id="btnReset" class="ghost">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes hidden" id="notes" aria-modal="true" role="dialog">
+    <header><div class="title">笔记</div><button id="noteClose" class="ghost" style="padding:6px 10px">Close</button></header>
+    <textarea id="noteText" placeholder="Write note here..."></textarea>
+    <div class="actions"><button id="noteDelete" class="danger">Delete</button></div>
+  </div>
+
+  <div class="review" id="review">
+    <div class="reviewCard">
+      <div class="head"><div class="title">批改系统</div></div>
+      <div class="body">
+        <div class="scoreBox"><div class="score">总分：<span id="scoreNum" class="badge">0 / 10</span></div></div>
+        <div id="reviewList"></div>
+      </div>
+      <div class="rvBtns" style="display:flex; justify-content:center; gap:8px; padding:12px 16px 18px 16px; border-top:1px solid var(--border)">
+        <button id="btnReturn" class="ghost">Return to Test</button>
+        <button id="btnCloseReview" class="ghost">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="selBubble" id="selBubble">
+    <button id="selHighlight">Highlight</button>
+  </div>
+
+  <div class="toast" id="toast">Progress Save!</div>
+
+<script>
+(function(){
+  const qs=(s,r=document)=>r.querySelector(s), qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
+  const STORAGE_KEY='exam_maple_grouped_final_v7';
+
+  function isValidSnapshot(html){
+    return typeof html==='string' && html.includes('anchor_q31') && html.includes('anchor_q40') && html.length>2000;
+  }
+
+  function applyBottomPadding(){
+    const bar=qs('#bottomBar'); const h=bar?bar.offsetHeight:120;
+    document.documentElement.style.setProperty('--bottom-h', h+'px');
+    document.body.style.paddingBottom = (h + 140) + 'px';
+    const end=qs('#endSpacer'); if(end) end.style.height=(h+40)+'px';
+  }
+  window.addEventListener('load', applyBottomPadding);
+  window.addEventListener('resize', applyBottomPadding);
+
+  const player=qs('#player'), playBtn=qs('#playBtn'), stopBtn=qs('#stopBtn'),
+        pos=qs('#pos'), knob=qs('#knob'), timeText=qs('#timeText'), rateSel=qs('#rateSel'), seekBar=qs('#seekBar');
+  function fmt(s){const m=Math.floor(s/60), ss=Math.floor(s%60); return String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');}
+  function setPlayIcon(p){ playBtn.innerHTML=p?'<div class="icon-pause"><span></span><span></span></div>':'<div class="icon-tri"></div>'; }
+  function updateVisual(){ const cur=player.currentTime||0, dur=player.duration||0; const pct=dur?(cur/dur)*100:0; pos.style.width=pct+'%'; knob.style.left=pct+'%'; timeText.textContent=`${fmt(cur)} / ${fmt(dur||0)}`; }
+  playBtn.addEventListener('click',()=>{ if(player.paused){player.play();} else {player.pause();} });
+  stopBtn.addEventListener('click',()=>{ player.pause(); player.currentTime=0; updateVisual(); setPlayIcon(false); });
+  player.addEventListener('play',()=>setPlayIcon(true));
+  player.addEventListener('pause',()=>setPlayIcon(false));
+  player.addEventListener('timeupdate',updateVisual);
+  player.addEventListener('loadedmetadata',updateVisual);
+  rateSel.addEventListener('change',()=>{player.playbackRate=parseFloat(rateSel.value);});
+  function seekToX(x){const r=seekBar.getBoundingClientRect(); const ratio=(x-r.left)/r.width; if(player.duration){player.currentTime=Math.max(0,Math.min(player.duration*ratio, player.duration-0.01));}}
+  seekBar.addEventListener('click',(e)=>seekToX(e.clientX));
+  let dragging=false; seekBar.addEventListener('mousedown',e=>{dragging=true; seekToX(e.clientX);});
+  window.addEventListener('mousemove',e=>{ if(dragging) seekToX(e.clientX);});
+  window.addEventListener('mouseup',()=>{dragging=false;});
+
+  const timerEl=qs('#timer'); let seconds=0;
+  function fmtTimer(s){const m=Math.floor(s/60), ss=s%60; return String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');}
+  timerEl.textContent=fmtTimer(seconds); setInterval(()=>{seconds++; timerEl.textContent=fmtTimer(seconds);},1000);
+
+  const notes=qs('#notes'), btnNotes=qs('#btnNotes'), noteText=qs('#noteText');
+  btnNotes.addEventListener('click',()=>notes.classList.toggle('hidden'));
+  qs('#noteClose').addEventListener('click',()=>notes.classList.add('hidden'));
+  qs('#noteDelete').addEventListener('click',()=>{noteText.value=''; localStorage.setItem('notes','');});
+
+  /* 稳定高亮（鲁棒版）：extractContents + 重插入，点击就上黄；气泡仅 Highlight；双击取消 */
+  const main=qs('#main'), bubble=qs('#selBubble'), btnHL=qs('#selHighlight');
+  let lastRange=null, lastLine=null, bubbleLock=false;
+
+  const getLine=(n)=> (n && (n.nodeType===3?n.parentNode:n)).closest('.qLine');
+
+  function rangesOverlap(a,b){
+    return a.compareBoundaryPoints(Range.END_TO_START, b) > 0 &&
+           a.compareBoundaryPoints(Range.START_TO_END, b) < 0;
+  }
+
+  function clampToLineTextRange(range){
+    const sLine=getLine(range.startContainer), eLine=getLine(range.endContainer);
+    if(!sLine || !eLine || sLine!==eLine) return null;
+    lastLine=sLine;
+    const firstText=(root)=>{ const tw=document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null); return tw.nextNode(); };
+    const lastText =(root)=>{ const tw=document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null); let cur,last=null; while(cur=tw.nextNode()) last=cur; return last; };
+    let sc=range.startContainer, so=range.startOffset, ec=range.endContainer, eo=range.endOffset;
+    if(sc.nodeType!==3){ sc=firstText(sc)||firstText(sLine); so=0; }
+    if(ec.nodeType!==3){ ec=lastText(ec)||lastText(sLine);   eo=ec?ec.nodeValue.length:0; }
+    if(!sc || !ec) return null;
+    const r=document.createRange();
+    r.setStart(sc, Math.max(0, Math.min(so, sc.nodeValue.length)));
+    r.setEnd  (ec, Math.max(0, Math.min(eo, ec.nodeValue.length)));
+    if(r.collapsed) return null;
+    return r;
+  }
+
+  function unwrapMarksInRange(range, line){
+    const marks = Array.from(line.querySelectorAll('mark.hl'));
+    marks.forEach(m=>{
+      const mr=document.createRange(); mr.selectNode(m);
+      if(rangesOverlap(range, mr)){
+        const p=m.parentNode;
+        while(m.firstChild) p.insertBefore(m.firstChild, m);
+        p.removeChild(m);
+      }
+    });
+    line.normalize();
+  }
+
+  function highlightRangeRobust(range, line){
+    unwrapMarksInRange(range, line);
+    const frag = range.extractContents();
+    function convert(node){
+      if(node.nodeType===3){
+        const mark=document.createElement('mark'); mark.className='hl'; mark.textContent=node.nodeValue;
+        return mark;
+      }else if(node.nodeType===1){
+        const tag=node.tagName;
+        if(tag==='INPUT' || tag==='BUTTON' || tag==='SELECT' || tag==='TEXTAREA') return node; // 保留控件
+        const clone=node.cloneNode(false);
+        Array.from(node.childNodes).forEach(ch=> clone.appendChild(convert(ch)));
+        return clone;
+      }else{
+        return node.cloneNode ? node.cloneNode(true) : document.createTextNode('');
+      }
+    }
+    const out=document.createDocumentFragment();
+    Array.from(frag.childNodes).forEach(ch=> out.appendChild(convert(ch)));
+    range.insertNode(out);
+    line.normalize();
+    mergeAdjacentMarks(line);
+  }
+
+  function mergeAdjacentMarks(line){
+    const marks=Array.from(line.querySelectorAll('mark.hl'));
+    for(let i=0;i<marks.length;i++){
+      const m=marks[i], prev=m.previousSibling;
+      if(prev && prev.nodeType===1 && prev.tagName==='MARK' && prev.classList.contains('hl')){
+        prev.appendChild(document.createTextNode(m.textContent));
+        m.parentNode.removeChild(m);
+      }
+    }
+  }
+
+  function showBubble(range){
+    const rect=range.getBoundingClientRect();
+    bubble.style.top  = (rect.top + window.scrollY - 48) + 'px';
+    bubble.style.left = (rect.left + window.scrollX + Math.max(0, rect.width/2 - 60)) + 'px';
+    bubble.style.display='block';
+  }
+  function hideBubble(){ bubble.style.display='none'; }
+
+  document.addEventListener('selectionchange', ()=>{
+    if(bubbleLock) return;
+    const sel=window.getSelection();
+    if(!sel || sel.rangeCount===0 || sel.isCollapsed){ hideBubble(); lastRange=null; lastLine=null; return; }
+    const raw=sel.getRangeAt(0); const r=clampToLineTextRange(raw);
+    if(!r){ hideBubble(); lastRange=null; lastLine=null; return; }
+    lastRange=r.cloneRange(); showBubble(r);
+  });
+
+  // 容器：拦截 pointerdown/mousedown 保留选区；不拦截 click，保证按钮可点
+  ['pointerdown','mousedown'].forEach(evt=>{
+    bubble.addEventListener(evt, e=>{ bubbleLock=true; e.preventDefault(); e.stopPropagation(); });
+  });
+  ['pointerup','mouseup','mouseleave'].forEach(evt=>{
+    bubble.addEventListener(evt, ()=>{ setTimeout(()=>{ bubbleLock=false; }, 0); });
+  });
+
+  function doHighlight(){
+    if(!lastRange || !lastLine){ hideBubble(); return; }
+    try{
+      highlightRangeRobust(lastRange, lastLine);
+    }catch(err){
+      try{ highlightRangeRobust(lastRange, lastLine); }catch(e){}
+    }
+    hideBubble(); lastRange=null; lastLine=null;
+  }
+  // 桌面优先：mousedown 更早执行；click 兜底
+  btnHL.addEventListener('mousedown', (e)=>{ e.preventDefault(); e.stopPropagation(); bubbleLock=true; doHighlight(); setTimeout(()=>{bubbleLock=false;},0); });
+  btnHL.addEventListener('click',     (e)=>{ e.preventDefault(); e.stopPropagation(); doHighlight(); });
+
+  // 双击：高亮内→取消；否则对双击词加黄
+  main.addEventListener('dblclick',(e)=>{
+    const m=e.target.closest && e.target.closest('mark.hl');
+    if(m){
+      const p=m.parentNode; while(m.firstChild) p.insertBefore(m.firstChild,m); p.removeChild(m); p.normalize();
+      return;
+    }
+    if(document.caretRangeFromPoint){
+      const r=document.caretRangeFromPoint(e.clientX,e.clientY); if(!r) return;
+      const line=getLine(r.startContainer);
+      if(line && r.startContainer && r.startContainer.nodeType===3){
+        lastLine=line;
+        const node=r.startContainer, t=node.nodeValue; let s=r.startOffset, e2=r.startOffset;
+        while(s>0 && /\w/.test(t[s-1])) s--;
+        while(e2<t.length && /\w/.test(t[e2])) e2++;
+        const before=t.slice(0,s), mid=t.slice(s,e2), after=t.slice(e2);
+        const mark=document.createElement('mark'); mark.className='hl'; mark.textContent=mid;
+        const frag=document.createDocumentFragment();
+        if(before) frag.appendChild(document.createTextNode(before));
+        frag.appendChild(mark);
+        if(after)  frag.appendChild(document.createTextNode(after));
+        node.parentNode.replaceChild(frag,node);
+        line.normalize(); mergeAdjacentMarks(line);
+      }
+    }
+  });
+
+  /* 题号完成状态 + 跳转 */
+  function updateProgress(){
+    for(let n=31;n<=40;n++){
+      const el=qs('#q'+n+'_inp'); const bubbleBtn=qs(`.bubble[data-q="${n}"]`);
+      if(el && bubbleBtn){ bubbleBtn.classList.toggle('done', (el.value||'').trim().length>0); }
+    }
+  }
+  document.addEventListener('input',e=>{ if(e.target.matches('input[type="text"]')) updateProgress(); });
+
+  function scrollToQuestion(qn){
+    const anchor=qs('#anchor_q'+qn); if(!anchor) return;
+    const headerH=qs('header').offsetHeight||0;
+    const top=anchor.getBoundingClientRect().top + window.scrollY - headerH - 12;
+    window.scrollTo({top, behavior:'smooth'});
+  }
+  qs('#pager').addEventListener('click',e=>{
+    const btn=e.target.closest('.bubble'); if(!btn) return;
+    scrollToQuestion(btn.dataset.q);
+  });
+
+  /* Save / Load / Clear / Reset（保存答案+高亮+笔记；不保存计时器） */
+  const toast=qs('#toast'), mainRoot=qs('#main');
+  function toastOK(m){toast.textContent=m; toast.style.display='block'; setTimeout(()=>toast.style.display='none',1600);}
+  function saveAll(show=true){
+    const data={inputs:{}, html:'', notes:qs('#noteText').value};
+    for(let n=31;n<=40;n++){ const el=qs('#q'+n+'_inp'); if(el) data.inputs['q'+n]=el.value; }
+    const snapshot=mainRoot.innerHTML||''; data.html=isValidSnapshot(snapshot)?snapshot:'';
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    if(show) toastOK('Progress Save!');
+  }
+  function loadAll(){
+    const raw=localStorage.getItem(STORAGE_KEY); if(!raw) return;
+    let data=null; try{ data=JSON.parse(raw); }catch(e){ return; }
+    if(data && isValidSnapshot(data.html)) mainRoot.innerHTML=data.html;
+    for(let n=31;n<=40;n++){ const el=qs('#q'+n+'_inp'); if(el && data?.inputs) el.value=data.inputs['q'+n]||''; }
+    qs('#noteText').value=data?.notes||''; updateProgress();
+  }
+  qs('#btnSave').addEventListener('click',()=>saveAll(true));
+  qs('#btnClear').addEventListener('click',()=>{
+    for(let n=31;n<=40;n++){ const el=qs('#q'+n+'_inp'); if(el) el.value=''; }
+    qsa('mark.hl', mainRoot).forEach(m=>{ const p=m.parentNode; while(m.firstChild) p.insertBefore(m.firstChild,m); p.removeChild(m); p.normalize(); });
+    updateProgress();
+  });
+  qs('#btnReset').addEventListener('click',()=>{ localStorage.removeItem(STORAGE_KEY); location.reload(); });
+  loadAll(); updateProgress();
+
+  /* Review（批改） */
+  const review=qs('#review'), reviewList=qs('#reviewList');
+  qs('#btnFinish').addEventListener('click',()=>{ renderReview(); review.style.display='flex'; });
+  qs('#btnReturn').addEventListener('click',()=>review.style.display='none');
+  qs('#btnCloseReview').addEventListener('click',()=>review.style.display='none');
+
+  function norm(s){return (s||'').trim().toLowerCase().replace(/[.,;:!?]+$/,'');}
+  function calcScore(){
+    let score=0, details=[];
+    for(let n=31;n<=40;n++){
+      const ans=qs('#anchor_q'+n)?.dataset.answer||''; const v=qs('#q'+n+'_inp')?.value||''; const ok=norm(v)===norm(ans);
+      if(ok) score++; details.push({id:`q${n}`,userAns:v,rightAns:ans,correct:ok});
+    }
+    return {score,total:10,details};
+  }
+  function renderReview(){
+    const {score,total,details}=calcScore();
+    qs('#scoreNum').textContent=`${score} / ${total}`; reviewList.innerHTML='';
+    details.forEach((d,i)=>{
+      const div=document.createElement('div'); div.className='rvItem';
+      const cls=d.correct?'badge':'badge bad';
+      div.innerHTML=`<div class="rvQ">题目 ${i+1}（${d.id}）</div>
+                     <div class="rvRow"><span class="label">你的答案：</span><span class="${cls}">${d.userAns||'未作答'}</span></div>
+                     <div class="rvRow"><span class="label">正确答案：</span><span class="badge">${d.rightAns}</span></div>`;
+      reviewList.appendChild(div);
+    });
+  }
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/lib/config.js"></script>
+<script src="/lib/supabase.js"></script>
+<script>window.TEST_ID = 6;</script>
+<script src="/lib/test-bridge.js"></script>
+</body>
+</html>

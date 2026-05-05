@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>IELTS Listening Practice - Art and Science</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  /* --- Global & Layout --- */
+  :root { 
+    --splitter-width: 5px; 
+    --splitter-color: #eaecef; 
+    --bg-color: #f6f7fb;
+    --panel-color: #ffffff;
+    --text-color: #222;
+    --border-color: #eef0f6;
+    --accent-color: #3b82f6;
+    --answered-bg: #e0e7ff;
+    --answered-border: #a5b4fc;
+    --answered-text: #3730a3;
+    --correct-bg: #dcfce7;
+    --correct-border: #4ade80;
+    --correct-text: #15803d;
+    --incorrect-bg: #fee2e2;
+    --incorrect-border: #f87171;
+    --incorrect-text: #b91c1c;
+    --shadow: 0 8px 24px rgba(0,0,0,.12);
+  }
+  html.font-regular { font-size: 16px; }
+  html.font-large { font-size: 18px; }
+  html.font-xlarge { font-size: 20px; }
+
+  body.dark-mode {
+    --bg-color: #111827;
+    --panel-color: #1f2937;
+    --text-color: #d1d5db;
+    --border-color: #374151;
+    --splitter-color: #374151;
+    --accent-color: #60a5fa;
+    --answered-bg: #312e81;
+    --answered-border: #4f46e5;
+    --answered-text: #c7d2fe;
+    --correct-bg: #14532d;
+    --correct-border: #22c55e;
+    --correct-text: #bbf7d0;
+    --incorrect-bg: #991b1b;
+    --incorrect-border: #ef4444;
+    --incorrect-text: #fecaca;
+  }
+
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body, .shell { 
+    background: var(--bg-color); 
+    font-family: 'Segoe UI','Helvetica Neue',Arial,sans-serif; 
+    color: var(--text-color); 
+    font-size: 1em; 
+    font-weight: 400; /* 全局字重不超过500 */
+  }
+  .shell { display: flex; flex-direction: column; height: 100vh; }
+  
+  /* --- Header --- */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px;
+    background: var(--panel-color);
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+  }
+  .header h1 { font-size: 1.2em; font-weight: 500; margin: 0; }
+  .header-controls { display: flex; gap: 10px; }
+  .header-btn {
+    background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px;
+    padding: 6px 12px; cursor: pointer; color: var(--text-color);
+  }
+  #settings-panel {
+    position: fixed; top: 65px; right: 20px; width: 220px; background: var(--panel-color);
+    border-radius: 10px; box-shadow: var(--shadow); border: 1px solid var(--border-color);
+    z-index: 1001; padding: 8px; display: none;
+  }
+  .settings-group { padding: 8px 0; }
+  .settings-title { font-size: 0.8em; color: #6b7280; margin-bottom: 8px; padding: 0 8px; }
+  .settings-options { display: flex; gap: 5px; padding: 0 8px; }
+  .settings-option { flex: 1; text-align: center; padding: 6px 8px; border: 1px solid var(--border-color); background: var(--bg-color); cursor: pointer; font-size: 0.9em; border-radius: 6px; color: var(--text-color); }
+  .settings-option.active { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+  .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.1); z-index: 1000; display: none; }
+  body.dark-mode .overlay { background: rgba(0,0,0,0.4); }
+
+  /* --- Split Pane & Page Layout --- */
+  #main-shell { display: flex; flex-grow: 1; overflow: hidden; }
+  #left-pane { flex: 1 1 100%; overflow-y: auto; background: var(--panel-color); transition: flex-basis 0.4s ease-in-out; }
+  #splitter { width: var(--splitter-width); background: var(--splitter-color); cursor: col-resize; display: none; }
+  #right-pane { flex: 0 0 0; overflow-y: auto; background: var(--bg-color); display: none; position: relative; }
+  #main-shell.split-view #left-pane { flex-basis: 50%; }
+  #main-shell.split-view #splitter { display: block; }
+  #main-shell.split-view #right-pane { display: block; flex-basis: calc(50% - var(--splitter-width)); padding: 0 24px; }
+
+  /* --- Sticky Header & Audio Player --- */
+  #sticky-header { position: sticky; top: 0; z-index: 10; background: var(--panel-color); padding: 20px 24px 0; }
+  .audio-player-wrapper { border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 10px; }
+  .audio-player { display: flex; align-items: center; gap: 15px; }
+  .play-pause-btn { background: var(--accent-color); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 1.1em; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .progress-container { flex-grow: 1; height: 20px; display: flex; align-items: center; cursor: pointer; }
+  .progress-bar-wrapper { width: 100%; height: 8px; background-color: #e0e0e0; border-radius: 4px; position: relative; }
+  body.dark-mode .progress-bar-wrapper { background-color: #4b5563; }
+  .progress-bar { width: 0; height: 100%; background-color: var(--accent-color); border-radius: 4px; }
+  .time-display { font-size: 0.8em; min-width: 90px; text-align: center; }
+  .speed-control select { padding: 4px 8px; border-radius: 5px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-color); font-size: 0.8em; }
+
+  /* --- Content & Bottom Bar --- */
+  #test-pages-container { padding: 0 24px; }
+  .bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; height: 64px; background: var(--panel-color); border-top: 1px solid var(--border-color); box-shadow: 0 -6px 18px rgba(0,0,0,.06); display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 16px; z-index: 100; }
+  .bb-left, .bb-center { display: flex; align-items: center; gap: 12px; }
+  .bb-center button { height: 36px; padding: 0 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-color); cursor: pointer; color: var(--text-color); }
+  .q-nav-container { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .q-nav-item { display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; padding: 0 5px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); font-size: 0.9em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; }
+  .q-nav-item.answered { background: var(--answered-bg); border-color: var(--answered-border); color: var(--answered-text); }
+  .q-nav-item.correct { background: var(--correct-bg); border-color: var(--correct-border); color: var(--correct-text); }
+  .q-nav-item.incorrect { background: var(--incorrect-bg); border-color: var(--incorrect-border); color: var(--incorrect-text); }
+
+  /* --- Side Panels (Notes Only) --- */
+  body { transition: padding-right .25s ease; }
+  body.notes-open { padding-right: 420px; }
+  #notes { position: fixed; right: -420px; top: 0; bottom: 64px; width: 420px; background: var(--bg-color); border-left: 1px solid var(--border-color); transition: right .25s ease; z-index: 99; display: flex; flex-direction: column; }
+  body.notes-open #notes { right: 0; }
+  .side-panel-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border-color); background: var(--panel-color); flex-shrink: 0; }
+  .side-panel-header span { font-weight: 500; }
+  .side-panel-close { background: transparent; border: none; font-size: 1.5em; font-weight: 300; cursor: pointer; color: var(--text-color); }
+  #notes-list { overflow-y: auto; padding: 12px; flex-grow: 1; }
+
+  /* --- Note Cards & Highlighter --- */
+  .note-card { 
+    background: var(--panel-color); 
+    border-radius: 10px; 
+    padding: 12px; 
+    margin: 0 0 10px; 
+    border: 1px solid var(--border-color); 
+  }
+  .note-quote { /* This div holds the highlighted quote */
+    font-weight: 500;
+    font-size: 1.1em;
+    margin-bottom: 12px;
+  }
+  .note-actions { 
+    margin-top: 8px; 
+  }
+  .note-actions button[data-act="del-note"] { 
+    border: 1px solid var(--incorrect-border); 
+    background: transparent;
+    border-radius: 8px; 
+    padding: 6px 12px; 
+    cursor: pointer; 
+    color: var(--incorrect-text);
+    font-size: 0.9em;
+    font-weight: 500;
+  }
+  .note-card textarea { 
+    width: 100%; 
+    min-height: 64px; 
+    border: 1px solid var(--border-color); 
+    border-radius: 8px; 
+    padding: 8px; 
+    box-sizing: border-box; 
+    background: var(--bg-color); 
+    color: var(--text-color); 
+    font-size: 1em;
+  }
+
+  .hl { background: #fff59d; }
+  body.dark-mode .hl { background: #a16207; }
+  .hl-blue { background: #CEDDFE; cursor: pointer; }
+  body.dark-mode .hl-blue { background: #312e81; }
+  #selbar { position: absolute; background: #ffffff; color: #333; border: 1px solid #ccc; border-radius: 10px; box-shadow: var(--shadow); padding: 6px; gap: 6px; display: inline-flex; z-index: 101; }
+  #selbar[hidden] { display: none; }
+  #selbar button { border: 1px solid #ccc; border-radius: 8px; padding: 4px 8px; background: #f0f0f0; color: #333; cursor: pointer; }
+  body.dark-mode #selbar { background: #f9fafb; color: #1f2937; border: 1px solid #9ca3af; }
+  body.dark-mode #selbar button { background: #e5e7eb; color: #1f2937; border: 1px solid #9ca3af; }
+
+  /* --- General Question Styles --- */
+  .group { border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin: 24px 0; }
+  .test-title, .group h4, .test-main-title { margin: 0 0 12px; font-size: 1.1em; color: var(--text-color); font-weight: 500; }
+  .test-main-title { text-align: center; font-size: 1.5em; margin-bottom: 24px; }
+  .group .instructions { margin-bottom: 16px; background: var(--bg-color); padding: 10px; border-radius: 8px; font-weight: 400; }
+  .group p, .group li, .group label { line-height: 2; }
+  b, strong { font-weight: 500; } /* 题号、选项首字母字重为500 */
+  label { display: block; cursor: pointer; }
+
+  /* --- Fill in the blank --- */
+  input.blank { border: 1.5px solid #777; border-radius: 4px; width: 10em; padding: 4px 6px; vertical-align: middle; text-align: center; margin: 0 4px; font-size: 1em; transition: all 0.2s ease-in-out; background: transparent; color: var(--text-color); }
+  input.blank:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 3px var(--accent-color); }
+  input.blank.input-correct { border-color: var(--correct-border); background-color: var(--correct-bg); }
+  input.blank.input-incorrect { border-color: var(--incorrect-border); background-color: var(--incorrect-bg); }
+
+  /* --- Matching Questions --- */
+  .match-row { display: flex; align-items: center; gap: 10px; line-height: 1.8; }
+  .match-q b { font-weight: 500; }
+  .match-slot { min-width: 120px; min-height: 32px; padding: 4px 10px; border-radius: 8px; border: 1px dashed #D1D9F0; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 1em; color: #8AA2C1; transition: background-color .2s, border-color .2s; vertical-align: middle; }
+  .match-slot.drag-over { border-color: #6F86FF; background: #F2F6FF; }
+  .match-slot.filled { border-color: transparent; background: transparent; padding: 0; }
+  .match-slot::before { content: attr(data-q); color: #8AA2C1; }
+  .match-slot.filled::before { content: ''; }
+  .tag { display: inline-flex; align-items: center; padding: 4px 10px; border: 1px solid #b9c2e1; background: #f8f9ff; border-radius: 8px; cursor: grab; user-select: none; font-weight: 500; color:#2a2f45; }
+  .tag.dragging { opacity: .6; }
+  .drag-pool { background: #F5F6F8; padding: 12px; border-radius: 8px; display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .drag-option { background: #fff; border: 1px solid #D7DEEA; border-radius: 6px; padding: 6px 12px; cursor: grab; user-select: none; }
+  .drag-option.dragging { opacity: .5; }
+  .drag-option.hidden-in-pool { display: none !important; }
+  .drag-pool.drag-over { outline: 2px dashed #8fb1ff; outline-offset: 4px; }
+
+  /* --- Flowchart Layout --- */
+  .flowchart-container {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    background: var(--panel-color);
+  }
+  
+  .flowchart-title {
+    text-align: center;
+    font-weight: 500;
+    margin-bottom: 20px;
+    font-size: 1.2em;
+  }
+  
+  .flowchart-step {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: var(--bg-color);
+    border-radius: 8px;
+  }
+  
+  .step-number {
+    width: 40px;
+    height: 40px;
+    background: var(--accent-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    flex-shrink: 0;
+    font-weight: 500;
+  }
+  
+  .step-content {
+    flex: 1;
+  }
+  
+  .step-text {
+    margin-bottom: 8px;
+  }
+  
+  .flowchart-slot {
+    min-width: 180px;
+    min-height: 36px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px dashed #D1D9F0;
+    background: #FFFFFF;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1em;
+    color: #8AA2C1;
+    transition: background-color .2s, border-color .2s;
+    vertical-align: middle;
+  }
+  
+  .flowchart-slot.drag-over {
+    border-color: #6F86FF;
+    background: #F2F6FF;
+  }
+  
+  .flowchart-slot.filled {
+    border-color: transparent;
+    background: transparent;
+    padding: 0;
+  }
+  
+  .flowchart-pool {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  @media (max-width: 768px) {
+    .flowchart-pool {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  /* --- Radio buttons and Checkboxes --- */
+  input[type="radio"], input[type="checkbox"] {
+    margin-right: 8px;
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+  }
+  
+  /* --- Post-Submission Results & Transcript --- */
+  .results-in-page { margin-top: 30px; border-top: 2px solid var(--border-color); padding-top: 20px; }
+  .results-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.9em; }
+  .results-table th, .results-table td { border: 1px solid var(--border-color); padding: 8px 12px; text-align: left; }
+  .results-table th { background: var(--bg-color); font-weight: 500; }
+  .result-correct { color: var(--correct-text); font-weight: 500; }
+  .result-incorrect { color: var(--incorrect-text); font-weight: 500; }
+  
+  #transcript-content { position: relative; }
+  #transcript-content h4 { font-weight: 500; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; margin: 24px 0 16px 0; font-size: 1.2em; }
+  #transcript-content p { margin-bottom: 0.5em; line-height: 1.7; font-weight: 400; }
+  .answer-highlight { background-color: #dbeafe; padding: 2px 5px; border-radius: 4px; border-bottom: 2px solid #93c5fd; }
+  body.dark-mode .answer-highlight { background-color: #1e3a8a; }
+  .t-line { padding:2px 6px; border-radius:6px; transition: background-color 0.2s; }
+  #close-transcript-btn { position: absolute; top: 24px; right: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 50%; width: 32px; height: 32px; font-size: 1.2em; cursor: pointer; z-index: 5; }
+  
+  /* --- Save Toast Notification --- */
+  #toast { position: fixed; right: 20px; bottom: 84px; background: #26a269; color: #fff; padding: 10px 14px; border-radius: 8px; box-shadow: var(--shadow); font-size: 0.9em; z-index: 200; opacity: 0; pointer-events: none; transform: translateY(10px); transition: opacity .2s ease, transform .2s ease; }
+  #toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body class="font-regular">
+
+<div class="shell">
+  <header class="header">
+    <h1>IELTS Listening Practice</h1>
+    <div class="header-controls">
+        <button id="settings-btn" class="header-btn">Text Size/Color</button>
+    </div>
+  </header>
+
+  <div id="settings-panel">
+    <div class="settings-group">
+        <div class="settings-title">Font Size</div>
+        <div class="settings-options">
+            <button class="settings-option active" data-size="regular">Regular</button>
+            <button class="settings-option" data-size="large">Large</button>
+            <button class="settings-option" data-size="xlarge">X-Large</button>
+        </div>
+    </div>
+    <div class="settings-group">
+        <div class="settings-title">Color Mode</div>
+        <div class="settings-options">
+            <button class="settings-option active" data-mode="light">Light</button>
+            <button class="settings-option" data-mode="dark">Dark</button>
+        </div>
+    </div>
+  </div>
+  <div class="overlay"></div>
+
+  <div id="main-shell">
+    <div id="left-pane">
+      <div id="sticky-header">
+        <div class="audio-player-wrapper" id="audio-player-container"></div>
+      </div>
+      <div id="test-pages-container"></div>
+    </div>
+    <div id="splitter"></div>
+    <div id="right-pane">
+      <div id="transcript-content"></div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-bar">
+  <div class="bb-left">
+    <div id="q-nav-container" class="q-nav-container"></div>
+  </div>
+  <div class="bb-center">
+    <span id="timer">00:00</span>
+    <button id="finish-btn" type="button">Finish</button>
+    <button id="save-btn" type="button">Save</button>
+    <button id="clear-btn" type="button">Clear</button>
+    <button id="toggle-notes-btn" type="button">Notes</button>
+    <button id="toggle-transcript-btn" type="button">Transcript</button>
+  </div>
+</div>
+
+<div id="notes" aria-hidden="true"><div class="side-panel-header"><span>My Notes</span><button id="notes-close" type="button" class="side-panel-close">&times;</button></div><div id="notes-list"></div></div>
+<div id="selbar" hidden>
+    <button data-act="hl">Highlight</button>
+    <button data-act="note">Note</button>
+    <button data-act="del">Clear</button>
+</div>
+<div id="toast" role="status" aria-live="polite">Progress saved!</div>
+
+<script id="task-configuration">
+const CONFIG_DATA = {
+  localStorageKey: 'ieltsListening_art_science_v1',
+  questionList: ['21', '22', '23', '24', '25', '26', '27', '28', '29', '30'],
+  answerKey: {
+    single: { 
+      'q21': 'B', 
+      'q22': 'A', 
+      'q23': 'B', 
+      'q24': 'C'
+    },
+    matching: { 
+      'q25': 'D', 
+      'q26': 'G', 
+      'q27': 'F', 
+      'q28': 'E', 
+      'q29': 'C', 
+      'q30': 'B' 
+    }
+  },
+  transcriptLines: [
+    ["00:00", "00:09", "Section 3 You will hear two students called Josh and Emily discussing an assignment on applying scientific techniques to art."],
+    ["00:10", "00:17", "First you have some time to look at questions 21 to 24 on page 5."],
+    ["00:30", "00:59", "Now listen carefully and answer questions 21 to 24."],
+    ["01:00", "01:04", "Hi Emily. Hi Josh are you ready to work on the assignment?"],
+    ["01:05", "01:12", "Yeah. Now we need to describe how modern scientific techniques are being used in the field of art history."],
+    ["01:13", "01:18", "Right. And Dr Abbott suggested that we choose some famous cases to illustrate the argument."],
+    ["01:19", "01:21", "Okay so what have you found?"],
+    ["01:22", "01:25", "Well there's a Canadian forensic scientist called Biro."],
+    ["01:26", "01:27", "Yes I think I've heard of him."],
+    ["01:28", "01:30", "What do you know about him?"],
+    ["01:31", "01:33", "Well I'm a big fan of Jackson Pollock."],
+    ["01:34", "01:36", "The modern American artist."],
+    ["01:37", "01:38", "Didn't he paint those really huge abstract paintings?"],
+    ["01:39", "01:40", "That's him."],
+    ["01:41", "01:42", "I guess it would be pretty easy to fake one of those paintings."],
+    ["01:43", "01:47", "No way Emily. I know a lot of people think that even a child could paint one."],
+    ["01:48", "01:54", "To the untrained eye they might look simple but they're <span class='answer-highlight'>(Q21) incredibly intricate works of art</span>."],
+    ["01:55", "01:59", "Well sorry but I really can't agree with you."],
+    ["02:00", "02:01", "Anyway what did Biro find out?"],
+    ["02:02", "02:11", "Well Biro worked on a case where a client asked him to prove that a painting she bought for only five dollars was an authentic Jackson Pollock."],
+    ["02:12", "02:13", "So was it a fake?"],
+    ["02:14", "02:20", "Well Biro found evidence to show it was a genuine Pollock but the art world didn't accept his findings."],
+    ["02:21", "02:22", "Why?"],
+    ["02:23", "02:28", "Well one critic said that compared to other Pollocks the white and yellow lines on the painting were too straight."],
+    ["02:29", "02:32", "Come on Josh."],
+    ["02:33", "02:35", "That doesn't seem that convincing."],
+    ["02:36", "02:39", "No you're right it is a bit weak."],
+    ["02:40", "02:46", "But the strongest argument was that <span class='answer-highlight'>(Q22) there were no records of previous owners</span>."],
+    ["02:47", "02:55", "For the painting to be authentic you really should be able to trace the painting all the way back to the artist's studio."],
+    ["02:56", "02:59", "Well that's true I suppose."],
+    ["03:00", "03:03", "Did they consult with anyone else?"],
+    ["03:04", "03:08", "The International Foundation for Art Research got involved."],
+    ["03:09", "03:11", "And what was their verdict?"],
+    ["03:12", "03:16", "Well they saw a definite similarity in the painting techniques used."],
+    ["03:17", "03:21", "You mean the way Pollock dripped the oils on the canvas?"],
+    ["03:22", "03:29", "Yeah and they noted the dirt and paint marks on the back which all of Pollock's paintings have."],
+    ["03:30", "03:32", "Why's that?"],
+    ["03:33", "03:38", "He used to lie his canvases down on the ground when he painted them."],
+    ["03:39", "03:45", "But the foundation were worried about <span class='answer-highlight'>(Q23) the acrylic paint that was used on the painting</span>."],
+    ["03:46", "03:52", "It's quite common now but it was very unusual back in Pollock's day."],
+    ["03:53", "03:55", "So it was probably painted much later."],
+    ["03:56", "03:57", "Right."],
+    ["03:58", "04:02", "So whose side are we on in this argument?"],
+    ["04:03", "04:07", "When it comes to art you can see the art critics point."],
+    ["04:08", "04:15", "If their knowledge and expertise tells them that it definitely isn't a Pollock painting, shouldn't we believe them?"],
+    ["04:16", "04:20", "I mean that is usually how it works in the art world isn't it?"],
+    ["04:21", "04:26", "Art historians have always judged paintings but things are changing now."],
+    ["04:27", "04:34", "If we have modern scientific techniques like fingerprint analysis, why not use them?"],
+    ["04:35", "04:36", "That's true."],
+    ["04:37", "04:41", "Well maybe we need <span class='answer-highlight'>(Q24) a combination</span>."],
+    ["04:42", "04:44", "I think you're right."],
+    ["04:45", "04:54", "Before you hear the rest of the discussion you have some time to look at questions 25 to 30 on page 6."],
+    ["05:15", "05:27", "Now listen and answer questions 25 to 30."],
+    ["05:28", "05:34", "So did you find out anything else Josh?"],
+    ["05:35", "05:39", "Well have you ever heard of a painting called The Battle of Angiari?"],
+    ["05:40", "05:42", "I have actually."],
+    ["05:43", "05:48", "It's the Lost Masterpiece by Leonardo da Vinci, the famous Italian artist."],
+    ["05:49", "05:51", "What about it?"],
+    ["05:52", "06:02", "Well an Italian art analyst called Serrichini thinks he knows where it is and he's using scientific techniques to help locate it."],
+    ["06:03", "06:04", "How?"],
+    ["06:05", "06:11", "Well art historians knew where the painting was last seen."],
+    ["06:12", "06:16", "That's right in the hall of the 500 in Florence."],
+    ["06:17", "06:18", "Right."],
+    ["06:19", "06:25", "So Serrichini had a theory that the painting was still there and he set out to prove it."],
+    ["06:26", "06:32", "He used a lot of different technology like radar and thermographic cameras."],
+    ["06:33", "06:42", "But initially <span class='answer-highlight'>(Q25) he scanned every inch of the hall with a laser</span> in order to make a really accurate 3D model of the building's design."],
+    ["06:43", "06:47", "Did he think the painting was hidden in the building somewhere?"],
+    ["06:48", "06:49", "Exactly."],
+    ["06:50", "06:58", "Then to find out what the hall looked like in Leonardo's time, <span class='answer-highlight'>(Q26) he took pictures of it with a thermographic camera</span>."],
+    ["06:59", "07:02", "Couldn't he have used ultrasound to do that?"],
+    ["07:03", "07:04", "Not really."],
+    ["07:05", "07:14", "Different types of building materials produce different amounts of radiation and you can really see those differences in a thermal image."],
+    ["07:15", "07:20", "So brick would look different from wood or glass, for example."],
+    ["07:21", "07:22", "Yes."],
+    ["07:23", "07:30", "Serrichini worked out what the building looked like when it was first built and what renovations took place after that."],
+    ["07:31", "07:44", "He found that <span class='answer-highlight'>(Q27) two large glass windows on the east wall had been removed</span> and filled in by the time DaVinci started work on his painting, leaving a space big enough for it."],
+    ["07:45", "07:48", "But why hasn't the painting been seen for 400 years?"],
+    ["07:49", "07:55", "To answer that question, Serrichini needed to study that wall even more closely."],
+    ["07:56", "07:58", "Did he use the thermographic camera again?"],
+    ["07:59", "08:02", "No, this time <span class='answer-highlight'>(Q28) he used another kind of technology, radar</span>."],
+    ["08:03", "08:04", "And what did that show?"],
+    ["08:05", "08:12", "It showed that there were in fact two walls there, an older one and a newer one built in front of it."],
+    ["08:13", "08:17", "So does Serrichini believe that DaVinci's painting is on the concealed wall?"],
+    ["08:18", "08:19", "Yes."],
+    ["08:20", "08:25", "On a <span class='answer-highlight'>(Q29) stone wall concealed by the newer brick wall</span>."],
+    ["08:26", "08:30", "So what's the next stage in the investigation?"],
+    ["08:31", "08:40", "Well, he isn't allowed to remove any plaster or bricks, so <span class='answer-highlight'>(Q30) he's now experimenting with a gamma ray camera</span> to try and verify his theory."],
+    ["08:41", "08:47", "Well, I think we've got some really strong examples there of how science can help art."],
+    ["08:48", "08:52", "Let's see if we can type up an outline."],
+    ["08:55", "08:57", "That is the end of section 3."],
+    ["08:58", "09:02", "You now have half a minute to check your answers."]
+  ]
+};
+</script>
+
+<script>
+(function() {
+'use strict';
+
+const App = {
+    init() {
+        this.config = CONFIG_DATA;
+        this.state = { timerSecs:0, timerInterval:null, isReviewing: false, settingsOpen: false, currentDragData:null, draggingEl:null };
+        this.buildLayout();
+        this.cacheElements();
+        this.bindEvents();
+        this.loadState();
+        this.AudioPlayer.init();
+        this.Splitter.init();
+        this.applySafeArea();
+        this.startTimer();
+        this.buildQuestionNav();
+        this.updateNavState();
+    },
+
+    buildLayout() {
+        const audioContainer = document.getElementById('audio-player-container');
+        const pagesContainer = document.getElementById('test-pages-container');
+        const transcriptContainer = document.getElementById('transcript-content');
+        
+        audioContainer.innerHTML = this.Templates.audioPlayer();
+        pagesContainer.innerHTML = this.Templates.questionsPage();
+        transcriptContainer.innerHTML = this.Templates.transcriptPage();
+    },
+
+    cacheElements() {
+        const $ = s => document.querySelector(s);
+        this.el = {
+            mainShell: $('#main-shell'), leftPane: $('#left-pane'), testPagesContainer: $('#test-pages-container'),
+            transcriptContent: $('#transcript-content'), notesList: $('#notes-list'),
+            bottomBar: $('.bottom-bar'), timer: $('#timer'), finishBtn: $('#finish-btn'),
+            saveBtn: $('#save-btn'), clearBtn: $('#clear-btn'), toggleNotesBtn: $('#toggle-notes-btn'), toggleTranscriptBtn: $('#toggle-transcript-btn'),
+            notes: $('#notes'), notesCloseBtn: $('#notes-close'), selbar: $('#selbar'), 
+            allPanes: [$('#left-pane'), $('#right-pane'), $('#notes')],
+            toast: $('#toast'),
+            settingsBtn: $('#settings-btn'), settingsPanel: $('#settings-panel'), overlay: $('.overlay'),
+            qNavContainer: $('#q-nav-container')
+        };
+    },
+    
+    bindEvents() {
+        document.addEventListener('input', e => this.handleFormChange(e));
+        window.addEventListener('resize', () => this.applySafeArea());
+        this.el.allPanes.forEach(p => p.addEventListener('scroll', () => this.highlighter.hideSelbar()));
+        this.el.finishBtn.addEventListener('click', () => this.toggleFinishMode());
+        this.el.saveBtn.addEventListener('click', () => this.saveState());
+        this.el.clearBtn.addEventListener('click', () => this.clearAll());
+        this.el.toggleNotesBtn.addEventListener('click', () => this.notes.toggle(true));
+        this.el.toggleTranscriptBtn.addEventListener('click', () => {
+            this.el.mainShell.classList.toggle('split-view');
+            this.Transcript.buildOnce();
+        });
+        this.el.notesCloseBtn.addEventListener('click', () => this.notes.toggle(false));
+        document.addEventListener('mouseup', e => this.highlighter.handleMouseUp(e));
+        this.el.selbar.addEventListener('click', e => this.highlighter.handleAction(e));
+        
+        // Settings Panel Events
+        this.el.settingsBtn.addEventListener('click', e => { e.stopPropagation(); this.toggleSettingsPanel(); });
+        this.el.overlay.addEventListener('click', () => this.toggleSettingsPanel(false));
+        document.addEventListener('click', e => { if (this.state.settingsOpen && !this.el.settingsPanel.contains(e.target) && !this.el.settingsBtn.contains(e.target)) this.toggleSettingsPanel(false); });
+        this.el.settingsPanel.querySelectorAll('.settings-option[data-size]').forEach(btn => btn.addEventListener('click', () => { document.documentElement.className = `font-${btn.dataset.size}`; this.el.settingsPanel.querySelectorAll('.settings-option[data-size]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }));
+        this.el.settingsPanel.querySelectorAll('.settings-option[data-mode]').forEach(btn => btn.addEventListener('click', () => { document.body.classList.toggle('dark-mode', btn.dataset.mode === 'dark'); this.el.settingsPanel.querySelectorAll('.settings-option[data-mode]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }));
+        
+        // Drag and Drop Events
+        document.addEventListener('dragstart', e => this.dnd.handleDragStart(e)); 
+        document.addEventListener('dragend', e => this.dnd.handleDragEnd(e));
+        document.addEventListener('dragover', e => this.dnd.handleDragOver(e)); 
+        document.addEventListener('dragleave', e => this.dnd.handleDragLeave(e));
+        document.addEventListener('drop', e => this.dnd.handleDrop(e));
+    },
+
+    applySafeArea() {
+        const h = this.el.bottomBar.offsetHeight;
+        this.el.allPanes.forEach(p => p.style.bottom = p.matches('#notes') ? `${h}px` : 'auto');
+        this.el.leftPane.style.paddingBottom = `${h + 20}px`;
+    },
+
+    startTimer() { this.state.timerInterval = setInterval(() => this.tick(), 1000); },
+    tick() { this.state.timerSecs++; this.updateTimerUI(); },
+    updateTimerUI() { const m = String(Math.floor(this.state.timerSecs / 60)).padStart(2, '0'), s = String(this.state.timerSecs % 60).padStart(2, '0'); this.el.timer.textContent = `${m}:${s}`; },
+    
+    handleFormChange(e) {
+        if (e.target.matches('input, textarea, select')) {
+            this.updateNavState();
+        }
+    },
+    
+    toggleSettingsPanel(forceOpen) {
+        const open = forceOpen === undefined ? !this.state.settingsOpen : forceOpen;
+        this.state.settingsOpen = open;
+        this.el.settingsPanel.style.display = open ? 'block' : 'none';
+        this.el.overlay.style.display = open ? 'block' : 'none';
+    },
+
+    notes: {
+        toggle(forceOpen) { const open = forceOpen === undefined ? !document.body.classList.contains('notes-open') : forceOpen; document.body.classList.toggle('notes-open', open); },
+        create(targetSpan) {
+            if (!targetSpan) return; 
+            const hid = targetSpan.dataset.hid || `h_${Date.now()}`; 
+            targetSpan.dataset.hid = hid;
+            
+            const existed = App.el.notesList.querySelector(`.note-card[data-hid="${hid}"]`); 
+            if (existed) { 
+                App.notes.toggle(true); 
+                existed.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); 
+                return; 
+            }
+
+            const text = (targetSpan.textContent || '').trim(); 
+            const card = document.createElement('div'); 
+            card.className = 'note-card'; 
+            card.dataset.hid = hid;
+            
+            const quoteDiv = document.createElement('div');
+            quoteDiv.className = 'note-quote';
+            quoteDiv.innerHTML = escapeHtml(text) || '(no text selected)';
+
+            const textarea = document.createElement('textarea');
+            textarea.placeholder = "Write note here...";
+
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'note-actions';
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.dataset.act = 'del-note';
+            deleteBtn.textContent = 'Delete';
+
+            // 直接绑定删除逻辑
+            deleteBtn.onclick = () => {
+                const originalHighlight = document.querySelector(`[data-hid="${hid}"]`);
+                if (originalHighlight) {
+                    App.highlighter.unWrap(originalHighlight);
+                }
+                card.remove();
+            };
+
+            actionsDiv.appendChild(deleteBtn);
+            card.append(quoteDiv, textarea, actionsDiv);
+            App.el.notesList.prepend(card); 
+            App.notes.toggle(true);
+        }
+    },
+
+    highlighter: {
+        unWrap(el) { if (el && el.parentNode) { const p = el.parentNode; while (el.firstChild) p.insertBefore(el.firstChild, el); p.removeChild(el); p.normalize(); } },
+        hideSelbar() { if (App.el && App.el.selbar) { App.el.selbar.hidden = true; App.el.selbar.style.transform = ''; } },
+        positionToolbar(rect, w) { let left = rect.left + rect.width / 2 - w / 2; App.el.selbar.style.left = `${window.scrollX + left}px`; App.el.selbar.style.top = `${window.scrollY + rect.top}px`; App.el.selbar.style.transform = 'translateY(-100%) translateY(-8px)'; },
+        handleMouseUp(e) {
+            if (e.target.closest('#selbar, #notes, .bottom-bar')) return;
+            const clickedHl = e.target.closest('.hl,.hl-blue');
+            const s = window.getSelection();
+            App.el.selbar.targetElement = null;
+            if (clickedHl && s.isCollapsed) {
+                s.removeAllRanges();
+                App.el.selbar.querySelector('[data-act="hl"]').hidden = true;
+                App.el.selbar.querySelector('[data-act="note"]').hidden = false;
+                App.el.selbar.querySelector('[data-act="del"]').hidden = false;
+                App.el.selbar.hidden = false;
+                this.positionToolbar(clickedHl.getBoundingClientRect(), App.el.selbar.offsetWidth);
+                App.el.selbar.targetElement = clickedHl;
+            } else if (s && !s.isCollapsed) {
+                const rect = s.getRangeAt(0).getBoundingClientRect();
+                if (!rect || (!rect.width && !rect.height)) return this.hideSelbar();
+                App.el.selbar.querySelector('[data-act="hl"]').hidden = false;
+                App.el.selbar.querySelector('[data-act="note"]').hidden = false;
+                App.el.selbar.querySelector('[data-act="del"]').hidden = true;
+                App.el.selbar.hidden = false;
+                this.positionToolbar(rect, App.el.selbar.offsetWidth);
+            } else {
+                this.hideSelbar();
+            }
+        },
+        handleAction(e) {
+            const act = e.target.closest('button')?.dataset.act;
+            if (!act) return;
+            if (act === 'hl' || act === 'note') {
+                const s = window.getSelection();
+                if (!s || s.isCollapsed) return;
+                const r = s.getRangeAt(0);
+                const span = document.createElement('span');
+                span.className = act === 'hl' ? 'hl' : 'hl-blue';
+                try { r.surroundContents(span); } catch { span.appendChild(r.extractContents()); r.insertNode(span); }
+                if (act === 'note') { span.dataset.hid = `h_${Date.now()}`; App.notes.create(span); }
+            } else if (act === 'del' && App.el.selbar.targetElement) {
+                this.unWrap(App.el.selbar.targetElement);
+            }
+            this.hideSelbar();
+        }
+    },
+    
+    dnd: {
+        getData(el){ 
+            if (!el) return null; 
+            if (el.classList.contains('drag-option')) return { type: 'pool', code: el.dataset.value, label: el.textContent.trim(), sourceEl: el }; 
+            if (el.classList.contains('tag')) return { type: 'tag', code: el.dataset.value, label: el.textContent.trim(), sourceEl: el }; 
+            return null; 
+        },
+        handleDragStart(e){ 
+            const el = e.target.closest('.drag-option, .tag, .flowchart-option'); 
+            if (!el) return; 
+            const data = App.state.currentDragData = this.getData(el) || { 
+                type: 'flowchart', 
+                code: el.dataset.value, 
+                label: el.textContent.trim(), 
+                sourceEl: el 
+            }; 
+            App.state.draggingEl = el; 
+            el.classList.add('dragging'); 
+            e.dataTransfer.setData('text/plain', JSON.stringify({ code: data.code, label: data.label, kind: 'match' })); 
+            e.dataTransfer.effectAllowed = 'move'; 
+        },
+        handleDragEnd(){ 
+            if (App.state.draggingEl) App.state.draggingEl.classList.remove('dragging'); 
+            App.state.draggingEl = null; 
+            App.state.currentDragData = null; 
+        },
+        handleDragOver(e){ 
+            const slot = e.target.closest('.match-slot, .flowchart-slot'); 
+            const pool = e.target.closest('.drag-pool, .flowchart-pool'); 
+            if (slot || pool) { 
+                e.preventDefault(); 
+                (slot || pool).classList.add('drag-over'); 
+            } 
+        },
+        handleDragLeave(e){ 
+            e.target.closest('.match-slot, .flowchart-slot')?.classList.remove('drag-over'); 
+            e.target.closest('.drag-pool, .flowchart-pool')?.classList.remove('drag-over'); 
+        },
+        handleDrop(e){ 
+            const slot = e.target.closest('.match-slot, .flowchart-slot'); 
+            const pool = e.target.closest('.drag-pool, .flowchart-pool'); 
+            const draggingData = App.state.currentDragData; 
+            const payload = JSON.parse(e.dataTransfer.getData('text/plain') || '{}'); 
+            const code = payload.code || draggingData?.code; 
+            const label = payload.label || draggingData?.label; 
+            
+            if (!code) return; 
+            
+            if (pool) { 
+                e.preventDefault(); 
+                pool.classList.remove('drag-over'); 
+                if (draggingData?.type === 'tag' || draggingData?.type === 'flowchart') { 
+                    const srcSlot = draggingData.sourceEl.closest('.match-slot, .flowchart-slot'); 
+                    App.dnd.clearSlot(srcSlot); 
+                } 
+                App.dnd.showOptionInPool(pool.closest('.group, .flowchart-container'), code, true); 
+                App.updateNavState(); 
+                return; 
+            } 
+            
+            if (slot) { 
+                e.preventDefault(); 
+                slot.classList.remove('drag-over'); 
+                const group = slot.closest('.group, .flowchart-container'); 
+                const poolEl = group.querySelector('.drag-pool, .flowchart-pool'); 
+                const reusable = (poolEl.dataset.reusable === 'true'); 
+                const oldTag = slot.querySelector('.tag'); 
+                
+                if (oldTag) { 
+                    App.dnd.showOptionInPool(group, oldTag.dataset.value, true); 
+                    App.dnd.clearSlot(slot); 
+                } 
+                
+                if (draggingData?.type === 'tag' || draggingData?.type === 'flowchart') { 
+                    const fromSlot = draggingData.sourceEl.closest('.match-slot, .flowchart-slot'); 
+                    if (fromSlot && fromSlot !== slot) App.dnd.clearSlot(fromSlot); 
+                } 
+                
+                App.dnd.createTag(slot, code, label); 
+                if (!reusable) App.dnd.showOptionInPool(group, code, false); 
+                App.updateNavState(); 
+            } 
+        },
+        createTag(slot, code, label){ 
+            slot.innerHTML = ''; 
+            const t = document.createElement('span'); 
+            t.className = 'tag'; 
+            t.setAttribute('draggable', 'true'); 
+            t.dataset.value = code; 
+            t.textContent = label; 
+            slot.appendChild(t); 
+            slot.classList.add('filled'); 
+        },
+        clearSlot(slot){ if (slot) { slot.innerHTML = ''; slot.classList.remove('filled'); } },
+        showOptionInPool(group, code, visible){ 
+            const opt = group.querySelector(`.drag-pool .drag-option[data-value="${code}"], .flowchart-pool .flowchart-option[data-value="${code}"]`); 
+            if (opt) opt.classList.toggle('hidden-in-pool', !visible); 
+        }
+    },
+    
+    buildQuestionNav() {
+        this.el.qNavContainer.innerHTML = '';
+        this.config.questionList.forEach(qNum => {
+            const navItem = document.createElement('div');
+            navItem.className = 'q-nav-item';
+            navItem.textContent = qNum;
+            navItem.dataset.qnum = qNum;
+            navItem.addEventListener('click', () => {
+                const firstNum = qNum.split('-')[0];
+                const input = document.querySelector(`[data-q="${firstNum}"], [name="q${firstNum}"]`);
+                if (input) {
+                    const group = input.closest('.group, .flowchart-container');
+                    if (group) group.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    if (!input.closest('.match-slot, .flowchart-slot')) input.focus();
+                }
+            });
+            this.el.qNavContainer.appendChild(navItem);
+        });
+    },
+
+    updateNavState() {
+        this.config.questionList.forEach(qNum => {
+            const navItem = this.el.qNavContainer.querySelector(`[data-qnum="${qNum}"]`);
+            if (!navItem) return;
+
+            let isAnswered = false;
+            
+            // 单选题
+            const qKey = `q${qNum}`;
+            const radioInput = document.querySelector(`input[name="${qKey}"]:checked`);
+            const flowchartSlot = document.querySelector(`.flowchart-slot[data-q="${qNum}"]`);
+            const matchSlot = document.querySelector(`.match-slot[data-q="${qNum}"]`);
+
+            if (radioInput) {
+                isAnswered = true;
+            } else if (flowchartSlot && flowchartSlot.classList.contains('filled')) {
+                isAnswered = true;
+            } else if (matchSlot && matchSlot.classList.contains('filled')) {
+                isAnswered = true;
+            }
+            
+            navItem.classList.toggle('answered', isAnswered);
+        });
+    },
+
+    saveState() {
+        const answers = { single: {}, matching: {} };
+        const notesText = {};
+
+        // 收集单选题答案
+        document.querySelectorAll('input[type="radio"]:checked').forEach(i => { 
+            answers.single[i.name] = i.value; 
+        });
+        
+        // 收集流程图拖拽题答案
+        document.querySelectorAll('.flowchart-slot.filled .tag').forEach(t => { 
+            const q = t.closest('.flowchart-slot').dataset.q; 
+            answers.matching[`q${q}`] = t.dataset.value; 
+        });
+        
+        // 收集匹配题答案
+        document.querySelectorAll('.match-slot.filled .tag').forEach(t => { 
+            const q = t.closest('.match-slot').dataset.q; 
+            answers.matching[`q${q}`] = t.dataset.value; 
+        });
+        
+        // 收集笔记
+        this.el.notesList.querySelectorAll('.note-card').forEach(card => { 
+            const hid = card.dataset.hid; 
+            const textarea = card.querySelector('textarea'); 
+            if (hid && textarea) { 
+                notesText[hid] = textarea.value; 
+            } 
+        });
+        
+        const settings = { 
+            fontSize: document.documentElement.className, 
+            darkMode: document.body.classList.contains('dark-mode') 
+        };
+
+        const data = {
+            answers,
+            testPagesHTML: this.el.testPagesContainer.innerHTML,
+            notesHTML: this.el.notesList.innerHTML,
+            notesText,
+            timerSecs: this.state.timerSecs,
+            settings
+        };
+        
+        localStorage.setItem(this.config.localStorageKey, JSON.stringify(data));
+        this.toast('Progress saved!');
+    },
+
+    loadState() {
+        const savedData = localStorage.getItem(this.config.localStorageKey);
+        if (!savedData) return;
+        
+        try {
+            const data = JSON.parse(savedData);
+            
+            if (data.testPagesHTML) this.el.testPagesContainer.innerHTML = data.testPagesHTML;
+            if (data.notesHTML) this.el.notesList.innerHTML = data.notesHTML;
+            if (data.timerSecs) { 
+                this.state.timerSecs = data.timerSecs; 
+                this.updateTimerUI(); 
+            }
+
+            // 恢复笔记内容
+            if (data.notesText) {
+                for (const [hid, text] of Object.entries(data.notesText)) {
+                    const card = this.el.notesList.querySelector(`.note-card[data-hid="${hid}"]`);
+                    if (card) { 
+                        const textarea = card.querySelector('textarea'); 
+                        if (textarea) textarea.value = text; 
+                    }
+                }
+            }
+
+            // 恢复答案
+            if (data.answers) {
+                // 单选题
+                Object.entries(data.answers.single || {}).forEach(([n, v]) => { 
+                    const i = document.querySelector(`[name="${n}"][value="${v}"]`); 
+                    if(i) i.checked=true; 
+                });
+                
+                // 拖拽题（流程图和匹配题）
+                // 状态通过testPagesHTML恢复，因为拖拽元素已经在HTML中
+            }
+
+            // 恢复设置
+            if (data.settings) {
+                document.documentElement.className = data.settings.fontSize || 'font-regular';
+                document.body.classList.toggle('dark-mode', data.settings.darkMode);
+                this.el.settingsPanel.querySelectorAll('.settings-option[data-size]').forEach(b => 
+                    b.classList.toggle('active', `font-${b.dataset.size}` === data.settings.fontSize)
+                );
+                this.el.settingsPanel.querySelectorAll('.settings-option[data-mode]').forEach(b => 
+                    b.classList.toggle('active', (b.dataset.mode === 'dark') === data.settings.darkMode)
+                );
+            }
+            
+            // 更新导航状态
+            this.updateNavState();
+            
+        } catch (e) {
+            console.error("Failed to load state:", e);
+            localStorage.removeItem(this.config.localStorageKey);
+        }
+    },
+    
+    clearAll() {
+        if (!confirm('Are you sure you want to clear all progress? This will remove all answers and highlights.')) return;
+        localStorage.removeItem(this.config.localStorageKey);
+        window.location.reload();
+    },
+
+    toggleFinishMode() {
+        if (this.state.isReviewing) {
+            this.returnToTest();
+        } else {
+            if (confirm('Are you sure you want to finish and submit your answers?')) {
+                this.finishTest();
+            }
+        }
+    },
+
+    finishTest() {
+        this.state.isReviewing = true;
+        this.el.finishBtn.textContent = 'Return to Test';
+        this.el.mainShell.classList.add('split-view');
+        this.Transcript.buildOnce();
+        
+        const resultsTableHTML = this.generateResultsTable();
+        document.querySelector('.results-in-page').innerHTML = resultsTableHTML;
+        
+        document.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
+        document.querySelectorAll('[draggable="true"]').forEach(el => el.setAttribute('draggable', 'false'));
+        clearInterval(this.state.timerInterval);
+        this.gradeAndHighlight();
+    },
+
+    gradeAndHighlight() {
+        const { answerKey } = this.config;
+        const norm = v => String(v ?? '').trim().toLowerCase();
+        
+        this.config.questionList.forEach(qNum => {
+            let isCorrect = false;
+            let qKey;
+
+            if (qNum.includes('-')) { // Multiple choice
+                qKey = `q${qNum.replace('-', '_')}`;
+            } else { // 单选题或匹配题
+                qKey = `q${qNum}`;
+                if (answerKey.single[qKey]) {
+                    const userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
+                    isCorrect = norm(userAns) === norm(answerKey.single[qKey]);
+                } else if (answerKey.matching[qKey]) {
+                    const userAns = document.querySelector(`.flowchart-slot[data-q="${qNum}"] .tag, .match-slot[data-q="${qNum}"] .tag`)?.dataset.value;
+                    isCorrect = norm(userAns) === norm(answerKey.matching[qKey]);
+                }
+            }
+            
+            const navItem = this.el.qNavContainer.querySelector(`[data-qnum="${qNum}"]`);
+            if (navItem) {
+                navItem.classList.remove('answered');
+                navItem.classList.add(isCorrect ? 'correct' : 'incorrect');
+            }
+        });
+    },
+
+    returnToTest() {
+        this.state.isReviewing = false;
+        this.el.finishBtn.textContent = 'Finish';
+        this.el.mainShell.classList.remove('split-view');
+        document.querySelector('.results-in-page').innerHTML = '';
+        document.querySelectorAll('input, select, textarea').forEach(el => el.disabled = false);
+        document.querySelectorAll('.tag, .drag-option, .flowchart-option').forEach(el => el.setAttribute('draggable', 'true'));
+        this.startTimer();
+
+        this.el.qNavContainer.querySelectorAll('.q-nav-item').forEach(i => i.classList.remove('correct', 'incorrect'));
+        this.updateNavState();
+    },
+
+    generateResultsTable() {
+        let tableHTML = '<h4>Answer Review</h4><table class="results-table"><thead><tr><th>Question</th><th>Your Answer</th><th>Correct Answer</th><th>Result</th></tr></thead><tbody>';
+        const { answerKey } = this.config;
+        const norm = v => String(v ?? '').trim().toLowerCase();
+
+        this.config.questionList.forEach(qNumStr => {
+            let userAns, correctAns, isCorrect, userAnsStr, correctAnsStr;
+            let qKey = `q${qNumStr}`;
+            
+            if (answerKey.single[qKey]) {
+                userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
+                correctAns = answerKey.single[qKey];
+                isCorrect = norm(userAns) === norm(correctAns);
+                userAnsStr = escapeHtml(userAns) || '<i>No Answer</i>';
+                correctAnsStr = escapeHtml(correctAns);
+            } else if (answerKey.matching[qKey]) {
+                userAns = document.querySelector(`.flowchart-slot[data-q="${qNumStr}"] .tag, .match-slot[data-q="${qNumStr}"] .tag`)?.dataset.value;
+                correctAns = answerKey.matching[qKey];
+                isCorrect = norm(userAns) === norm(correctAns);
+                userAnsStr = escapeHtml(userAns) || '<i>No Answer</i>';
+                correctAnsStr = escapeHtml(correctAns);
+            }
+            
+            tableHTML += `<tr><td><b>${qNumStr}</b></td><td>${userAnsStr}</td><td>${correctAnsStr}</td><td class="${isCorrect ? 'result-correct' : 'result-incorrect'}">${isCorrect ? '✔ Correct' : '✖ Incorrect'}</td></tr>`;
+        });
+        return tableHTML + '</tbody></table>';
+    },
+
+    toast(msg) { 
+        this.el.toast.textContent = msg; 
+        this.el.toast.classList.add('show'); 
+        setTimeout(() => this.el.toast.classList.remove('show'), 1200); 
+    },
+    
+    AudioPlayer: {
+        init() {
+            const player = document.querySelector('.audio-player-wrapper');
+            if (!player) return;
+            const audio = player.querySelector('.listening-audio'); 
+            const playPauseBtn = player.querySelector('.play-pause-btn'); 
+            const progressContainer = player.querySelector('.progress-container'); 
+            const progressBar = player.querySelector('.progress-bar'); 
+            const timeDisplay = player.querySelector('.time-display'); 
+            const speedSelect = player.querySelector('.playback-speed');
+            let isScrubbing = false;
+            
+            const formatTime = (t) => { 
+                if (isNaN(t)) return "00:00"; 
+                const m = Math.floor(t / 60), s = Math.floor(t % 60); 
+                return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; 
+            };
+            
+            const updateUI = () => { 
+                if (audio.duration && !isScrubbing) { 
+                    progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`; 
+                    timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`; 
+                } 
+                playPauseBtn.innerHTML = audio.paused ? '&#9658;' : '&#10074;&#10074;'; 
+            };
+            
+            const scrub = (e) => { 
+                if (!isNaN(audio.duration)) { 
+                    const rect = progressContainer.getBoundingClientRect(); 
+                    const p = Math.min(Math.max(0, (e.clientX - rect.left) / rect.width), 1); 
+                    audio.currentTime = p * audio.duration; 
+                    updateUI(); 
+                } 
+            };
+            
+            playPauseBtn.addEventListener('click', () => { 
+                if (audio.paused) audio.play(); 
+                else audio.pause(); 
+            });
+            
+            speedSelect.addEventListener('change', (e) => audio.playbackRate = parseFloat(e.target.value));
+            audio.addEventListener('timeupdate', updateUI); 
+            audio.addEventListener('loadedmetadata', updateUI);
+            audio.addEventListener('play', updateUI); 
+            audio.addEventListener('pause', updateUI);
+            
+            progressContainer.addEventListener('mousedown', (e) => { 
+                isScrubbing = true; 
+                scrub(e); 
+            });
+            
+            document.addEventListener('mousemove', (e) => { 
+                if (isScrubbing) scrub(e); 
+            });
+            
+            document.addEventListener('mouseup', () => { 
+                isScrubbing = false; 
+            });
+        }
+    },
+    
+    Splitter: {
+        init() {
+            const splitter = document.getElementById('splitter'), 
+                  leftPane = document.getElementById('left-pane'), 
+                  rightPane = document.getElementById('right-pane');
+            let isDragging = false;
+            
+            splitter.addEventListener('mousedown', () => { 
+                isDragging = true; 
+                document.body.style.cursor = 'col-resize'; 
+                document.body.style.userSelect = 'none'; 
+            });
+            
+            window.addEventListener('mouseup', () => { 
+                isDragging = false; 
+                document.body.style.cursor = 'default'; 
+                document.body.style.userSelect = 'auto'; 
+            });
+            
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const totalWidth = leftPane.parentElement.offsetWidth, 
+                      newLeftWidth = e.clientX, 
+                      newRightWidth = totalWidth - newLeftWidth - splitter.offsetWidth;
+                
+                if (newLeftWidth > 200 && newRightWidth > 200) { 
+                    leftPane.style.flexBasis = `${newLeftWidth}px`; 
+                    rightPane.style.flexBasis = `${newRightWidth}px`; 
+                }
+            });
+        }
+    },
+
+    Transcript: {
+        buildOnce() {
+            const tWrap = App.el.transcriptContent;
+            if (tWrap.dataset.built) return;
+            
+            CONFIG_DATA.transcriptLines.forEach(([start, end, text]) => {
+                const lineEl = document.createElement('div');
+                lineEl.className = 't-line';
+                const textP = document.createElement('p');
+                textP.innerHTML = text;
+                lineEl.appendChild(textP);
+                tWrap.appendChild(lineEl);
+            });
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.id = 'close-transcript-btn';
+            closeBtn.innerHTML = '&times;';
+            closeBtn.addEventListener('click', () => App.el.mainShell.classList.remove('split-view'));
+            tWrap.prepend(closeBtn);
+            tWrap.dataset.built = '1';
+        }
+    },
+    
+    Templates: {
+      audioPlayer() { 
+        return `<div class="audio-player">
+                  <button class="play-pause-btn">&#9658;</button>
+                  <div class="progress-container">
+                    <div class="progress-bar-wrapper">
+                      <div class="progress-bar"></div>
+                    </div>
+                  </div>
+                  <div class="time-display">00:00 / 00:00</div>
+                  <div class="speed-control">
+                    <select class="playback-speed">
+                      <option value="0.7">0.7x</option>
+                      <option value="1.0" selected>1.0x</option>
+                      <option value="1.1">1.1x</option>
+                      <option value="1.2">1.2x</option>
+                      <option value="1.5">1.5x</option>
+                    </select>
+                  </div>
+                  <audio class="listening-audio" src="https://qyccvyyigtjhzunumbqf.supabase.co/storage/v1/object/public/audio/5.mp3" preload="metadata"></audio>
+                </div>`; 
+      },
+      
+      transcriptPage() { 
+        return `<h4>Transcript</h4>`; 
+      },
+      
+      questionsPage() { 
+        return `
+        <div data-section="1">
+          <div class="group">
+            <h4>Questions 21-24</h4>
+            <p class="instructions">Choose the correct letter, <b>A</b>, <b>B</b>, or <b>C</b>.</p>
+            
+            <p><b>21</b> What does Josh think about Jackson Pollock's paintings?</p>
+            <label><input type="radio" name="q21" data-q="21" value="A"> <b>A</b> They are easy to copy.</label>
+            <label><input type="radio" name="q21" data-q="21" value="B"> <b>B</b> They are complex.</label>
+            <label><input type="radio" name="q21" data-q="21" value="C"> <b>C</b> They are childish.</label>
+            
+            <p><b>22</b> The \$5 painting was considered to be a fake because</p>
+            <label><input type="radio" name="q22" data-q="22" value="A"> <b>A</b> it lacked documentation.</label>
+            <label><input type="radio" name="q22" data-q="22" value="B"> <b>B</b> it was too cheap.</label>
+            <label><input type="radio" name="q22" data-q="22" value="C"> <b>C</b> it featured the wrong colours.</label>
+            
+            <p><b>23</b> What made the International Foundation for Art Research reject the \$5 painting?</p>
+            <label><input type="radio" name="q23" data-q="23" value="A"> <b>A</b> what was on the back of the painting</label>
+            <label><input type="radio" name="q23" data-q="23" value="B"> <b>B</b> the type of paint used</label>
+            <label><input type="radio" name="q23" data-q="23" value="C"> <b>C</b> how the paint was applied</label>
+            
+            <p><b>24</b> What do Josh and Emily agree about art evaluation?</p>
+            <label><input type="radio" name="q24" data-q="24" value="A"> <b>A</b> Only an experienced critic can evaluate a painting's authenticity.</label>
+            <label><input type="radio" name="q24" data-q="24" value="B"> <b>B</b> Modern scientific methods have replaced the traditional approach.</label>
+            <label><input type="radio" name="q24" data-q="24" value="C"> <b>C</b> Experts from the science and art worlds should work together.</label>
+          </div>
+        </div>
+
+        <div data-section="2">
+          <div class="flowchart-container">
+            <div class="flowchart-title">Seracini's search for Leonardo Da Vinci's Battle of Anghiari</div>
+            
+            <div class="flowchart-step">
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <div class="step-text">Seracini used <span class="flowchart-slot" data-q="25"></span> to help make a model of the building.</div>
+              </div>
+            </div>
+            
+            <div class="flowchart-step">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <div class="step-text">Seracini used <span class="flowchart-slot" data-q="26"></span> to reveal different materials in the walls. He found the original architecture.</div>
+              </div>
+            </div>
+            
+            <div class="flowchart-step">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <div class="step-text">Seracini guessed that Da Vinci painted his masterpiece on the east wall, in a space that used to hold <span class="flowchart-slot" data-q="27"></span></div>
+              </div>
+            </div>
+            
+            <div class="flowchart-step">
+              <div class="step-number">4</div>
+              <div class="step-content">
+                <div class="step-text">Seracini analysed the wall using <span class="flowchart-slot" data-q="28"></span> and discovered a second wall behind it.</div>
+              </div>
+            </div>
+            
+            <div class="flowchart-step">
+              <div class="step-number">5</div>
+              <div class="step-content">
+                <div class="step-text">Seracini hypothesised that the Da Vinci painting is still there on the original <span class="flowchart-slot" data-q="29"></span> wall.</div>
+              </div>
+            </div>
+            
+            <div class="flowchart-step">
+              <div class="step-number">6</div>
+              <div class="step-content">
+                <div class="step-text">Seracini is using <span class="flowchart-slot" data-q="30"></span> to prove his theory.</div>
+              </div>
+            </div>
+            
+            <div class="flowchart-pool" data-reusable="false">
+              <div class="drag-option flowchart-option" draggable="true" data-value="A">A. ultrasound</div>
+              <div class="drag-option flowchart-option" draggable="true" data-value="B">B. gamma-ray technology</div>
+              <div class="drag-option flowchart-option" draggable="true" data-value="C">C. stone</div>
+              <div class="drag-option flowchart-option" draggable="true" data-value="D">D. a laser scanner</div>
+              <div class="drag-option flowchart-option" draggable="true" data-value="E">E. a radar machine</div>
+              <div class="drag-option flowchart-option" draggable="true" data-value="F">F. glass</div>
+              <div class="drag-option flowchart-option" draggable="true" data-value="G">G. a thermographic camera</div>
+              <div class="drag-option flowchart-option" draggable="true" data-value="H">H. brick</div>
+            </div>
+            
+            <p class="instructions" style="margin-top: 20px; font-size: 0.9em;">Choose SIX answers from the box and write the correct letter, A-H, next to questions 25-30.</p>
+          </div>
+        </div>
+        
+        <div class="results-in-page"></div>
+        `; 
+      }
+    }
+};
+
+function escapeHtml(s) { 
+  return s ? s.replace(/[&<>"']/g, c => ({ 
+    '&': '&amp;', 
+    '<': '&lt;', 
+    '>': '&gt;', 
+    '"': '&quot;', 
+    "'": '&#39;' 
+  }[c])) : ''; 
+}
+
+document.addEventListener('DOMContentLoaded', () => App.init());
+
+window.App = App;
+}());
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/lib/config.js"></script>
+<script src="/lib/supabase.js"></script>
+<script>window.TEST_ID = 5;</script>
+<script src="/lib/test-bridge.js"></script>
+</body>
+</html>

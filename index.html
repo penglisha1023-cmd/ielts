@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>雅思听力题库 — IELTS Listening</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --panel: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --high: #fef3c7;
+    --high-text: #92400e;
+    --low: #e0e7ff;
+    --low-text: #3730a3;
+    --good: #16a34a;
+    --bad: #dc2626;
+    --shadow: 0 4px 16px rgba(0,0,0,.06);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px; background: var(--panel); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .header h1 { margin: 0; font-size: 1.15em; font-weight: 600; }
+  .header-actions { display: flex; gap: 10px; align-items: center; }
+  .header-actions .who { color: var(--muted); font-size: .9em; }
+  .btn {
+    background: var(--accent); color: #fff; border: 0; padding: 8px 14px; border-radius: 8px;
+    cursor: pointer; font-size: .9em; font-weight: 500;
+  }
+  .btn:hover { background: var(--accent-hover); }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn.ghost:hover { background: var(--bg); }
+  .btn.danger { background: transparent; color: var(--bad); border: 1px solid var(--border); }
+
+  /* Auth pane */
+  .auth-wrap {
+    max-width: 380px; margin: 80px auto; background: var(--panel);
+    border-radius: 16px; padding: 32px; box-shadow: var(--shadow);
+  }
+  .auth-wrap h2 { margin: 0 0 8px; font-size: 1.4em; }
+  .auth-wrap p.lead { color: var(--muted); margin: 0 0 20px; font-size: .9em; }
+  .auth-tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .auth-tab {
+    flex: 1; padding: 10px; border: 0; background: transparent; cursor: pointer;
+    color: var(--muted); font-weight: 500; border-bottom: 2px solid transparent;
+  }
+  .auth-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .auth-form label { display: block; font-size: .85em; color: var(--muted); margin: 12px 0 6px; }
+  .auth-form input {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 1em; background: var(--bg); color: var(--text);
+  }
+  .auth-form input:focus { outline: none; border-color: var(--accent); }
+  .auth-form button[type=submit] { width: 100%; margin-top: 18px; padding: 11px; }
+  .auth-msg { margin-top: 14px; padding: 10px 12px; border-radius: 8px; font-size: .9em; display: none; }
+  .auth-msg.error { background: #fee2e2; color: var(--bad); display: block; }
+  .auth-msg.ok    { background: #dcfce7; color: var(--good); display: block; }
+
+  /* Catalog */
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+  .filter-bar {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    background: var(--panel); padding: 12px 16px; border-radius: 12px;
+    margin-bottom: 20px; box-shadow: var(--shadow);
+  }
+  .filter-bar label { font-size: .85em; color: var(--muted); margin-right: 4px; }
+  .filter-bar select, .filter-bar input[type=search] {
+    padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px;
+    background: var(--bg); color: var(--text); font-size: .9em;
+  }
+  .filter-bar input[type=search] { min-width: 240px; }
+  .filter-bar .stat { margin-left: auto; color: var(--muted); font-size: .85em; }
+  .group-title {
+    font-size: 1em; font-weight: 600; color: var(--muted);
+    margin: 24px 0 10px; padding-left: 4px;
+  }
+  .grid {
+    display: grid; gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+  .card {
+    background: var(--panel); border-radius: 12px; padding: 14px 16px;
+    box-shadow: var(--shadow); cursor: pointer; border: 1px solid var(--border);
+    transition: transform .12s ease, box-shadow .12s ease;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+  .card-top { display: flex; gap: 8px; align-items: center; }
+  .badge {
+    font-size: .7em; padding: 2px 8px; border-radius: 999px; font-weight: 500;
+    background: var(--bg); color: var(--muted); border: 1px solid var(--border);
+  }
+  .badge.high { background: var(--high); color: var(--high-text); border-color: transparent; }
+  .badge.low  { background: var(--low);  color: var(--low-text);  border-color: transparent; }
+  .badge.id { font-variant-numeric: tabular-nums; min-width: 28px; text-align: center; }
+  .card-title { font-weight: 500; font-size: .98em; line-height: 1.35; flex-grow: 1; }
+  .card-meta { display: flex; gap: 12px; font-size: .8em; color: var(--muted); align-items: center; }
+  .card-meta .score { color: var(--good); font-weight: 600; }
+  .card-meta .score.low { color: var(--bad); }
+  .card-meta .progress { color: var(--accent); }
+  .empty { text-align: center; padding: 40px; color: var(--muted); }
+
+  /* Test iframe overlay */
+  .iframe-overlay {
+    position: fixed; inset: 0; background: var(--bg); z-index: 100;
+    display: none; flex-direction: column;
+  }
+  .iframe-overlay.active { display: flex; }
+  .iframe-bar {
+    background: var(--panel); border-bottom: 1px solid var(--border);
+    padding: 8px 16px; display: flex; align-items: center; gap: 12px;
+    flex-shrink: 0;
+  }
+  .iframe-bar .title { flex-grow: 1; font-weight: 500; font-size: .95em; }
+  .iframe-overlay iframe { flex-grow: 1; border: 0; width: 100%; }
+
+  @media (max-width: 600px) {
+    .header { padding: 10px 14px; }
+    .container { padding: 14px; }
+    .filter-bar { padding: 10px; gap: 8px; }
+    .auth-wrap { margin: 30px 14px; padding: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- =================== Login / Register pane =================== -->
+<div id="auth-view" style="display:none">
+  <div class="auth-wrap">
+    <h2>雅思听力机经题库</h2>
+    <p class="lead">登录或注册以保存你的成绩、笔记、答题进度。</p>
+
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab active" data-tab="login">登录</button>
+      <button type="button" class="auth-tab" data-tab="signup">注册</button>
+    </div>
+
+    <!-- Login -->
+    <form class="auth-form" id="form-login">
+      <label>邮箱</label>
+      <input type="email" name="email" required autocomplete="email">
+      <label>密码</label>
+      <input type="password" name="password" required autocomplete="current-password">
+      <button type="submit" class="btn">登录</button>
+      <div class="auth-msg" data-msg="login"></div>
+    </form>
+
+    <!-- Signup -->
+    <form class="auth-form" id="form-signup" style="display:none">
+      <label>姓名 / 昵称</label>
+      <input type="text" name="display_name" required maxlength="40">
+      <label>邮箱</label>
+      <input type="email" name="email" required autocomplete="email">
+      <label>密码 (至少 6 位)</label>
+      <input type="password" name="password" required minlength="6" autocomplete="new-password">
+      <button type="submit" class="btn">创建账号</button>
+      <div class="auth-msg" data-msg="signup"></div>
+    </form>
+  </div>
+</div>
+
+<!-- =================== Catalog pane =================== -->
+<div id="app-view" style="display:none">
+  <header class="header">
+    <h1>雅思听力题库</h1>
+    <div class="header-actions">
+      <span class="who" id="who"></span>
+      <a href="/dashboard.html" class="btn ghost">我的成绩</a>
+      <button class="btn ghost" id="btn-signout">退出</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="filter-bar">
+      <label>分组</label>
+      <select id="filter-section">
+        <option value="">全部</option>
+        <option value="P1">P1</option>
+        <option value="P2">P2</option>
+        <option value="P3">P3</option>
+        <option value="P4">P4</option>
+      </select>
+
+      <label>频次</label>
+      <select id="filter-frequency">
+        <option value="">全部</option>
+        <option value="high">高频</option>
+        <option value="low">非高频</option>
+      </select>
+
+      <label>状态</label>
+      <select id="filter-status">
+        <option value="">全部</option>
+        <option value="done">已完成</option>
+        <option value="progress">进行中</option>
+        <option value="todo">未开始</option>
+      </select>
+
+      <input type="search" id="filter-search" placeholder="搜索标题…">
+      <span class="stat" id="filter-stat"></span>
+    </div>
+
+    <div id="catalog-root"></div>
+  </div>
+</div>
+
+<!-- =================== Test iframe overlay =================== -->
+<div class="iframe-overlay" id="test-overlay">
+  <div class="iframe-bar">
+    <button class="btn ghost" id="iframe-close">← 返回题库</button>
+    <span class="title" id="iframe-title"></span>
+  </div>
+  <iframe id="test-iframe" src="about:blank"></iframe>
+</div>
+
+<!-- ===== Scripts ===== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/lib/config.js"></script>
+<script src="/lib/catalog.js"></script>
+<script src="/lib/supabase.js"></script>
+<script>
+const $  = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+// ---- Auth tabs ----
+$$('.auth-tab').forEach(t => t.addEventListener('click', () => {
+  $$('.auth-tab').forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  $('#form-login').style.display  = t.dataset.tab === 'login'  ? '' : 'none';
+  $('#form-signup').style.display = t.dataset.tab === 'signup' ? '' : 'none';
+}));
+
+function showMsg(form, type, text) {
+  const el = $(`[data-msg="${form}"]`);
+  el.className = 'auth-msg ' + type;
+  el.textContent = text;
+}
+
+$('#form-login').addEventListener('submit', async e => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  showMsg('login', 'ok', '登录中…');
+  const { error } = await IELTS.signIn(fd.get('email'), fd.get('password'));
+  if (error) return showMsg('login', 'error', error.message || '登录失败');
+  location.reload();
+});
+
+$('#form-signup').addEventListener('submit', async e => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  showMsg('signup', 'ok', '创建中…');
+  const { error } = await IELTS.signUp(fd.get('email'), fd.get('password'), fd.get('display_name'));
+  if (error) return showMsg('signup', 'error', error.message || '注册失败');
+  showMsg('signup', 'ok', '注册成功!请检查邮箱确认链接(若已开邮箱验证),或直接登录。');
+});
+
+$('#btn-signout').addEventListener('click', () => IELTS.signOut());
+
+// ---- Boot ----
+(async function () {
+  const user = await IELTS.getUser();
+  if (!user) {
+    $('#auth-view').style.display = '';
+    return;
+  }
+  $('#app-view').style.display = '';
+  const { data: profile } = await IELTS.getProfile(user.id);
+  $('#who').textContent = profile?.display_name ? `Hi, ${profile.display_name}` : user.email;
+  await renderCatalog();
+})();
+
+// ---- Catalog rendering ----
+async function renderCatalog() {
+  // fetch user's progress + best scores in parallel
+  const [scoresRes, progressRes] = await Promise.all([
+    sb.from('scores').select('test_id, score, total, finished_at').order('finished_at', { ascending: false }),
+    sb.from('progress').select('test_id, timer_secs, updated_at')
+  ]);
+  const bestByTest = {};
+  (scoresRes.data || []).forEach(r => {
+    if (!bestByTest[r.test_id] || r.score > bestByTest[r.test_id].score) bestByTest[r.test_id] = r;
+  });
+  const progByTest = {};
+  (progressRes.data || []).forEach(r => { progByTest[r.test_id] = r; });
+
+  function status(t) {
+    if (bestByTest[t.id]) return 'done';
+    if (progByTest[t.id]) return 'progress';
+    return 'todo';
+  }
+
+  function applyFilters(list) {
+    const s   = $('#filter-section').value;
+    const f   = $('#filter-frequency').value;
+    const st  = $('#filter-status').value;
+    const q   = $('#filter-search').value.trim().toLowerCase();
+    return list.filter(t =>
+      (!s || t.section === s) &&
+      (!f || t.frequency === f) &&
+      (!st || status(t) === st) &&
+      (!q || t.title.toLowerCase().includes(q))
+    );
+  }
+
+  function render() {
+    const list = applyFilters(TEST_CATALOG);
+    const root = $('#catalog-root');
+    root.innerHTML = '';
+
+    const groups = ['P1', 'P2', 'P3', 'P4'];
+    let total = 0;
+    groups.forEach(sec => {
+      ['high', 'low'].forEach(freq => {
+        const subset = list.filter(t => t.section === sec && t.frequency === freq);
+        if (subset.length === 0) return;
+        total += subset.length;
+        const title = document.createElement('div');
+        title.className = 'group-title';
+        title.textContent = `${sec} ${freq === 'high' ? '高频' : '非高频'} · ${subset.length} 篇`;
+        root.appendChild(title);
+        const grid = document.createElement('div');
+        grid.className = 'grid';
+        subset.forEach(t => grid.appendChild(card(t)));
+        root.appendChild(grid);
+      });
+    });
+
+    $('#filter-stat').textContent = `${total} / ${TEST_CATALOG.length} 篇`;
+    if (total === 0) {
+      root.innerHTML = '<div class="empty">没有符合条件的题目。</div>';
+    }
+  }
+
+  function card(t) {
+    const el = document.createElement('div');
+    el.className = 'card';
+    const best = bestByTest[t.id];
+    const prog = progByTest[t.id];
+    const scoreText = best ? `${best.score}/${best.total}` : '';
+    const scoreClass = best ? (best.score / best.total >= 0.6 ? '' : 'low') : '';
+    el.innerHTML = `
+      <div class="card-top">
+        <span class="badge id">${t.id}</span>
+        <span class="badge ${t.frequency === 'high' ? 'high' : 'low'}">${t.frequency === 'high' ? '高频' : '非高频'}</span>
+        <span class="badge">${t.section}</span>
+      </div>
+      <div class="card-title">${escapeHtml(t.title)}</div>
+      <div class="card-meta">
+        ${best ? `<span class="score ${scoreClass}">最佳 ${scoreText}</span>` : ''}
+        ${(!best && prog) ? `<span class="progress">进行中</span>` : ''}
+        ${(!best && !prog) ? `<span>未开始</span>` : ''}
+      </div>
+    `;
+    el.addEventListener('click', () => openTest(t));
+    return el;
+  }
+
+  ['filter-section', 'filter-frequency', 'filter-status'].forEach(id => $('#' + id).addEventListener('change', render));
+  $('#filter-search').addEventListener('input', render);
+  render();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ---- Test iframe ----
+function openTest(t) {
+  const iframe = $('#test-iframe');
+  $('#iframe-title').textContent = `${t.id}. ${t.section} · ${t.title}`;
+  iframe.src = `/tests/${t.id}.html`;
+  $('#test-overlay').classList.add('active');
+  history.pushState({ view: 'test', id: t.id }, '', `#test=${t.id}`);
+}
+
+function closeTest() {
+  $('#test-overlay').classList.remove('active');
+  $('#test-iframe').src = 'about:blank';
+  if (location.hash) history.replaceState(null, '', location.pathname);
+  // refresh catalog scores
+  renderCatalog();
+}
+$('#iframe-close').addEventListener('click', closeTest);
+window.addEventListener('popstate', e => {
+  if (!e.state || e.state.view !== 'test') closeTest();
+});
+
+// Re-open from hash
+window.addEventListener('load', () => {
+  const m = location.hash.match(/^#test=(\d+)/);
+  if (m) {
+    const t = TEST_CATALOG.find(x => x.id === +m[1]);
+    if (t) setTimeout(() => openTest(t), 200);
+  }
+});
+</script>
+</body>
+</html>

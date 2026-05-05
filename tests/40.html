@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>IELTS Listening Practice - International Week Celebration</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  /* --- Global & Layout --- */
+  :root { 
+    --splitter-width: 5px; 
+    --splitter-color: #eaecef; 
+    --bg-color: #f6f7fb;
+    --panel-color: #ffffff;
+    --text-color: #222;
+    --border-color: #eef0f6;
+    --accent-color: #3b82f6;
+    --answered-bg: #e0e7ff;
+    --answered-border: #a5b4fc;
+    --answered-text: #3730a3;
+    --correct-bg: #dcfce7;
+    --correct-border: #4ade80;
+    --correct-text: #15803d;
+    --incorrect-bg: #fee2e2;
+    --incorrect-border: #f87171;
+    --incorrect-text: #b91c1c;
+    --shadow: 0 8px 24px rgba(0,0,0,.12);
+  }
+  html.font-regular { font-size: 16px; }
+  html.font-large { font-size: 18px; }
+  html.font-xlarge { font-size: 20px; }
+
+  body.dark-mode {
+    --bg-color: #111827;
+    --panel-color: #1f2937;
+    --text-color: #d1d5db;
+    --border-color: #374151;
+    --splitter-color: #374151;
+    --accent-color: #60a5fa;
+    --answered-bg: #312e81;
+    --answered-border: #4f46e5;
+    --answered-text: #c7d2fe;
+    --correct-bg: #14532d;
+    --correct-border: #22c55e;
+    --correct-text: #bbf7d0;
+    --incorrect-bg: #991b1b;
+    --incorrect-border: #ef4444;
+    --incorrect-text: #fecaca;
+  }
+
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body, .shell { background: var(--bg-color); font-family: 'Segoe UI','Helvetica Neue',Arial,sans-serif; color: var(--text-color); font-size: 1em; font-weight: 400; }
+  .shell { display: flex; flex-direction: column; height: 100vh; }
+  
+  /* --- Header --- */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px;
+    background: var(--panel-color);
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+  }
+  .header h1 { font-size: 1.2em; font-weight: 500; margin: 0; }
+  .header-controls { display: flex; gap: 10px; }
+  .header-btn {
+    background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px;
+    padding: 6px 12px; cursor: pointer; color: var(--text-color);
+  }
+  #settings-panel {
+    position: fixed; top: 65px; right: 20px; width: 220px; background: var(--panel-color);
+    border-radius: 10px; box-shadow: var(--shadow); border: 1px solid var(--border-color);
+    z-index: 1001; padding: 8px; display: none;
+  }
+  .settings-group { padding: 8px 0; }
+  .settings-title { font-size: 0.8em; color: #6b7280; margin-bottom: 8px; padding: 0 8px; }
+  .settings-options { display: flex; gap: 5px; padding: 0 8px; }
+  .settings-option { flex: 1; text-align: center; padding: 6px 8px; border: 1px solid var(--border-color); background: var(--bg-color); cursor: pointer; font-size: 0.9em; border-radius: 6px; color: var(--text-color); }
+  .settings-option.active { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+  .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.1); z-index: 1000; display: none; }
+  body.dark-mode .overlay { background: rgba(0,0,0,0.4); }
+
+  /* --- Split Pane & Page Layout --- */
+  #main-shell { display: flex; flex-grow: 1; overflow: hidden; }
+  #left-pane { flex: 1 1 100%; overflow-y: auto; background: var(--panel-color); transition: flex-basis 0.4s ease-in-out; }
+  #splitter { width: var(--splitter-width); background: var(--splitter-color); cursor: col-resize; display: none; }
+  #right-pane { flex: 0 0 0; overflow-y: auto; background: var(--bg-color); display: none; position: relative; }
+  #main-shell.split-view #left-pane { flex-basis: 50%; }
+  #main-shell.split-view #splitter { display: block; }
+  #main-shell.split-view #right-pane { display: block; flex-basis: calc(50% - var(--splitter-width)); padding: 0 24px; }
+
+  /* --- Sticky Header & Audio Player --- */
+  #sticky-header { position: sticky; top: 0; z-index: 10; background: var(--panel-color); padding: 20px 24px 0; }
+  .audio-player-wrapper { border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 10px; }
+  .audio-player { display: flex; align-items: center; gap: 15px; }
+  .play-pause-btn { background: var(--accent-color); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 1.1em; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .progress-container { flex-grow: 1; height: 20px; display: flex; align-items: center; cursor: pointer; }
+  .progress-bar-wrapper { width: 100%; height: 8px; background-color: #e0e0e0; border-radius: 4px; position: relative; }
+  body.dark-mode .progress-bar-wrapper { background-color: #4b5563; }
+  .progress-bar { width: 0; height: 100%; background-color: var(--accent-color); border-radius: 4px; }
+  .time-display { font-size: 0.8em; min-width: 90px; text-align: center; }
+  .speed-control select { padding: 4px 8px; border-radius: 5px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-color); font-size: 0.8em; }
+
+  /* --- Content & Bottom Bar --- */
+  #test-pages-container { padding: 0 24px; }
+  .bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; height: 64px; background: var(--panel-color); border-top: 1px solid var(--border-color); box-shadow: 0 -6px 18px rgba(0,0,0,.06); display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 16px; z-index: 100; }
+  .bb-left, .bb-center { display: flex; align-items: center; gap: 12px; }
+  .bb-center button { height: 36px; padding: 0 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-color); cursor: pointer; color: var(--text-color); }
+  .q-nav-container { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .q-nav-item { display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; padding: 0 5px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); font-size: 0.9em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; }
+  .q-nav-item.answered { background: var(--answered-bg); border-color: var(--answered-border); color: var(--answered-text); }
+  .q-nav-item.correct { background: var(--correct-bg); border-color: var(--correct-border); color: var(--correct-text); }
+  .q-nav-item.incorrect { background: var(--incorrect-bg); border-color: var(--incorrect-border); color: var(--incorrect-text); }
+
+  /* --- Side Panels (Notes Only) --- */
+  body { transition: padding-right .25s ease; }
+  body.notes-open { padding-right: 420px; }
+  #notes { position: fixed; right: -420px; top: 0; bottom: 64px; width: 420px; background: var(--bg-color); border-left: 1px solid var(--border-color); transition: right .25s ease; z-index: 99; display: flex; flex-direction: column; }
+  body.notes-open #notes { right: 0; }
+  .side-panel-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border-color); background: var(--panel-color); flex-shrink: 0; }
+  .side-panel-header span { font-weight: 500; }
+  .side-panel-close { background: transparent; border: none; font-size: 1.5em; font-weight: 300; cursor: pointer; color: var(--text-color); }
+  #notes-list { overflow-y: auto; padding: 12px; flex-grow: 1; }
+
+  /* --- Note Cards & Highlighter --- */
+  .note-card { 
+    background: var(--panel-color); 
+    border-radius: 10px; 
+    padding: 12px; 
+    margin: 0 0 10px; 
+    border: 1px solid var(--border-color); 
+  }
+  .note-quote {
+    font-weight: 500;
+    font-size: 1.1em;
+    margin-bottom: 12px;
+  }
+  .note-actions { 
+    margin-top: 8px; 
+  }
+  .note-actions button[data-act="del-note"] { 
+    border: 1px solid var(--incorrect-border); 
+    background: transparent;
+    border-radius: 8px; 
+    padding: 6px 12px; 
+    cursor: pointer; 
+    color: var(--incorrect-text);
+    font-size: 0.9em;
+    font-weight: 500;
+  }
+  .note-card textarea { 
+    width: 100%; 
+    min-height: 64px; 
+    border: 1px solid var(--border-color); 
+    border-radius: 8px; 
+    padding: 8px; 
+    box-sizing: border-box; 
+    background: var(--bg-color); 
+    color: var(--text-color); 
+    font-size: 1em;
+  }
+
+  .hl { background: #fff59d; }
+  body.dark-mode .hl { background: #a16207; }
+  .hl-blue { background: #CEDDFE; cursor: pointer; }
+  body.dark-mode .hl-blue { background: #312e81; }
+  #selbar { position: absolute; background: #ffffff; color: #333; border: 1px solid #ccc; border-radius: 10px; box-shadow: var(--shadow); padding: 6px; gap: 6px; display: inline-flex; z-index: 101; }
+  #selbar[hidden] { display: none; }
+  #selbar button { border: 1px solid #ccc; border-radius: 8px; padding: 4px 8px; background: #f0f0f0; color: #333; cursor: pointer; font-weight: 500; }
+  body.dark-mode #selbar { background: #f9fafb; color: #1f2937; border: 1px solid #9ca3af; }
+  body.dark-mode #selbar button { background: #e5e7eb; color: #1f2937; border: 1px solid #9ca3af; }
+
+  /* --- General Question Styles --- */
+  .group { border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin: 24px 0; }
+  .test-title, .group h4, .test-main-title { margin: 0 0 12px; font-size: 1.1em; color: var(--text-color); font-weight: 500; }
+  .test-main-title { text-align: center; font-size: 1.5em; margin-bottom: 24px; }
+  .group .instructions { margin-bottom: 16px; background: var(--bg-color); padding: 10px; border-radius: 8px; font-weight: 400; }
+  .group p, .group li, .group label { line-height: 2; }
+  b, strong { font-weight: 500; }
+  label { display: block; cursor: pointer; }
+  
+  /* --- Matching Questions Layout with CSS Grid --- */
+  .matching-flex, .map-question-layout {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: start;
+    gap: 30px;
+  }
+  .matching-flex > *,
+  .map-question-layout > * {
+    flex: none !important;
+    width: auto !important;
+  }
+  
+  /* --- Matching Questions --- */
+  .match-row { display: flex; align-items: center; gap: 10px; line-height: 1.8; margin-bottom: 12px; }
+  .match-q b { font-weight: 500; }
+  .match-slot { min-width: 80px; min-height: 12px; padding: 4px 10px; border-radius: 8px; border: 1px dashed #D1D9F0; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 1em; color: #8AA2C1; transition: background-color .2s, border-color .2s; vertical-align: middle; }
+  .match-slot.drag-over { border-color: #6F86FF; background: #F2F6FF; }
+  .match-slot.filled { border-color: transparent; background: transparent; padding: 0; }
+  .match-slot::before { content: attr(data-q); color: #8AA2C1; }
+  .match-slot.filled::before { content: ''; }
+  .tag { display: inline-flex; align-items: center; padding: 4px 10px; border: 1px solid #b9c2e1; background: #f8f9ff; border-radius: 8px; cursor: grab; user-select: none; font-weight: 500; color:#2a2f45; }
+  .tag.dragging { opacity: .6; }
+  .drag-pool { background: #F5F6F8; padding: 12px; border-radius: 8px; display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .drag-option { background: #fff; border: 1px solid #D7DEEA; border-radius: 6px; padding: 6px 12px; cursor: grab; user-select: none; font-weight: 500; }
+  .drag-option.dragging { opacity: .5; }
+  .drag-option.hidden-in-pool { display: none !important; }
+  .drag-pool.drag-over { outline: 2px dashed #8fb1ff; outline-offset: 4px; }
+
+  /* --- Post-Submission Results & Transcript --- */
+  .results-in-page { margin-top: 30px; border-top: 2px solid var(--border-color); padding-top: 20px; }
+  .results-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.9em; }
+  .results-table th, .results-table td { border: 1px solid var(--border-color); padding: 8px 12px; text-align: left; }
+  .results-table th { background: var(--bg-color); font-weight: 500; }
+  .result-correct { color: var(--correct-text); font-weight: 500; }
+  .result-incorrect { color: var(--incorrect-text); font-weight: 500; }
+  
+  #transcript-content { position: relative; }
+  #transcript-content h4 { font-weight: 500; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; margin: 24px 0 16px 0; font-size: 1.2em; }
+  #transcript-content p { margin-bottom: 0.5em; line-height: 1.7; font-weight: 400; }
+  .answer-highlight { background-color: #dbeafe; padding: 2px 5px; border-radius: 4px; border-bottom: 2px solid #93c5fd; }
+  body.dark-mode .answer-highlight { background-color: #1e3a8a; }
+  .t-line { padding:2px 6px; border-radius:6px; transition: background-color 0.2s; }
+  #close-transcript-btn { position: absolute; top: 24px; right: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 50%; width: 32px; height: 32px; font-size: 1.2em; cursor: pointer; z-index: 5; }
+  
+  /* --- Save Toast Notification --- */
+  #toast { position: fixed; right: 20px; bottom: 84px; background: #26a269; color: #fff; padding: 10px 14px; border-radius: 8px; box-shadow: var(--shadow); font-size: 0.9em; z-index: 200; opacity: 0; pointer-events: none; transform: translateY(10px); transition: opacity .2s ease, transform .2s ease; }
+  #toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body class="font-regular">
+
+<div class="shell">
+  <header class="header">
+    <h1>IELTS Listening Practice</h1>
+    <div class="header-controls">
+        <button id="settings-btn" class="header-btn">Text Size/Color</button>
+    </div>
+  </header>
+
+  <div id="settings-panel">
+    <div class="settings-group">
+        <div class="settings-title">Font Size</div>
+        <div class="settings-options">
+            <button class="settings-option active" data-size="regular">Regular</button>
+            <button class="settings-option" data-size="large">Large</button>
+            <button class="settings-option" data-size="xlarge">X-Large</button>
+        </div>
+    </div>
+    <div class="settings-group">
+        <div class="settings-title">Color Mode</div>
+        <div class="settings-options">
+            <button class="settings-option active" data-mode="light">Light</button>
+            <button class="settings-option" data-mode="dark">Dark</button>
+        </div>
+    </div>
+  </div>
+  <div class="overlay"></div>
+
+  <div id="main-shell">
+    <div id="left-pane">
+      <div id="sticky-header">
+        <div class="audio-player-wrapper" id="audio-player-container"></div>
+      </div>
+      <div id="test-pages-container"></div>
+    </div>
+    <div id="splitter"></div>
+    <div id="right-pane">
+      <div id="transcript-content"></div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-bar">
+  <div class="bb-left">
+    <div id="q-nav-container" class="q-nav-container"></div>
+  </div>
+  <div class="bb-center">
+    <span id="timer">00:00</span>
+    <button id="finish-btn" type="button">Finish</button>
+    <button id="save-btn" type="button">Save</button>
+    <button id="clear-btn" type="button">Clear</button>
+    <button id="toggle-notes-btn" type="button">Notes</button>
+    <button id="toggle-transcript-btn" type="button">Transcript</button>
+  </div>
+</div>
+
+<div id="notes" aria-hidden="true">
+  <div class="side-panel-header">
+    <span>My Notes</span>
+    <button id="notes-close" type="button" class="side-panel-close">&times;</button>
+  </div>
+  <div id="notes-list"></div>
+</div>
+
+<div id="selbar" hidden>
+    <button data-act="hl">Highlight</button>
+    <button data-act="note">Note</button>
+    <button data-act="del">Clear</button>
+</div>
+
+<div id="toast" role="status" aria-live="polite">Progress saved!</div>
+
+<script id="task-configuration">
+const CONFIG_DATA = {
+  localStorageKey: 'ieltsListening_InternationalWeek_v1',
+  questionList: ['11', '12', '13', '14', '15', '16', '17', '18', '19', '20'],
+  answerKey: {
+    single: { 
+      'q11': 'B', 
+      'q12': 'A', 
+      'q13': 'A', 
+      'q14': 'A', 
+      'q15': 'C', 
+      'q16': 'B'
+    },
+    matching: { 
+      'q17': 'A', 
+      'q18': 'F', 
+      'q19': 'E', 
+      'q20': 'C' 
+    }
+  },
+  transcriptLines: [
+    ["00:00", "00:11", "Next week is our Towns International Week, which has been going on annually for several years."],
+    ["00:11", "00:18", "Today, we have George Johnson, the organizer of International Week, to talk about it."],
+    ["00:18", "00:20", "George, how did it all begin?"],
+    ["00:20", "00:27", "Well, I was with a group of businessmen in Town 1 February day, five years ago, and we"],
+    ["00:27", "00:33", "were discussing what we could do for livening things up in August when the weather is good,"],
+    ["00:33", "00:36", "and the kids are out of school till September."],
+    ["00:36", "00:42", "And someone said, hey, we've got people from all over the world living here, let's have"],
+    ["00:42", "00:48", "an international celebration and get people to show off things about their home country."],
+    ["00:48", "00:50", "And we all agreed."],
+    ["00:50", "00:57", "The first year, the celebration lasted just one day, and it featured three countries."],
+    ["00:57", "01:01", "It was a great success and was written about in our local newspaper."],
+    ["01:01", "01:08", "And so the next year, even though it costs more, the organizers expanded it to an international"],
+    ["01:08", "01:14", "week, and so many people were eager to feature their countries."],
+    ["01:14", "01:20", "On each of the first six days of the week, one country is designated to star."],
+    ["01:20", "01:25", "And then on the seventh day, whether permitting, we have a street party near the town hall"],
+    ["01:25", "01:31", "with music provided by the radio station and food and games."],
+    ["01:31", "01:32", "Everyone has a ball."],
+    ["01:32", "01:40", "Of course, we move it to the school gym if it rains like last year, but nobody minds."],
+    ["01:40", "01:44", "Our year starts in January, when we ask for applications."],
+    ["01:44", "01:50", "To apply to have a day for their country, people don't need to belong to a particular"],
+    ["01:50", "01:52", "country association."],
+    ["01:52", "01:57", "They can just be a group who identified themselves with a particular country."],
+    ["01:57", "02:00", "They submit a formal plan to us."],
+    ["02:00", "02:05", "They don't need to worry at this stage about funding, but some grants are available."],
+    ["02:05", "02:10", "The organizing committee has to select the ones with the best ideas."],
+    ["02:10", "02:16", "The organizing committee arranges for places for the country to do whatever they want."],
+    ["02:16", "02:22", "Unfortunately, for large outdoor activities, we aren't allowed to use the local stadium"],
+    ["02:22", "02:25", "because they've got other commitments."],
+    ["02:25", "02:29", "But the community center lets us use its parking lot."],
+    ["02:29", "02:34", "The hall is kind of small, but it has been kind enough to permit us to make use of its"],
+    ["02:34", "02:36", "classrooms."],
+    ["02:36", "02:39", "Local people have been very generous."],
+    ["02:39", "02:45", "A lot of business people let us have things like tables and amplifiers for the week."],
+    ["02:45", "02:50", "The organizing committee handles all the administration, and the town library has"],
+    ["02:50", "02:55", "been great about featuring books about the countries."],
+    ["02:55", "03:02", "Before you hear the rest of the program, you have some time to look at questions 17-20."],
+    ["03:02", "03:09", "Now, for each country's day, we ask them to have one special event like a show or exhibition"],
+    ["03:09", "03:11", "or demonstration."],
+    ["03:11", "03:16", "For example, some people could show how they make traditional handicrafts."],
+    ["03:16", "03:21", "Or it might just be an exhibition, say photographs of the country."],
+    ["03:21", "03:22", "Interesting."],
+    ["03:22", "03:25", "Now, what are the special events this year?"],
+    ["03:25", "03:27", "Fantastic things."],
+    ["03:27", "03:32", "Monday is Mexico Day, and these ladies and gentlemen are going to put on a show that's"],
+    ["03:32", "03:36", "hotter than those chili peppers they're famous for eating."],
+    ["03:36", "03:41", "They'll be singing and playing songs, and those drums will make you want to get up and"],
+    ["03:41", "03:43", "move around."],
+    ["03:43", "03:49", "Then Tuesday is South Africa Day, and they've got an exhibition of dresses and robes used"],
+    ["03:49", "03:54", "in traditional ceremonies and dances, and they are magnificent."],
+    ["03:54", "03:58", "Apparently, some of them are worth more than their weight in gold."],
+    ["03:58", "04:02", "Next, Wednesday is Indonesia Day."],
+    ["04:02", "04:06", "They have an exhibition where you'll definitely get your Hermione's worth."],
+    ["04:06", "04:11", "Two ladies will put on their chef's hat to demonstrate how they prepare those dishes"],
+    ["04:11", "04:14", "and sauces they're famous for."],
+    ["04:14", "04:15", "Let's see."],
+    ["04:15", "04:18", "That brings us to Thursday, Canada Day."],
+    ["04:18", "04:24", "We think of them as fit outdoorsmen and ice hockey players, but they've arranged to"],
+    ["04:24", "04:29", "have some of their countrymen show us how they use just a knife and blocks of wood from"],
+    ["04:29", "04:35", "native American trees to make absolutely lovely statues of birds and bears and other"],
+    ["04:35", "04:38", "animals famous in local legends."],
+    ["04:38", "04:43", "So, next is Friday, Italy Day."],
+    ["04:43", "04:45", "That is the end of section 2."],
+    ["04:45", "04:49", "You now have half a minute to check your answers."]
+  ]
+};
+</script>
+
+<script>
+(function() {
+'use strict';
+
+const App = {
+    init() {
+        this.config = CONFIG_DATA;
+        this.state = { 
+            timerSecs: 0, 
+            timerInterval: null, 
+            isReviewing: false, 
+            settingsOpen: false, 
+            currentDragData: null, 
+            draggingEl: null 
+        };
+        this.buildLayout();
+        this.cacheElements();
+        this.bindEvents();
+        this.loadState();
+        this.AudioPlayer.init();
+        this.Splitter.init();
+        this.applySafeArea();
+        this.startTimer();
+        this.buildQuestionNav();
+        this.updateNavState();
+    },
+
+    buildLayout() {
+        const audioContainer = document.getElementById('audio-player-container');
+        const pagesContainer = document.getElementById('test-pages-container');
+        const transcriptContainer = document.getElementById('transcript-content');
+        
+        audioContainer.innerHTML = this.Templates.audioPlayer();
+        pagesContainer.innerHTML = this.Templates.questionsPage();
+        transcriptContainer.innerHTML = this.Templates.transcriptPage();
+    },
+
+    cacheElements() {
+        const $ = s => document.querySelector(s);
+        this.el = {
+            mainShell: $('#main-shell'), 
+            leftPane: $('#left-pane'), 
+            testPagesContainer: $('#test-pages-container'),
+            transcriptContent: $('#transcript-content'), 
+            notesList: $('#notes-list'),
+            bottomBar: $('.bottom-bar'), 
+            timer: $('#timer'), 
+            finishBtn: $('#finish-btn'),
+            saveBtn: $('#save-btn'), 
+            clearBtn: $('#clear-btn'), 
+            toggleNotesBtn: $('#toggle-notes-btn'), 
+            toggleTranscriptBtn: $('#toggle-transcript-btn'),
+            notes: $('#notes'), 
+            notesCloseBtn: $('#notes-close'), 
+            selbar: $('#selbar'), 
+            allPanes: [$('#left-pane'), $('#right-pane'), $('#notes')],
+            toast: $('#toast'),
+            settingsBtn: $('#settings-btn'), 
+            settingsPanel: $('#settings-panel'), 
+            overlay: $('.overlay'),
+            qNavContainer: $('#q-nav-container')
+        };
+    },
+    
+    bindEvents() {
+        document.addEventListener('input', e => this.handleFormChange(e));
+        document.addEventListener('change', e => this.handleFormChange(e));
+        window.addEventListener('resize', () => this.applySafeArea());
+        
+        this.el.allPanes.forEach(p => p.addEventListener('scroll', () => this.highlighter.hideSelbar()));
+        this.el.finishBtn.addEventListener('click', () => this.toggleFinishMode());
+        this.el.saveBtn.addEventListener('click', () => this.saveState());
+        this.el.clearBtn.addEventListener('click', () => this.clearAll());
+        this.el.toggleNotesBtn.addEventListener('click', () => this.notes.toggle(true));
+        this.el.toggleTranscriptBtn.addEventListener('click', () => {
+            this.el.mainShell.classList.toggle('split-view');
+            this.Transcript.buildOnce();
+        });
+        this.el.notesCloseBtn.addEventListener('click', () => this.notes.toggle(false));
+        
+        document.addEventListener('mouseup', e => this.highlighter.handleMouseUp(e));
+        this.el.selbar.addEventListener('click', e => this.highlighter.handleAction(e));
+        
+        // Settings Panel Events
+        this.el.settingsBtn.addEventListener('click', e => { 
+            e.stopPropagation(); 
+            this.toggleSettingsPanel(); 
+        });
+        this.el.overlay.addEventListener('click', () => this.toggleSettingsPanel(false));
+        document.addEventListener('click', e => { 
+            if (this.state.settingsOpen && 
+                !this.el.settingsPanel.contains(e.target) && 
+                !this.el.settingsBtn.contains(e.target)) {
+                this.toggleSettingsPanel(false); 
+            }
+        });
+        
+        this.el.settingsPanel.querySelectorAll('.settings-option[data-size]').forEach(btn => {
+            btn.addEventListener('click', () => { 
+                document.documentElement.className = `font-${btn.dataset.size}`; 
+                this.el.settingsPanel.querySelectorAll('.settings-option[data-size]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active'); 
+            });
+        });
+        
+        this.el.settingsPanel.querySelectorAll('.settings-option[data-mode]').forEach(btn => {
+            btn.addEventListener('click', () => { 
+                document.body.classList.toggle('dark-mode', btn.dataset.mode === 'dark'); 
+                this.el.settingsPanel.querySelectorAll('.settings-option[data-mode]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active'); 
+            });
+        });
+        
+        // Drag and Drop Events
+        document.addEventListener('dragstart', e => this.dnd.handleDragStart(e)); 
+        document.addEventListener('dragend', e => this.dnd.handleDragEnd(e));
+        document.addEventListener('dragover', e => this.dnd.handleDragOver(e)); 
+        document.addEventListener('dragleave', e => this.dnd.handleDragLeave(e));
+        document.addEventListener('drop', e => this.dnd.handleDrop(e));
+    },
+
+    applySafeArea() {
+        const h = this.el.bottomBar.offsetHeight;
+        this.el.allPanes.forEach(p => {
+            if (p.matches('#notes')) {
+                p.style.bottom = `${h}px`;
+            } else {
+                p.style.bottom = 'auto';
+            }
+        });
+        this.el.leftPane.style.paddingBottom = `${h + 20}px`;
+    },
+
+    startTimer() { 
+        this.state.timerInterval = setInterval(() => this.tick(), 1000); 
+    },
+    
+    tick() { 
+        this.state.timerSecs++; 
+        this.updateTimerUI(); 
+    },
+    
+    updateTimerUI() { 
+        const m = String(Math.floor(this.state.timerSecs / 60)).padStart(2, '0');
+        const s = String(this.state.timerSecs % 60).padStart(2, '0'); 
+        this.el.timer.textContent = `${m}:${s}`; 
+    },
+    
+    handleFormChange(e) {
+        if (e.target.matches('input, textarea, select')) {
+            this.updateNavState();
+        }
+    },
+    
+    toggleSettingsPanel(forceOpen) {
+        const open = forceOpen === undefined ? !this.state.settingsOpen : forceOpen;
+        this.state.settingsOpen = open;
+        this.el.settingsPanel.style.display = open ? 'block' : 'none';
+        this.el.overlay.style.display = open ? 'block' : 'none';
+    },
+
+    notes: {
+        toggle(forceOpen) { 
+            const open = forceOpen === undefined ? !document.body.classList.contains('notes-open') : forceOpen; 
+            document.body.classList.toggle('notes-open', open); 
+        },
+        
+        create(targetSpan) {
+            if (!targetSpan) return; 
+            const hid = targetSpan.dataset.hid || `h_${Date.now()}`; 
+            targetSpan.dataset.hid = hid;
+            
+            const existed = App.el.notesList.querySelector(`.note-card[data-hid="${hid}"]`); 
+            if (existed) { 
+                App.notes.toggle(true); 
+                existed.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); 
+                return; 
+            }
+
+            const text = (targetSpan.textContent || '').trim(); 
+            const card = document.createElement('div'); 
+            card.className = 'note-card'; 
+            card.dataset.hid = hid;
+            
+            const quoteDiv = document.createElement('div');
+            quoteDiv.className = 'note-quote';
+            quoteDiv.innerHTML = escapeHtml(text) || '(no text selected)';
+
+            const textarea = document.createElement('textarea');
+            textarea.placeholder = "Write note here...";
+
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'note-actions';
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.dataset.act = 'del-note';
+            deleteBtn.textContent = 'Delete';
+
+            deleteBtn.onclick = () => {
+                const originalHighlight = document.querySelector(`[data-hid="${hid}"]`);
+                if (originalHighlight) {
+                    App.highlighter.unWrap(originalHighlight);
+                }
+                card.remove();
+            };
+
+            actionsDiv.appendChild(deleteBtn);
+            card.append(quoteDiv, textarea, actionsDiv);
+            App.el.notesList.prepend(card); 
+            App.notes.toggle(true);
+        }
+    },
+
+    highlighter: {
+        unWrap(el) { 
+            if (el && el.parentNode) { 
+                const p = el.parentNode; 
+                while (el.firstChild) p.insertBefore(el.firstChild, el); 
+                p.removeChild(el); 
+                p.normalize(); 
+            } 
+        },
+        
+        hideSelbar() { 
+            if (App.el && App.el.selbar) { 
+                App.el.selbar.hidden = true; 
+                App.el.selbar.style.transform = ''; 
+            } 
+        },
+        
+        positionToolbar(rect, w) { 
+            let left = rect.left + rect.width / 2 - w / 2; 
+            App.el.selbar.style.left = `${window.scrollX + left}px`; 
+            App.el.selbar.style.top = `${window.scrollY + rect.top}px`; 
+            App.el.selbar.style.transform = 'translateY(-100%) translateY(-8px)'; 
+        },
+        
+        handleMouseUp(e) {
+            if (e.target.closest('#selbar, #notes, .bottom-bar')) return;
+            
+            const clickedHl = e.target.closest('.hl,.hl-blue');
+            const s = window.getSelection();
+            App.el.selbar.targetElement = null;
+            
+            if (clickedHl && s.isCollapsed) {
+                s.removeAllRanges();
+                App.el.selbar.querySelector('[data-act="hl"]').hidden = true;
+                App.el.selbar.querySelector('[data-act="note"]').hidden = false;
+                App.el.selbar.querySelector('[data-act="del"]').hidden = false;
+                App.el.selbar.hidden = false;
+                this.positionToolbar(clickedHl.getBoundingClientRect(), App.el.selbar.offsetWidth);
+                App.el.selbar.targetElement = clickedHl;
+            } else if (s && !s.isCollapsed) {
+                const rect = s.getRangeAt(0).getBoundingClientRect();
+                if (!rect || (!rect.width && !rect.height)) return this.hideSelbar();
+                
+                App.el.selbar.querySelector('[data-act="hl"]').hidden = false;
+                App.el.selbar.querySelector('[data-act="note"]').hidden = false;
+                App.el.selbar.querySelector('[data-act="del"]').hidden = true;
+                App.el.selbar.hidden = false;
+                this.positionToolbar(rect, App.el.selbar.offsetWidth);
+            } else {
+                this.hideSelbar();
+            }
+        },
+        
+        handleAction(e) {
+            const act = e.target.closest('button')?.dataset.act;
+            if (!act) return;
+            
+            if (act === 'hl' || act === 'note') {
+                const s = window.getSelection();
+                if (!s || s.isCollapsed) return;
+                
+                const r = s.getRangeAt(0);
+                const span = document.createElement('span');
+                span.className = act === 'hl' ? 'hl' : 'hl-blue';
+                
+                try { 
+                    r.surroundContents(span); 
+                } catch { 
+                    span.appendChild(r.extractContents()); 
+                    r.insertNode(span); 
+                }
+                
+                if (act === 'note') { 
+                    span.dataset.hid = `h_${Date.now()}`; 
+                    App.notes.create(span); 
+                }
+            } else if (act === 'del' && App.el.selbar.targetElement) {
+                this.unWrap(App.el.selbar.targetElement);
+            }
+            
+            this.hideSelbar();
+        }
+    },
+    
+    dnd: {
+        getData(el) { 
+            if (!el) return null; 
+            if (el.classList.contains('drag-option')) {
+                return { 
+                    type: 'pool', 
+                    code: el.dataset.value, 
+                    label: el.textContent.trim(), 
+                    sourceEl: el 
+                }; 
+            }
+            if (el.classList.contains('tag')) {
+                return { 
+                    type: 'tag', 
+                    code: el.dataset.value, 
+                    label: el.textContent.trim(), 
+                    sourceEl: el 
+                }; 
+            }
+            return null; 
+        },
+        
+        handleDragStart(e) { 
+            const el = e.target.closest('.drag-option, .tag'); 
+            if (!el) return; 
+            
+            const data = App.state.currentDragData = this.getData(el);
+            App.state.draggingEl = el; 
+            el.classList.add('dragging'); 
+            e.dataTransfer.setData('text/plain', JSON.stringify({ 
+                code: data.code, 
+                label: data.label, 
+                kind: 'match' 
+            })); 
+            e.dataTransfer.effectAllowed = 'move'; 
+        },
+        
+        handleDragEnd() { 
+            if (App.state.draggingEl) {
+                App.state.draggingEl.classList.remove('dragging'); 
+            }
+            App.state.draggingEl = null; 
+            App.state.currentDragData = null; 
+        },
+        
+        handleDragOver(e) { 
+            const slot = e.target.closest('.match-slot'); 
+            const pool = e.target.closest('.drag-pool'); 
+            if (slot || pool) { 
+                e.preventDefault(); 
+                (slot || pool).classList.add('drag-over'); 
+            } 
+        },
+        
+        handleDragLeave(e) { 
+            e.target.closest('.match-slot')?.classList.remove('drag-over'); 
+            e.target.closest('.drag-pool')?.classList.remove('drag-over'); 
+        },
+        
+        handleDrop(e) { 
+            const slot = e.target.closest('.match-slot'); 
+            const pool = e.target.closest('.drag-pool'); 
+            const draggingData = App.state.currentDragData; 
+            const payload = JSON.parse(e.dataTransfer.getData('text/plain') || '{}'); 
+            const code = payload.code || draggingData?.code; 
+            const label = payload.label || draggingData?.label; 
+            
+            if (!code) return;
+            
+            if (pool) { 
+                e.preventDefault(); 
+                pool.classList.remove('drag-over'); 
+                
+                if (draggingData?.type === 'tag') { 
+                    const srcSlot = draggingData.sourceEl.closest('.match-slot'); 
+                    App.dnd.clearSlot(srcSlot); 
+                } 
+                
+                App.dnd.showOptionInPool(pool.closest('.group'), code, true); 
+                App.updateNavState(); 
+                return; 
+            } 
+            
+            if (slot) { 
+                e.preventDefault(); 
+                slot.classList.remove('drag-over'); 
+                
+                const group = slot.closest('.group'); 
+                const poolEl = group.querySelector('.drag-pool'); 
+                const reusable = (poolEl.dataset.reusable === 'true'); 
+                const oldTag = slot.querySelector('.tag'); 
+                
+                if (oldTag) { 
+                    App.dnd.showOptionInPool(group, oldTag.dataset.value, true); 
+                    App.dnd.clearSlot(slot); 
+                } 
+                
+                if (draggingData?.type === 'tag') { 
+                    const fromSlot = draggingData.sourceEl.closest('.match-slot'); 
+                    if (fromSlot && fromSlot !== slot) {
+                        App.dnd.clearSlot(fromSlot); 
+                    }
+                } 
+                
+                App.dnd.createTag(slot, code, label); 
+                if (!reusable) {
+                    App.dnd.showOptionInPool(group, code, false); 
+                }
+                App.updateNavState(); 
+            } 
+        },
+        
+        createTag(slot, code, label) { 
+            slot.innerHTML = ''; 
+            const t = document.createElement('span'); 
+            t.className = 'tag'; 
+            t.setAttribute('draggable', 'true'); 
+            t.dataset.value = code; 
+            t.textContent = label; 
+            slot.appendChild(t); 
+            slot.classList.add('filled'); 
+        },
+        
+        clearSlot(slot) { 
+            if (slot) { 
+                slot.innerHTML = ''; 
+                slot.classList.remove('filled'); 
+            } 
+        },
+        
+        showOptionInPool(group, code, visible) { 
+            const opt = group.querySelector(`.drag-pool .drag-option[data-value="${code}"]`); 
+            if (opt) {
+                opt.classList.toggle('hidden-in-pool', !visible); 
+            }
+        }
+    },
+    
+    buildQuestionNav() {
+        this.el.qNavContainer.innerHTML = '';
+        this.config.questionList.forEach(qNum => {
+            const navItem = document.createElement('div');
+            navItem.className = 'q-nav-item';
+            navItem.textContent = qNum;
+            navItem.dataset.qnum = qNum;
+            navItem.addEventListener('click', () => {
+                const firstNum = qNum.split('-')[0];
+                const input = document.querySelector(`[data-q="${firstNum}"], [name="q${firstNum}"]`);
+                if (input) {
+                    const group = input.closest('.group');
+                    if (group) group.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    if (!input.closest('.match-slot')) input.focus();
+                }
+            });
+            this.el.qNavContainer.appendChild(navItem);
+        });
+    },
+
+    updateNavState() {
+        this.config.questionList.forEach(qNum => {
+            const navItem = this.el.qNavContainer.querySelector(`[data-qnum="${qNum}"]`);
+            if (!navItem) return;
+
+            let isAnswered = false;
+            const qKey = `q${qNum}`;
+            
+            if (qNum >= 11 && qNum <= 16) {
+                // 单选题
+                const radioInput = document.querySelector(`input[name="${qKey}"]:checked`);
+                if (radioInput) {
+                    isAnswered = true;
+                }
+            } else if (qNum >= 17 && qNum <= 20) {
+                // 匹配题
+                const matchSlot = document.querySelector(`.match-slot[data-q="${qNum}"]`);
+                if (matchSlot && matchSlot.classList.contains('filled')) {
+                    isAnswered = true;
+                }
+            }
+            
+            navItem.classList.toggle('answered', isAnswered);
+        });
+    },
+
+    saveState() {
+        const answers = { single: {}, matching: {} };
+        const notesText = {};
+
+        // 保存单选题答案
+        document.querySelectorAll('input[type="radio"]:checked').forEach(i => { 
+            answers.single[i.name] = i.value; 
+        });
+        
+        // 保存匹配题答案
+        document.querySelectorAll('.match-slot.filled .tag').forEach(t => { 
+            const q = t.closest('.match-slot').dataset.q; 
+            answers.matching[`q${q}`] = t.dataset.value; 
+        });
+        
+        // 保存笔记内容
+        this.el.notesList.querySelectorAll('.note-card').forEach(card => { 
+            const hid = card.dataset.hid; 
+            const textarea = card.querySelector('textarea'); 
+            if (hid && textarea) { 
+                notesText[hid] = textarea.value; 
+            } 
+        });
+        
+        const settings = { 
+            fontSize: document.documentElement.className, 
+            darkMode: document.body.classList.contains('dark-mode') 
+        };
+
+        const data = {
+            answers,
+            testPagesHTML: this.el.testPagesContainer.innerHTML,
+            notesHTML: this.el.notesList.innerHTML,
+            notesText,
+            timerSecs: this.state.timerSecs,
+            settings
+        };
+        
+        localStorage.setItem(this.config.localStorageKey, JSON.stringify(data));
+        this.toast('Progress saved!');
+    },
+
+    loadState() {
+        const savedData = localStorage.getItem(this.config.localStorageKey);
+        if (!savedData) return;
+        
+        try {
+            const data = JSON.parse(savedData);
+            
+            if (data.testPagesHTML) {
+                this.el.testPagesContainer.innerHTML = data.testPagesHTML;
+            }
+            
+            if (data.notesHTML) {
+                this.el.notesList.innerHTML = data.notesHTML;
+            }
+            
+            if (data.timerSecs) { 
+                this.state.timerSecs = data.timerSecs; 
+                this.updateTimerUI(); 
+            }
+
+            if (data.notesText) {
+                for (const [hid, text] of Object.entries(data.notesText)) {
+                    const card = this.el.notesList.querySelector(`.note-card[data-hid="${hid}"]`);
+                    if (card) { 
+                        const textarea = card.querySelector('textarea'); 
+                        if (textarea) {
+                            textarea.value = text; 
+                        }
+                    }
+                }
+            }
+
+            if (data.answers) {
+                // 加载单选题答案
+                Object.entries(data.answers.single || {}).forEach(([n, v]) => { 
+                    const i = document.querySelector(`[name="${n}"][value="${v}"]`); 
+                    if (i) {
+                        i.checked = true; 
+                    }
+                });
+                
+                // 匹配题状态已通过testPagesHTML恢复
+            }
+
+            if (data.settings) {
+                document.documentElement.className = data.settings.fontSize || 'font-regular';
+                document.body.classList.toggle('dark-mode', data.settings.darkMode);
+                
+                this.el.settingsPanel.querySelectorAll('.settings-option[data-size]').forEach(b => {
+                    b.classList.toggle('active', `font-${b.dataset.size}` === data.settings.fontSize);
+                });
+                
+                this.el.settingsPanel.querySelectorAll('.settings-option[data-mode]').forEach(b => {
+                    b.classList.toggle('active', (b.dataset.mode === 'dark') === data.settings.darkMode);
+                });
+            }
+            
+            this.updateNavState();
+        } catch (e) {
+            console.error("Failed to load state:", e);
+            localStorage.removeItem(this.config.localStorageKey);
+        }
+    },
+    
+    clearAll() {
+        if (!confirm('Are you sure you want to clear all progress? This will remove all answers and highlights.')) return;
+        localStorage.removeItem(this.config.localStorageKey);
+        window.location.reload();
+    },
+
+    toggleFinishMode() {
+        if (this.state.isReviewing) {
+            this.returnToTest();
+        } else {
+            if (confirm('Are you sure you want to finish and submit your answers?')) {
+                this.finishTest();
+            }
+        }
+    },
+
+    finishTest() {
+        this.state.isReviewing = true;
+        this.el.finishBtn.textContent = 'Return to Test';
+        this.el.mainShell.classList.add('split-view');
+        this.Transcript.buildOnce();
+        
+        const resultsTableHTML = this.generateResultsTable();
+        document.querySelector('.results-in-page').innerHTML = resultsTableHTML;
+        
+        document.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
+        document.querySelectorAll('[draggable="true"]').forEach(el => el.setAttribute('draggable', 'false'));
+        clearInterval(this.state.timerInterval);
+        this.gradeAndHighlight();
+    },
+
+    gradeAndHighlight() {
+        const { answerKey } = this.config;
+        const norm = v => String(v ?? '').trim().toLowerCase();
+        
+        this.config.questionList.forEach(qNum => {
+            let isCorrect = false;
+            let qKey = `q${qNum}`;
+            
+            if (qNum >= 11 && qNum <= 16) {
+                // 单选题
+                const userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
+                const correctAns = answerKey.single[qKey];
+                isCorrect = norm(userAns) === norm(correctAns);
+            } else if (qNum >= 17 && qNum <= 20) {
+                // 匹配题
+                const userAns = document.querySelector(`.match-slot[data-q="${qNum}"] .tag`)?.dataset.value;
+                const correctAns = answerKey.matching[qKey];
+                isCorrect = norm(userAns) === norm(correctAns);
+            }
+            
+            const navItem = this.el.qNavContainer.querySelector(`[data-qnum="${qNum}"]`);
+            if (navItem) {
+                navItem.classList.remove('answered');
+                navItem.classList.add(isCorrect ? 'correct' : 'incorrect');
+            }
+        });
+    },
+
+    returnToTest() {
+        this.state.isReviewing = false;
+        this.el.finishBtn.textContent = 'Finish';
+        this.el.mainShell.classList.remove('split-view');
+        document.querySelector('.results-in-page').innerHTML = '';
+        document.querySelectorAll('input, select, textarea').forEach(el => el.disabled = false);
+        document.querySelectorAll('.tag, .drag-option').forEach(el => el.setAttribute('draggable', 'true'));
+        this.startTimer();
+
+        this.el.qNavContainer.querySelectorAll('.q-nav-item').forEach(i => {
+            i.classList.remove('correct', 'incorrect');
+        });
+        this.updateNavState();
+    },
+
+    generateResultsTable() {
+        let tableHTML = '<h4>Answer Review</h4><table class="results-table"><thead><tr><th>Question</th><th>Your Answer</th><th>Correct Answer</th><th>Result</th></tr></thead><tbody>';
+        const { answerKey } = this.config;
+        const norm = v => String(v ?? '').trim().toLowerCase();
+
+        this.config.questionList.forEach(qNumStr => {
+            let userAns, correctAns, isCorrect, userAnsStr, correctAnsStr;
+            let qKey = `q${qNumStr}`;
+            
+            if (qNumStr >= 11 && qNumStr <= 16) {
+                // 单选题
+                userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
+                correctAns = answerKey.single[qKey];
+                isCorrect = norm(userAns) === norm(correctAns);
+                userAnsStr = escapeHtml(userAns) || '<i>No Answer</i>';
+                correctAnsStr = escapeHtml(correctAns);
+            } else if (qNumStr >= 17 && qNumStr <= 20) {
+                // 匹配题
+                const tag = document.querySelector(`.match-slot[data-q="${qNumStr}"] .tag`);
+                userAns = tag ? tag.dataset.value : null;
+                correctAns = answerKey.matching[qKey];
+                isCorrect = norm(userAns) === norm(correctAns);
+                userAnsStr = tag ? `${escapeHtml(tag.dataset.value)}. ${escapeHtml(tag.textContent)}` : '<i>No Answer</i>';
+                
+                // 获取正确答案的文本
+                const correctOption = document.querySelector(`.drag-option[data-value="${correctAns}"]`);
+                correctAnsStr = correctOption ? `${escapeHtml(correctAns)}. ${escapeHtml(correctOption.textContent)}` : escapeHtml(correctAns);
+            }
+            
+            tableHTML += `<tr><td><b>${qNumStr}</b></td><td>${userAnsStr}</td><td>${correctAnsStr}</td><td class="${isCorrect ? 'result-correct' : 'result-incorrect'}">${isCorrect ? '✔ Correct' : '✖ Incorrect'}</td></tr>`;
+        });
+        
+        return tableHTML + '</tbody></table>';
+    },
+
+    toast(msg) { 
+        this.el.toast.textContent = msg; 
+        this.el.toast.classList.add('show'); 
+        setTimeout(() => this.el.toast.classList.remove('show'), 1200); 
+    },
+    
+    AudioPlayer: {
+        init() {
+            const player = document.querySelector('.audio-player-wrapper');
+            if (!player) return;
+            
+            const audio = player.querySelector('.listening-audio'); 
+            const playPauseBtn = player.querySelector('.play-pause-btn'); 
+            const progressContainer = player.querySelector('.progress-container'); 
+            const progressBar = player.querySelector('.progress-bar'); 
+            const timeDisplay = player.querySelector('.time-display'); 
+            const speedSelect = player.querySelector('.playback-speed');
+            
+            let isScrubbing = false;
+            
+            const formatTime = (t) => { 
+                if (isNaN(t)) return "00:00"; 
+                const m = Math.floor(t / 60);
+                const s = Math.floor(t % 60); 
+                return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; 
+            };
+            
+            const updateUI = () => { 
+                if (audio.duration && !isScrubbing) { 
+                    progressBar.style.width = `${(audio.currentTime / audio.duration) * 100}%`; 
+                    timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`; 
+                } 
+                playPauseBtn.innerHTML = audio.paused ? '&#9658;' : '&#10074;&#10074;'; 
+            };
+            
+            const scrub = (e) => { 
+                if (!isNaN(audio.duration)) { 
+                    const rect = progressContainer.getBoundingClientRect(); 
+                    const p = Math.min(Math.max(0, (e.clientX - rect.left) / rect.width), 1); 
+                    audio.currentTime = p * audio.duration; 
+                    updateUI(); 
+                } 
+            };
+            
+            playPauseBtn.addEventListener('click', () => { 
+                if (audio.paused) audio.play(); 
+                else audio.pause(); 
+            });
+            
+            speedSelect.addEventListener('change', (e) => {
+                audio.playbackRate = parseFloat(e.target.value);
+            });
+            
+            audio.addEventListener('timeupdate', updateUI); 
+            audio.addEventListener('loadedmetadata', updateUI);
+            audio.addEventListener('play', updateUI); 
+            audio.addEventListener('pause', updateUI);
+            
+            progressContainer.addEventListener('mousedown', (e) => { 
+                isScrubbing = true; 
+                scrub(e); 
+            });
+            
+            document.addEventListener('mousemove', (e) => { 
+                if (isScrubbing) scrub(e); 
+            });
+            
+            document.addEventListener('mouseup', () => { 
+                isScrubbing = false; 
+            });
+        }
+    },
+    
+    Splitter: {
+        init() {
+            const splitter = document.getElementById('splitter');
+            const leftPane = document.getElementById('left-pane');
+            const rightPane = document.getElementById('right-pane');
+            
+            let isDragging = false;
+            
+            splitter.addEventListener('mousedown', () => { 
+                isDragging = true; 
+                document.body.style.cursor = 'col-resize'; 
+                document.body.style.userSelect = 'none'; 
+            });
+            
+            window.addEventListener('mouseup', () => { 
+                isDragging = false; 
+                document.body.style.cursor = 'default'; 
+                document.body.style.userSelect = 'auto'; 
+            });
+            
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                const totalWidth = leftPane.parentElement.offsetWidth;
+                const newLeftWidth = e.clientX;
+                const newRightWidth = totalWidth - newLeftWidth - splitter.offsetWidth;
+                
+                if (newLeftWidth > 200 && newRightWidth > 200) { 
+                    leftPane.style.flexBasis = `${newLeftWidth}px`; 
+                    rightPane.style.flexBasis = `${newRightWidth}px`; 
+                }
+            });
+        }
+    },
+
+    Transcript: {
+        buildOnce() {
+            const tWrap = App.el.transcriptContent;
+            if (tWrap.dataset.built) return;
+            
+            CONFIG_DATA.transcriptLines.forEach(([start, end, text]) => {
+                const lineEl = document.createElement('div');
+                lineEl.className = 't-line';
+                
+                const timeSpan = document.createElement('span');
+                timeSpan.style.fontSize = '0.8em';
+                timeSpan.style.color = '#6b7280';
+                timeSpan.style.marginRight = '10px';
+                timeSpan.textContent = `${start}`;
+                
+                const textP = document.createElement('p');
+                textP.style.display = 'inline';
+                textP.innerHTML = text;
+                
+                lineEl.appendChild(timeSpan);
+                lineEl.appendChild(textP);
+                tWrap.appendChild(lineEl);
+            });
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.id = 'close-transcript-btn';
+            closeBtn.innerHTML = '&times;';
+            closeBtn.addEventListener('click', () => {
+                App.el.mainShell.classList.remove('split-view');
+            });
+            
+            tWrap.prepend(closeBtn);
+            tWrap.dataset.built = '1';
+        }
+    },
+    
+    Templates: {
+        audioPlayer() { 
+            return `<div class="audio-player">
+                <button class="play-pause-btn">&#9658;</button>
+                <div class="progress-container">
+                    <div class="progress-bar-wrapper">
+                        <div class="progress-bar"></div>
+                    </div>
+                </div>
+                <div class="time-display">00:00 / 00:00</div>
+                <div class="speed-control">
+                    <select class="playback-speed">
+                        <option value="0.7">0.7x</option>
+                        <option value="1.0" selected>1.0x</option>
+                        <option value="1.1">1.1x</option>
+                        <option value="1.2">1.2x</option>
+                        <option value="1.5">1.5x</option>
+                    </select>
+                </div>
+                <audio class="listening-audio" src="https://qyccvyyigtjhzunumbqf.supabase.co/storage/v1/object/public/audio/40.mp3" preload="metadata"></audio>
+            </div>`; 
+        },
+        
+        transcriptPage() { 
+            return `<h4>Transcript</h4>`; 
+        },
+        
+        questionsPage() { 
+            return `
+                <div data-section="1">
+                    <div class="group">
+                        <h4>Questions 11-16</h4>
+                        <p class="instructions">Choose the correct letter, <b>A</b>, <b>B</b> or <b>C</b>.</p>
+                        <p><b>International Week Celebration</b></p>
+                        
+                        <p><b>11.</b> The businessmen think it is a good idea to hold the international week in</p>
+                        <label><input type="radio" name="q11" data-q="11" value="A"> <b>A</b> February</label>
+                        <label><input type="radio" name="q11" data-q="11" value="B"> <b>B</b> August</label>
+                        <label><input type="radio" name="q11" data-q="11" value="C"> <b>C</b> September</label>
+                        
+                        <p><b>12.</b> Why did they change the celebration from one day to a week?</p>
+                        <label><input type="radio" name="q12" data-q="12" value="A"> <b>A</b> it was reported by the media.</label>
+                        <label><input type="radio" name="q12" data-q="12" value="B"> <b>B</b> they want to raise additional money.</label>
+                        <label><input type="radio" name="q12" data-q="12" value="C"> <b>C</b> people would like to show off their countries.</label>
+                        
+                        <p><b>13.</b> In bad weather, where did they hold the activity last time?</p>
+                        <label><input type="radio" name="q13" data-q="13" value="A"> <b>A</b> school gym</label>
+                        <label><input type="radio" name="q13" data-q="13" value="B"> <b>B</b> radio station</label>
+                        <label><input type="radio" name="q13" data-q="13" value="C"> <b>C</b> town hall</label>
+                        
+                        <p><b>14.</b> In order to apply for the celebration, people should</p>
+                        <label><input type="radio" name="q14" data-q="14" value="A"> <b>A</b> provide a good proposal.</label>
+                        <label><input type="radio" name="q14" data-q="14" value="B"> <b>B</b> be a member of a country association.</label>
+                        <label><input type="radio" name="q14" data-q="14" value="C"> <b>C</b> pay a small application fee.</label>
+                        
+                        <p><b>15.</b> Where do they hold big outdoor activities?</p>
+                        <label><input type="radio" name="q15" data-q="15" value="A"> <b>A</b> community center</label>
+                        <label><input type="radio" name="q15" data-q="15" value="B"> <b>B</b> local stadium</label>
+                        <label><input type="radio" name="q15" data-q="15" value="C"> <b>C</b> parking lot</label>
+                        
+                        <p><b>16.</b> What do the businessmen provide to the international week?</p>
+                        <label><input type="radio" name="q16" data-q="16" value="A"> <b>A</b> pay for the cost of the administration</label>
+                        <label><input type="radio" name="q16" data-q="16" value="B"> <b>B</b> furniture and equipment</label>
+                        <label><input type="radio" name="q16" data-q="16" value="C"> <b>C</b> books of different countries</label>
+                    </div>
+                    
+                    <div class="group">
+                        <h4>Questions 17-20</h4>
+                        <p class="instructions">Choose the correct letter from <b>A-G</b>.</p>
+                        <p><b>What features do the following countries have?</b></p>
+                        <div class="matching-flex">
+                            <div class="match-list">
+                                <p style="margin-top: 0; font-weight: 500;">Countries</p>
+                                <div class="match-row"><span class="match-q"><b>17.</b> Mexico</span><span class="match-slot" data-q="17"></span></div>
+                                <div class="match-row"><span class="match-q"><b>18.</b> South Africa</span><span class="match-slot" data-q="18"></span></div>
+                                <div class="match-row"><span class="match-q"><b>19.</b> Indonesia</span><span class="match-slot" data-q="19"></span></div>
+                                <div class="match-row"><span class="match-q"><b>20.</b> Canada</span><span class="match-slot" data-q="20"></span></div>
+                            </div>
+                            <div class="matching-options">
+                                <p style="margin-top: 0; font-weight: 500;">Options</p>
+                                <div class="drag-pool" data-reusable="false">
+                                    <div class="drag-option" draggable="true" data-value="A">A music</div>
+                                    <div class="drag-option" draggable="true" data-value="B">B dance</div>
+                                    <div class="drag-option" draggable="true" data-value="C">C wood carving</div>
+                                    <div class="drag-option" draggable="true" data-value="D">D sports</div>
+                                    <div class="drag-option" draggable="true" data-value="E">E cookery</div>
+                                    <div class="drag-option" draggable="true" data-value="F">F costumes</div>
+                                    <div class="drag-option" draggable="true" data-value="G">G photos</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="results-in-page"></div>
+            `; 
+        }
+    }
+};
+
+function escapeHtml(s) { 
+    return s ? s.replace(/[&<>"']/g, c => ({ 
+        '&': '&amp;', 
+        '<': '&lt;', 
+        '>': '&gt;', 
+        '"': '&quot;', 
+        "'": '&#39;' 
+    }[c])) : ''; 
+}
+
+document.addEventListener('DOMContentLoaded', () => App.init());
+
+window.App = App;
+}());
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/lib/config.js"></script>
+<script src="/lib/supabase.js"></script>
+<script>window.TEST_ID = 40;</script>
+<script src="/lib/test-bridge.js"></script>
+</body>
+</html>
