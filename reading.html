@@ -6,8 +6,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root {
-    --bg: #ebe4d9; --panel: #f7f1e7; --text: #3d362e; --muted: #8c8175;
-    --border: #d7cdbe; --accent: #8fa394; --accent-hover: #748a7a;
+    --bg: #ebe4d9;
+    --panel: #f7f1e7;
+    --text: #3d362e;
+    --muted: #8c8175;
+    --border: #d7cdbe;
+    --accent: #8fa394;
+    --accent-hover: #748a7a;
+    --high: #d8c1ac;
+    --high-text: #6b4a36;
+    --low: #b9c3cb;
+    --low-text: #4d5862;
+    --good: #7d9282;
+    --bad: #b58575;
     --shadow: 0 4px 16px rgba(60,52,44,.07);
   }
   * { box-sizing: border-box; }
@@ -15,6 +26,7 @@
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     background: var(--bg); color: var(--text); min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
   }
   .btn {
     background: var(--accent); color: #fff; border: 0; padding: 8px 14px; border-radius: 8px;
@@ -22,29 +34,234 @@
     display: inline-flex; align-items: center; gap: 6px;
   }
   .btn:hover { background: var(--accent-hover); }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn.ghost:hover { background: var(--bg); }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+  .filter-bar {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    background: var(--panel); padding: 12px 16px; border-radius: 12px;
+    margin-bottom: 20px; box-shadow: var(--shadow);
+  }
+  .filter-bar label { font-size: .85em; color: var(--muted); margin-right: 4px; }
+  .filter-bar select, .filter-bar input[type=search] {
+    padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px;
+    background: var(--bg); color: var(--text); font-size: .9em;
+  }
+  .filter-bar input[type=search] { min-width: 240px; }
+  .filter-bar .stat { margin-left: auto; color: var(--muted); font-size: .85em; }
+  .group-title {
+    font-size: 1em; font-weight: 600; color: var(--muted);
+    margin: 24px 0 10px; padding-left: 4px;
+  }
+  .grid {
+    display: grid; gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+  .card {
+    background: var(--panel); border-radius: 12px; padding: 14px 16px;
+    box-shadow: var(--shadow); cursor: pointer; border: 1px solid var(--border);
+    transition: transform .12s ease, box-shadow .12s ease;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(60,52,44,.10); }
+  .card-top { display: flex; gap: 8px; align-items: center; }
+  .badge {
+    font-size: .7em; padding: 2px 8px; border-radius: 999px; font-weight: 500;
+    background: var(--bg); color: var(--muted); border: 1px solid var(--border);
+  }
+  .badge.high { background: var(--high); color: var(--high-text); border-color: transparent; }
+  .badge.low  { background: var(--low);  color: var(--low-text);  border-color: transparent; }
+  .badge.id { font-variant-numeric: tabular-nums; min-width: 28px; text-align: center; }
+  .card-title { font-weight: 500; font-size: .98em; line-height: 1.35; flex-grow: 1; }
+  .card-meta { display: flex; gap: 12px; font-size: .8em; color: var(--muted); align-items: center; }
+  .card-meta .score { color: var(--good); font-weight: 600; }
+  .card-meta .score.low { color: var(--bad); }
+  .card-meta .progress { color: var(--accent); }
+  .empty { text-align: center; padding: 40px; color: var(--muted); }
+
+  .iframe-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: none; flex-direction: column; }
+  .iframe-overlay.active { display: flex; }
+  .iframe-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 8px 16px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .iframe-bar .title { flex-grow: 1; font-weight: 500; font-size: .95em; }
+  .iframe-overlay iframe { flex-grow: 1; border: 0; width: 100%; }
+
+  @media (max-width: 600px) {
+    .container { padding: 14px; }
+    .filter-bar { padding: 10px; gap: 8px; }
+  }
 </style>
 <link rel="stylesheet" href="/lib/nav.css">
-<link rel="stylesheet" href="/lib/coming-soon.css">
 </head>
 <body>
 
-<div class="coming-wrap">
-  <div class="coming-icon">📖</div>
-  <h2 class="coming-title">雅思阅读</h2>
-  <p class="coming-msg">题库正在筹备中,敬请期待。<br>已上线模块:雅思听力(88 篇高/非高频机经)。</p>
-  <a href="/listening.html" class="btn">先去练听力 →</a>
+<div class="container">
+  <div class="filter-bar">
+    <label>分组</label>
+    <select id="filter-section">
+      <option value="">全部</option>
+      <option value="P1">P1</option>
+      <option value="P2">P2</option>
+      <option value="P3">P3</option>
+    </select>
+    <label>频次</label>
+    <select id="filter-frequency">
+      <option value="">全部</option>
+      <option value="high">高频</option>
+      <option value="sub">次高频</option>
+    </select>
+    <label>状态</label>
+    <select id="filter-status">
+      <option value="">全部</option>
+      <option value="done">已完成</option>
+      <option value="progress">进行中</option>
+      <option value="todo">未开始</option>
+    </select>
+    <input type="search" id="filter-search" placeholder="搜索标题…">
+    <span class="stat" id="filter-stat"></span>
+  </div>
+
+  <div id="catalog-root"></div>
+</div>
+
+<div class="iframe-overlay" id="test-overlay">
+  <div class="iframe-bar">
+    <button class="btn ghost" id="iframe-close">← 返回题库</button>
+    <span class="title" id="iframe-title"></span>
+  </div>
+  <iframe id="test-iframe" src="about:blank"></iframe>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/lib/config.js"></script>
+<script src="/lib/reading-catalog.js"></script>
 <script src="/lib/supabase.js"></script>
 <script src="/lib/nav.js"></script>
 <script>
+const $ = s => document.querySelector(s);
+// Reading test_ids in Supabase are offset to avoid colliding with listening (1-88).
+// Keep this in sync with READING_ID_OFFSET in /lib/reading-bridge.js.
+const READING_ID_OFFSET = 10000;
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 (async function () {
   const user = await IELTS.requireAuth();
   if (!user) return;
   await IELTS_NAV.mount('reading');
+  await renderCatalog();
 })();
+
+async function renderCatalog() {
+  const ids = READING_CATALOG.map(t => t.id + READING_ID_OFFSET);
+  const [scoresRes, progressRes] = await Promise.all([
+    sb.from('scores')
+      .select('test_id, score, total, finished_at')
+      .in('test_id', ids)
+      .order('finished_at', { ascending: false }),
+    sb.from('progress')
+      .select('test_id, timer_secs, updated_at')
+      .in('test_id', ids)
+  ]);
+  const bestByTest = {};
+  (scoresRes.data || []).forEach(r => {
+    const localId = r.test_id - READING_ID_OFFSET;
+    if (!bestByTest[localId] || r.score > bestByTest[localId].score) bestByTest[localId] = r;
+  });
+  const progByTest = {};
+  (progressRes.data || []).forEach(r => {
+    progByTest[r.test_id - READING_ID_OFFSET] = r;
+  });
+
+  function status(t) {
+    if (bestByTest[t.id]) return 'done';
+    if (progByTest[t.id]) return 'progress';
+    return 'todo';
+  }
+  function applyFilters(list) {
+    const s  = $('#filter-section').value;
+    const f  = $('#filter-frequency').value;
+    const st = $('#filter-status').value;
+    const q  = $('#filter-search').value.trim().toLowerCase();
+    return list.filter(t =>
+      (!s  || t.section === s) &&
+      (!f  || t.frequency === f) &&
+      (!st || status(t) === st) &&
+      (!q  || t.title.toLowerCase().includes(q))
+    );
+  }
+  function render() {
+    const list = applyFilters(READING_CATALOG);
+    const root = $('#catalog-root');
+    root.innerHTML = '';
+    let total = 0;
+    ['P1','P2','P3'].forEach(sec => {
+      ['high','sub'].forEach(freq => {
+        const subset = list.filter(t => t.section === sec && t.frequency === freq);
+        if (subset.length === 0) return;
+        total += subset.length;
+        const title = document.createElement('div');
+        title.className = 'group-title';
+        title.textContent = `${sec} ${freq === 'high' ? '高频' : '次高频'} · ${subset.length} 篇`;
+        root.appendChild(title);
+        const grid = document.createElement('div');
+        grid.className = 'grid';
+        subset.forEach(t => grid.appendChild(card(t)));
+        root.appendChild(grid);
+      });
+    });
+    $('#filter-stat').textContent = `${total} / ${READING_CATALOG.length} 篇`;
+    if (total === 0) root.innerHTML = '<div class="empty">没有符合条件的题目。</div>';
+  }
+  function card(t) {
+    const el = document.createElement('div');
+    el.className = 'card';
+    const best = bestByTest[t.id], prog = progByTest[t.id];
+    const scoreClass = best ? (best.score / best.total >= 0.6 ? '' : 'low') : '';
+    el.innerHTML = `
+      <div class="card-top">
+        <span class="badge id">${t.id}</span>
+        <span class="badge ${t.frequency === 'high' ? 'high' : 'low'}">${t.frequency === 'high' ? '高频' : '次高频'}</span>
+        <span class="badge">${t.section}</span>
+      </div>
+      <div class="card-title">${escapeHtml(t.title)}</div>
+      <div class="card-meta">
+        ${best ? `<span class="score ${scoreClass}">最佳 ${best.score}/${best.total}</span>` : ''}
+        ${(!best && prog) ? `<span class="progress">进行中</span>` : ''}
+        ${(!best && !prog) ? `<span>未开始</span>` : ''}
+      </div>`;
+    el.addEventListener('click', () => openTest(t));
+    return el;
+  }
+  ['filter-section','filter-frequency','filter-status'].forEach(id => $('#'+id).addEventListener('change', render));
+  $('#filter-search').addEventListener('input', render);
+  render();
+}
+
+function openTest(t) {
+  $('#iframe-title').textContent = `${t.id}. ${t.section} · ${t.title}`;
+  $('#test-iframe').src = `/readings/${t.id}.html`;
+  $('#test-overlay').classList.add('active');
+  history.pushState({ view: 'reading', id: t.id }, '', `#reading=${t.id}`);
+}
+function closeTest() {
+  $('#test-overlay').classList.remove('active');
+  $('#test-iframe').src = 'about:blank';
+  if (location.hash) history.replaceState(null, '', location.pathname);
+  renderCatalog();
+}
+$('#iframe-close').addEventListener('click', closeTest);
+window.addEventListener('popstate', e => { if (!e.state || e.state.view !== 'reading') closeTest(); });
+window.addEventListener('load', () => {
+  const m = location.hash.match(/^#reading=(\d+)/);
+  if (m) {
+    const t = READING_CATALOG.find(x => x.id === +m[1]);
+    if (t) setTimeout(() => openTest(t), 300);
+  }
+});
 </script>
 </body>
 </html>

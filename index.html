@@ -201,12 +201,21 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/lib/config.js"></script>
 <script src="/lib/catalog.js"></script>
+<script src="/lib/reading-catalog.js"></script>
 <script src="/lib/supabase.js"></script>
 <script src="/lib/nav.js"></script>
 <script>
 const $  = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
-const catalogById = Object.fromEntries(TEST_CATALOG.map(t => [t.id, t]));
+const READING_ID_OFFSET = 10000;  // mirror of /lib/reading-bridge.js
+const listeningById = Object.fromEntries(TEST_CATALOG.map(t => [t.id, t]));
+const readingById   = Object.fromEntries(READING_CATALOG.map(t => [t.id, t]));
+function subjectOf(testId) { return testId >= READING_ID_OFFSET ? 'reading' : 'listening'; }
+function catalogLookup(testId) {
+  return testId >= READING_ID_OFFSET
+    ? readingById[testId - READING_ID_OFFSET]
+    : listeningById[testId];
+}
 
 function fmtTime(secs) {
   if (!secs) return '0m';
@@ -269,7 +278,7 @@ async function renderHome() {
   ]);
   const S = scores || [], N = notes || [];
 
-  // ---- Stats ----
+  // ---- Stats (combined across subjects) ----
   const bestByTest = {};
   S.forEach(s => { if (!bestByTest[s.test_id] || s.score > bestByTest[s.test_id].score) bestByTest[s.test_id] = s; });
   const completed = Object.keys(bestByTest).length;
@@ -281,12 +290,14 @@ async function renderHome() {
   $('#stat-time').textContent  = fmtTime(totalTime);
   $('#stat-notes').textContent = N.length;
 
-  // ---- Subjects ----
+  // ---- Subjects (partition by test_id range) ----
+  const doneListening = Object.keys(bestByTest).filter(id => +id <  READING_ID_OFFSET).length;
+  const doneReading   = Object.keys(bestByTest).filter(id => +id >= READING_ID_OFFSET).length;
   const subjectsBox = $('#subjects-box');
   subjectsBox.innerHTML = '';
   const SUBJECTS = [
-    { id: 'listening', label: '雅思听力', total: TEST_CATALOG.length, done: completed, href: '/listening.html' },
-    { id: 'reading',   label: '雅思阅读', total: 0, done: 0, href: '/reading.html' },
+    { id: 'listening', label: '雅思听力', total: TEST_CATALOG.length,    done: doneListening, href: '/listening.html' },
+    { id: 'reading',   label: '雅思阅读', total: READING_CATALOG.length, done: doneReading,   href: '/reading.html' },
     { id: 'writing',   label: '雅思写作', total: 0, done: 0, href: '/writing.html' },
     { id: 'speaking',  label: '雅思口语', total: 0, done: 0, href: '/speaking.html' }
   ];
@@ -340,13 +351,17 @@ function renderScoresTab(scores) {
     <th>编号</th><th>题目</th><th>分组</th><th>最佳成绩</th><th>正确率</th><th>次数</th><th class="col-time">最近提交</th>
   </tr></thead><tbody>`;
   for (const r of rows) {
-    const t = catalogById[r.best.test_id] || { title: '(未知)', section: '', frequency: '' };
+    const tid = r.best.test_id;
+    const isReading = tid >= READING_ID_OFFSET;
+    const localId = isReading ? tid - READING_ID_OFFSET : tid;
+    const t = catalogLookup(tid) || { title: '(未知)', section: '', frequency: '' };
     const pct = Math.round((r.best.score / r.best.total) * 100);
     const cls = pct >= 60 ? 'good' : 'bad';
-    html += `<tr data-test-id="${r.best.test_id}">
-      <td class="test-id">${r.best.test_id}</td>
+    const freqLabel = t.frequency === 'high' ? '高频' : (isReading ? '次高频' : '非高频');
+    html += `<tr data-test-id="${tid}" data-subject="${isReading ? 'reading' : 'listening'}" data-local-id="${localId}">
+      <td class="test-id">${localId}</td>
       <td>${escapeHtml(t.title)}</td>
-      <td><span class="badge ${t.frequency === 'high' ? 'high' : ''}">${t.section} ${t.frequency === 'high' ? '高频' : '非高频'}</span></td>
+      <td><span class="badge ${t.frequency === 'high' ? 'high' : ''}">${t.section} ${freqLabel}</span></td>
       <td class="score-cell ${cls}">${r.best.score}/${r.best.total}</td>
       <td class="score-cell ${cls}">${pct}%</td>
       <td>${r.attempts}</td>
@@ -356,7 +371,11 @@ function renderScoresTab(scores) {
   html += '</tbody></table>';
   root.innerHTML = html;
   root.querySelectorAll('tbody tr').forEach(tr => {
-    tr.addEventListener('click', () => location.href = `/listening.html#test=${tr.dataset.testId}`);
+    tr.addEventListener('click', () => {
+      const page = tr.dataset.subject === 'reading' ? '/reading.html' : '/listening.html';
+      const hashKey = tr.dataset.subject === 'reading' ? 'reading' : 'test';
+      location.href = `${page}#${hashKey}=${tr.dataset.localId}`;
+    });
   });
 }
 
@@ -370,8 +389,10 @@ function renderNotesTab(notes) {
   notes.forEach(n => { (byTest[n.test_id] = byTest[n.test_id] || []).push(n); });
   let html = '<div class="notes-list">';
   Object.keys(byTest).map(Number).sort((a,b) => a-b).forEach(tid => {
-    const t = catalogById[tid] || { title: '(未知)', section: '' };
-    html += `<div style="margin-top:14px;font-weight:600;font-size:.95em;color:var(--muted)">${tid}. ${t.section} · ${escapeHtml(t.title)}</div>`;
+    const t = catalogLookup(tid) || { title: '(未知)', section: '' };
+    const localId = tid >= READING_ID_OFFSET ? tid - READING_ID_OFFSET : tid;
+    const subjectTag = tid >= READING_ID_OFFSET ? '阅读 · ' : '';
+    html += `<div style="margin-top:14px;font-weight:600;font-size:.95em;color:var(--muted)">${subjectTag}${localId}. ${t.section} · ${escapeHtml(t.title)}</div>`;
     byTest[tid].forEach(n => {
       html += `<div class="note-item">
         <div class="meta"><span>${fmtDate(n.updated_at)}</span></div>
