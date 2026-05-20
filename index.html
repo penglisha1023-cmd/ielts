@@ -192,9 +192,11 @@
     <div class="tabs">
       <button class="tab active" data-tab="scores">成绩记录</button>
       <button class="tab" data-tab="notes">笔记</button>
+      <button class="tab" data-tab="admin" id="admin-tab-btn" style="display:none">学生管理</button>
     </div>
     <div id="tab-scores"><div class="loading">加载中…</div></div>
     <div id="tab-notes" style="display:none"><div class="loading">加载中…</div></div>
+    <div id="tab-admin" style="display:none"><div class="loading">加载中…</div></div>
   </div>
 </div>
 
@@ -268,6 +270,9 @@ $('#form-signup').addEventListener('submit', async e => {
   }
   $('#app-view').style.display = '';
   await IELTS_NAV.mount('me');
+  if (await IELTS.isAdmin()) {
+    $('#admin-tab-btn').style.display = '';
+  }
   await renderHome();
 })();
 
@@ -327,10 +332,53 @@ async function renderHome() {
     t.classList.add('active');
     $('#tab-scores').style.display = t.dataset.tab === 'scores' ? '' : 'none';
     $('#tab-notes').style.display  = t.dataset.tab === 'notes'  ? '' : 'none';
+    $('#tab-admin').style.display  = t.dataset.tab === 'admin'  ? '' : 'none';
+    if (t.dataset.tab === 'admin') renderAdminTab();
   }));
 
   renderScoresTab(S);
   renderNotesTab(N);
+}
+
+async function renderAdminTab() {
+  const root = $('#tab-admin');
+  if (root.dataset.loaded === '1') return;
+  root.innerHTML = '<div class="loading">加载中…</div>';
+  const { data, error } = await IELTS.fetchAdminStudentOverview();
+  if (error) {
+    root.innerHTML = `<div class="empty">加载失败:${escapeHtml(error.message || '未知错误')}</div>`;
+    return;
+  }
+  if (!data || data.length === 0) {
+    root.innerHTML = '<div class="empty">还没有注册的学生。</div>';
+    return;
+  }
+  const L = TEST_CATALOG.length;
+  const R = READING_CATALOG.length;
+  let html = `<table class="list"><thead><tr>
+    <th>昵称</th><th>邮箱</th><th>注册时间</th>
+    <th>听力</th><th>阅读</th><th>提交次数</th><th>总时长</th><th>平均正确率</th><th class="col-time">最近活跃</th>
+  </tr></thead><tbody>`;
+  for (const u of data) {
+    const listenPct = L ? Math.round((u.listening_done / L) * 100) : 0;
+    const readPct   = R ? Math.round((u.reading_done   / R) * 100) : 0;
+    const avg = u.avg_score_pct == null ? '—' : `${u.avg_score_pct}%`;
+    const avgCls = u.avg_score_pct == null ? '' : (u.avg_score_pct >= 60 ? 'good' : 'bad');
+    html += `<tr>
+      <td>${escapeHtml(u.display_name || '—')}</td>
+      <td>${escapeHtml(u.email || '—')}</td>
+      <td>${fmtDate(u.signed_up_at)}</td>
+      <td>${u.listening_done}/${L} <span style="color:var(--muted);font-size:.85em">(${listenPct}%)</span></td>
+      <td>${u.reading_done}/${R} <span style="color:var(--muted);font-size:.85em">(${readPct}%)</span></td>
+      <td>${u.total_attempts}</td>
+      <td>${fmtTime(u.total_time_secs)}</td>
+      <td class="score-cell ${avgCls}">${avg}</td>
+      <td class="col-time">${u.last_activity_at ? fmtDate(u.last_activity_at) : '—'}</td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  root.innerHTML = html;
+  root.dataset.loaded = '1';
 }
 
 function renderScoresTab(scores) {
