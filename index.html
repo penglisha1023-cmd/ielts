@@ -269,19 +269,24 @@ $('#form-signup').addEventListener('submit', async e => {
     return;
   }
   $('#app-view').style.display = '';
-  await IELTS_NAV.mount('me');
-  if (await IELTS.isAdmin()) {
-    $('#admin-tab-btn').style.display = '';
-  }
-  await renderHome();
+  IELTS_NAV.mount('me');                                   // 不 await：导航别挡内容
+  IELTS.isAdmin().then(ok => { if (ok) $('#admin-tab-btn').style.display = ''; });
+  renderHome();
 })();
 
 async function renderHome() {
-  const [{ data: scores }, { data: notes }] = await Promise.all([
-    sb.from('scores').select('*').order('finished_at', { ascending: false }),
-    sb.from('notes').select('*').order('updated_at', { ascending: false })
-  ]);
-  const S = scores || [], N = notes || [];
+  // 网络卡住/失败也要把页面渲染出来(显示空状态)，绝不一直转圈。
+  let S = [], N = [];
+  try {
+    const [scoresRes, notesRes] = await IELTS.withTimeout(Promise.all([
+      sb.from('scores').select('*').order('finished_at', { ascending: false }),
+      sb.from('notes').select('*').order('updated_at', { ascending: false })
+    ]), 8000, '首页数据');
+    S = scoresRes.data || [];
+    N = notesRes.data || [];
+  } catch (e) {
+    console.warn('[home] 数据加载失败，显示空状态:', e.message);
+  }
 
   // ---- Stats (combined across subjects) ----
   const bestByTest = {};

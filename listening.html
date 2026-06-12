@@ -150,19 +150,15 @@ function escapeHtml(s) {
 (async function () {
   const user = await IELTS.requireAuth();
   if (!user) return;
-  await IELTS_NAV.mount('listening');
-  await renderCatalog();
+  IELTS_NAV.mount('listening');   // 不 await：导航是装饰，不该挡住内容
+  renderCatalog();
 })();
 
 async function renderCatalog() {
-  const [scoresRes, progressRes] = await Promise.all([
-    sb.from('scores').select('test_id, score, total, finished_at').order('finished_at', { ascending: false }),
-    sb.from('progress').select('test_id, timer_secs, updated_at')
-  ]);
+  // 题库本身是静态数据(TEST_CATALOG)，做题状态(scores/progress)是后补的。
+  // 先画静态列表，再后台拉状态——网络卡住也不会让整页一直转圈。
   const bestByTest = {};
-  (scoresRes.data || []).forEach(r => { if (!bestByTest[r.test_id] || r.score > bestByTest[r.test_id].score) bestByTest[r.test_id] = r; });
   const progByTest = {};
-  (progressRes.data || []).forEach(r => { progByTest[r.test_id] = r; });
 
   function status(t) {
     if (bestByTest[t.id]) return 'done';
@@ -226,7 +222,20 @@ async function renderCatalog() {
   }
   ['filter-section','filter-frequency','filter-status'].forEach(id => $('#'+id).addEventListener('change', render));
   $('#filter-search').addEventListener('input', render);
-  render();
+  render();   // ★ 先用静态目录把列表画出来(此时都显示“未开始”)
+
+  // 后台加载做题状态；超时/失败就保持静态列表，绝不卡住整页
+  try {
+    const [scoresRes, progressRes] = await IELTS.withTimeout(Promise.all([
+      sb.from('scores').select('test_id, score, total, finished_at').order('finished_at', { ascending: false }),
+      sb.from('progress').select('test_id, timer_secs, updated_at')
+    ]), 8000, '听力状态');
+    (scoresRes.data || []).forEach(r => { if (!bestByTest[r.test_id] || r.score > bestByTest[r.test_id].score) bestByTest[r.test_id] = r; });
+    (progressRes.data || []).forEach(r => { progByTest[r.test_id] = r; });
+    render();   // 拿到状态后重画
+  } catch (e) {
+    console.warn('[listening] 做题状态加载失败，已用静态列表兜底:', e.message);
+  }
 }
 
 function openTest(t) {

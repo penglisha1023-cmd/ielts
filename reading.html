@@ -151,30 +151,15 @@ function escapeHtml(s) {
 (async function () {
   const user = await IELTS.requireAuth();
   if (!user) return;
-  await IELTS_NAV.mount('reading');
-  await renderCatalog();
+  IELTS_NAV.mount('reading');   // 不 await：导航是装饰，不该挡住内容
+  renderCatalog();
 })();
 
 async function renderCatalog() {
+  // 题库是静态数据(READING_CATALOG)；做题状态后补。先画静态列表再后台拉状态。
   const ids = READING_CATALOG.map(t => t.id + READING_ID_OFFSET);
-  const [scoresRes, progressRes] = await Promise.all([
-    sb.from('scores')
-      .select('test_id, score, total, finished_at')
-      .in('test_id', ids)
-      .order('finished_at', { ascending: false }),
-    sb.from('progress')
-      .select('test_id, timer_secs, updated_at')
-      .in('test_id', ids)
-  ]);
   const bestByTest = {};
-  (scoresRes.data || []).forEach(r => {
-    const localId = r.test_id - READING_ID_OFFSET;
-    if (!bestByTest[localId] || r.score > bestByTest[localId].score) bestByTest[localId] = r;
-  });
   const progByTest = {};
-  (progressRes.data || []).forEach(r => {
-    progByTest[r.test_id - READING_ID_OFFSET] = r;
-  });
 
   function status(t) {
     if (bestByTest[t.id]) return 'done';
@@ -238,7 +223,30 @@ async function renderCatalog() {
   }
   ['filter-section','filter-frequency','filter-status'].forEach(id => $('#'+id).addEventListener('change', render));
   $('#filter-search').addEventListener('input', render);
-  render();
+  render();   // ★ 先用静态目录把列表画出来(此时都显示“未开始”)
+
+  // 后台加载做题状态；超时/失败就保持静态列表，绝不卡住整页
+  try {
+    const [scoresRes, progressRes] = await IELTS.withTimeout(Promise.all([
+      sb.from('scores')
+        .select('test_id, score, total, finished_at')
+        .in('test_id', ids)
+        .order('finished_at', { ascending: false }),
+      sb.from('progress')
+        .select('test_id, timer_secs, updated_at')
+        .in('test_id', ids)
+    ]), 8000, '阅读状态');
+    (scoresRes.data || []).forEach(r => {
+      const localId = r.test_id - READING_ID_OFFSET;
+      if (!bestByTest[localId] || r.score > bestByTest[localId].score) bestByTest[localId] = r;
+    });
+    (progressRes.data || []).forEach(r => {
+      progByTest[r.test_id - READING_ID_OFFSET] = r;
+    });
+    render();   // 拿到状态后重画
+  } catch (e) {
+    console.warn('[reading] 做题状态加载失败，已用静态列表兜底:', e.message);
+  }
 }
 
 function openTest(t) {
