@@ -1064,11 +1064,11 @@ const App = {
             let isCorrect = false;
             const qKey = `q${qNum}`;
             
-            if (answerKey.single[qKey]) {
+            if (answerKey.single && answerKey.single[qKey]) {
                 // Single choice questions
                 const userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
                 isCorrect = norm(userAns) === norm(answerKey.single[qKey]);
-            } else if (answerKey.matching[qKey]) {
+            } else if (answerKey.matching && answerKey.matching[qKey]) {
                 // Matching questions
                 const userAns = document.querySelector(`.match-slot[data-q="${qNum}"] .tag`)?.dataset.value;
                 isCorrect = norm(userAns) === norm(answerKey.matching[qKey]);
@@ -1109,14 +1109,14 @@ const App = {
             let userAns, correctAns, isCorrect, userAnsStr, correctAnsStr;
             const qKey = `q${qNumStr}`;
             
-            if (answerKey.single[qKey]) {
+            if (answerKey.single && answerKey.single[qKey]) {
                 // Single choice questions
                 userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
                 correctAns = answerKey.single[qKey];
                 isCorrect = norm(userAns) === norm(correctAns);
                 userAnsStr = escapeHtml(userAns) || '<i>No Answer</i>';
                 correctAnsStr = escapeHtml(correctAns);
-            } else if (answerKey.matching[qKey]) {
+            } else if (answerKey.matching && answerKey.matching[qKey]) {
                 // Matching questions
                 const tag = document.querySelector(`.match-slot[data-q="${qNumStr}"] .tag`);
                 userAns = tag ? tag.dataset.value : null;

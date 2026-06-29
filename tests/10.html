@@ -734,19 +734,19 @@ const App = {
             if (qNum.includes('-')) { // Multiple choice
                 qKey = `q${qNum.replace('-', '_')}`;
                 const userAnswers = [...document.querySelectorAll(`[name="${qKey}"]:checked`)].map(el => el.value).sort();
-                const correctAnswers = answerKey.multiple[qKey].sort();
+                const correctAnswers = (answerKey.multiple && answerKey.multiple[qKey] || []).sort();
                 isCorrect = userAnswers.length === correctAnswers.length && userAnswers.every((val, i) => val === correctAnswers[i]);
             } else { // All other types
                 qKey = `q${qNum}`;
-                if (answerKey.text[qKey]) {
+                if (answerKey.text && answerKey.text[qKey]) {
                     const userAns = document.querySelector(`input[name="${qKey}"]`).value;
                     isCorrect = norm(userAns) === norm(answerKey.text[qKey]);
                     document.querySelector(`input[name="${qKey}"]`).classList.add(isCorrect ? 'input-correct' : 'input-incorrect');
-                } else if (answerKey.single[qKey]) {
+                } else if (answerKey.single && answerKey.single[qKey]) {
                     const userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
                     isCorrect = norm(userAns) === norm(answerKey.single[qKey]);
                     console.log(`单选题 ${qNum}: 用户答案=${userAns}, 正确答案=${answerKey.single[qKey]}, 是否正确=${isCorrect}`);
-                } else if (answerKey.matching[qKey]) {
+                } else if (answerKey.matching && answerKey.matching[qKey]) {
                     const userAns = document.querySelector(`.match-slot[data-q="${qNum}"] .tag`)?.dataset.value;
                     isCorrect = norm(userAns) === norm(answerKey.matching[qKey]);
                     console.log(`匹配题 ${qNum}: 用户答案=${userAns}, 正确答案=${answerKey.matching[qKey]}, 是否正确=${isCorrect}`);
@@ -791,19 +791,19 @@ const App = {
             if (qNumStr.includes('-')) {
                 qKey = `q${qNumStr.replace('-', '_')}`;
                 userAns = [...document.querySelectorAll(`[name="${qKey}"]:checked`)].map(el => el.value).sort();
-                correctAns = answerKey.multiple[qKey].sort();
+                correctAns = (answerKey.multiple && answerKey.multiple[qKey] || []).sort();
                 isCorrect = userAns.length === correctAns.length && userAns.every((v, i) => v === correctAns[i]);
                 userAnsStr = userAns.length > 0 ? userAns.join(', ') : '<i>No Answer</i>';
                 correctAnsStr = correctAns.join(', ');
             } else {
                 qKey = `q${qNumStr}`;
-                if (answerKey.text[qKey]) {
+                if (answerKey.text && answerKey.text[qKey]) {
                     userAns = document.querySelector(`[name="${qKey}"]`).value;
                     correctAns = answerKey.text[qKey];
                     isCorrect = norm(userAns) === norm(correctAns);
                     userAnsStr = escapeHtml(userAns) || '<i>No Answer</i>';
                     correctAnsStr = escapeHtml(correctAns);
-                } else if (answerKey.single[qKey]) {
+                } else if (answerKey.single && answerKey.single[qKey]) {
                     const checkedInput = document.querySelector(`[name="${qKey}"]:checked`);
                     userAns = checkedInput ? checkedInput.value : null;
                     correctAns = answerKey.single[qKey];
@@ -835,7 +835,7 @@ const App = {
                     
                     userAnsStr = userAnsText;
                     correctAnsStr = correctAnsText;
-                } else if (answerKey.matching[qKey]) {
+                } else if (answerKey.matching && answerKey.matching[qKey]) {
                     const tag = document.querySelector(`.match-slot[data-q="${qNumStr}"] .tag`);
                     userAns = tag ? tag.textContent : null;
                     const correctOption = document.querySelector(`.drag-option[data-value="${answerKey.matching[qKey]}"]`);

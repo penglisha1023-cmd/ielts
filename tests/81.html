@@ -746,10 +746,10 @@ const App = {
             let isCorrect = false;
             let qKey = `q${qNum}`;
             
-            if (answerKey.single[qKey]) {
+            if (answerKey.single && answerKey.single[qKey]) {
                 const userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
                 isCorrect = norm(userAns) === norm(answerKey.single[qKey]);
-            } else if (answerKey.matching[qKey]) {
+            } else if (answerKey.matching && answerKey.matching[qKey]) {
                 const userAns = document.querySelector(`.match-slot[data-q="${qNum}"] .tag`)?.dataset.value;
                 isCorrect = norm(userAns) === norm(answerKey.matching[qKey]);
             }
@@ -784,11 +784,11 @@ const App = {
             let userAns, correctAns, isCorrect, userAnsStr, correctAnsStr;
             let qKey = `q${qNumStr}`;
             
-            if (answerKey.single[qKey]) {
+            if (answerKey.single && answerKey.single[qKey]) {
                 userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
                 correctAns = answerKey.single[qKey];
                 isCorrect = norm(userAns) === norm(correctAns);
-            } else if (answerKey.matching[qKey]) {
+            } else if (answerKey.matching && answerKey.matching[qKey]) {
                 userAns = document.querySelector(`.match-slot[data-q="${qNumStr}"] .tag`)?.dataset.value;
                 correctAns = answerKey.matching[qKey];
                 isCorrect = norm(userAns) === norm(correctAns);

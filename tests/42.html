@@ -1137,7 +1137,7 @@ const App = {
             let isCorrect = false;
             const qKey = `q${qNum}`;
             
-            if (answerKey.text[qKey]) {
+            if (answerKey.text && answerKey.text[qKey]) {
                 const userAns = document.querySelector(`input[name="${qKey}"]`).value;
                 isCorrect = norm(userAns) === norm(answerKey.text[qKey]);
                 document.querySelector(`input[name="${qKey}"]`).classList.add(isCorrect ? 'input-correct' : 'input-incorrect');
@@ -1173,7 +1173,7 @@ const App = {
             let userAns, correctAns, isCorrect, userAnsStr, correctAnsStr;
             const qKey = `q${qNumStr}`;
             
-            if (answerKey.text[qKey]) {
+            if (answerKey.text && answerKey.text[qKey]) {
                 userAns = document.querySelector(`[name="${qKey}"]`).value;
                 correctAns = answerKey.text[qKey];
                 isCorrect = norm(userAns) === norm(correctAns);

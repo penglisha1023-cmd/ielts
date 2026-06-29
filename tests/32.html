@@ -709,7 +709,7 @@ const App = {
             let isCorrect = false;
             const qKey = `q${qNum}`;
             
-            if (answerKey.text[qKey]) {
+            if (answerKey.text && answerKey.text[qKey]) {
                 const userAns = document.querySelector(`input[name="${qKey}"]`).value;
                 // Handle alternative answers (e.g., "9/nine months")
                 const correctAnswers = answerKey.text[qKey].split('/').map(a => norm(a));

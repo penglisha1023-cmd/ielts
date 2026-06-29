@@ -830,18 +830,18 @@ const App = {
             if (qNum.includes('-')) { // Multiple choice
                 qKey = `q${qNum.replace('-', '_')}`;
                 const userAnswers = [...document.querySelectorAll(`[name="${qKey}"]:checked`)].map(el => el.value).sort();
-                const correctAnswers = answerKey.multiple[qKey].sort();
+                const correctAnswers = (answerKey.multiple && answerKey.multiple[qKey] || []).sort();
                 isCorrect = userAnswers.length === correctAnswers.length && userAnswers.every((val, i) => val === correctAnswers[i]);
             } else { // All other types
                 qKey = `q${qNum}`;
-                if (answerKey.text[qKey]) {
+                if (answerKey.text && answerKey.text[qKey]) {
                     const userAns = document.querySelector(`input[name="${qKey}"]`).value;
                     isCorrect = norm(userAns) === norm(answerKey.text[qKey]);
                     document.querySelector(`input[name="${qKey}"]`).classList.add(isCorrect ? 'input-correct' : 'input-incorrect');
-                } else if (answerKey.single[qKey]) {
+                } else if (answerKey.single && answerKey.single[qKey]) {
                     const userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
                     isCorrect = norm(userAns) === norm(answerKey.single[qKey]);
-                } else if (answerKey.matching[qKey]) {
+                } else if (answerKey.matching && answerKey.matching[qKey]) {
                     const userAns = document.querySelector(`.match-slot[data-q="${qNum}"] .tag`)?.dataset.value;
                     isCorrect = norm(userAns) === norm(answerKey.matching[qKey]);
                 }
@@ -881,21 +881,21 @@ const App = {
             if (qNumStr.includes('-')) {
                 qKey = `q${qNumStr.replace('-', '_')}`;
                 userAns = [...document.querySelectorAll(`[name="${qKey}"]:checked`)].map(el => el.value).sort();
-                correctAns = answerKey.multiple[qKey].sort();
+                correctAns = (answerKey.multiple && answerKey.multiple[qKey] || []).sort();
                 isCorrect = userAns.length === correctAns.length && userAns.every((v, i) => v === correctAns[i]);
                 userAnsStr = userAns.length > 0 ? userAns.join(', ') : '<i>No Answer</i>';
                 correctAnsStr = correctAns.join(', ');
             } else {
                 qKey = `q${qNumStr}`;
-                if (answerKey.text[qKey]) {
+                if (answerKey.text && answerKey.text[qKey]) {
                     userAns = document.querySelector(`[name="${qKey}"]`).value;
                     correctAns = answerKey.text[qKey];
                     isCorrect = norm(userAns) === norm(correctAns);
-                } else if (answerKey.single[qKey]) {
+                } else if (answerKey.single && answerKey.single[qKey]) {
                     userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
                     correctAns = answerKey.single[qKey];
                     isCorrect = norm(userAns) === norm(correctAns);
-                } else if (answerKey.matching[qKey]) {
+                } else if (answerKey.matching && answerKey.matching[qKey]) {
                     userAns = document.querySelector(`.match-slot[data-q="${qNumStr}"] .tag`)?.dataset.value;
                     correctAns = answerKey.matching[qKey];
                     isCorrect = norm(userAns) === norm(correctAns);

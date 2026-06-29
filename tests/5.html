@@ -994,10 +994,10 @@ const App = {
                 qKey = `q${qNum.replace('-', '_')}`;
             } else { // 单选题或匹配题
                 qKey = `q${qNum}`;
-                if (answerKey.single[qKey]) {
+                if (answerKey.single && answerKey.single[qKey]) {
                     const userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
                     isCorrect = norm(userAns) === norm(answerKey.single[qKey]);
-                } else if (answerKey.matching[qKey]) {
+                } else if (answerKey.matching && answerKey.matching[qKey]) {
                     const userAns = document.querySelector(`.flowchart-slot[data-q="${qNum}"] .tag, .match-slot[data-q="${qNum}"] .tag`)?.dataset.value;
                     isCorrect = norm(userAns) === norm(answerKey.matching[qKey]);
                 }
@@ -1033,13 +1033,13 @@ const App = {
             let userAns, correctAns, isCorrect, userAnsStr, correctAnsStr;
             let qKey = `q${qNumStr}`;
             
-            if (answerKey.single[qKey]) {
+            if (answerKey.single && answerKey.single[qKey]) {
                 userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
                 correctAns = answerKey.single[qKey];
                 isCorrect = norm(userAns) === norm(correctAns);
                 userAnsStr = escapeHtml(userAns) || '<i>No Answer</i>';
                 correctAnsStr = escapeHtml(correctAns);
-            } else if (answerKey.matching[qKey]) {
+            } else if (answerKey.matching && answerKey.matching[qKey]) {
                 userAns = document.querySelector(`.flowchart-slot[data-q="${qNumStr}"] .tag, .match-slot[data-q="${qNumStr}"] .tag`)?.dataset.value;
                 correctAns = answerKey.matching[qKey];
                 isCorrect = norm(userAns) === norm(correctAns);

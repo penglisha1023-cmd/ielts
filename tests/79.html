@@ -1133,10 +1133,10 @@ const App = {
             let isCorrect = false;
             let qKey = `q${qNum}`;
 
-            if (answerKey.single[qKey]) { // Questions 21-25
+            if (answerKey.single && answerKey.single[qKey]) { // Questions 21-25
                 const userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
                 isCorrect = norm(userAns) === norm(answerKey.single[qKey]);
-            } else if (answerKey.matching[qKey]) { // Questions 26-30
+            } else if (answerKey.matching && answerKey.matching[qKey]) { // Questions 26-30
                 const userAns = document.querySelector(`.match-slot[data-q="${qNum}"] .tag`)?.dataset.value;
                 isCorrect = norm(userAns) === norm(answerKey.matching[qKey]);
             }
@@ -1172,13 +1172,13 @@ const App = {
             let userAns, correctAns, isCorrect, userAnsStr, correctAnsStr;
             const qKey = `q${qNumStr}`;
 
-            if (answerKey.single[qKey]) { // Questions 21-25
+            if (answerKey.single && answerKey.single[qKey]) { // Questions 21-25
                 userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
                 correctAns = answerKey.single[qKey];
                 isCorrect = norm(userAns) === norm(correctAns);
                 userAnsStr = userAns ? `${userAns}` : '<i>No Answer</i>';
                 correctAnsStr = correctAns;
-            } else if (answerKey.matching[qKey]) { // Questions 26-30
+            } else if (answerKey.matching && answerKey.matching[qKey]) { // Questions 26-30
                 const tag = document.querySelector(`.match-slot[data-q="${qNumStr}"] .tag`);
                 userAns = tag?.dataset.value;
                 correctAns = answerKey.matching[qKey];

@@ -771,11 +771,11 @@ const App = {
             if (qNum.includes('-')) { // Multiple choice
                 qKey = `q${qNum.replace('-', '_')}`;
                 const userAnswers = [...document.querySelectorAll(`[name="${qKey}"]:checked`)].map(el => el.value).sort();
-                const correctAnswers = answerKey.multiple[qKey].sort();
+                const correctAnswers = (answerKey.multiple && answerKey.multiple[qKey] || []).sort();
                 isCorrect = userAnswers.length === correctAnswers.length && userAnswers.every((val, i) => val === correctAnswers[i]);
             } else { // Single choice
                 qKey = `q${qNum}`;
-                if (answerKey.single[qKey]) {
+                if (answerKey.single && answerKey.single[qKey]) {
                     const userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
                     isCorrect = norm(userAns) === norm(answerKey.single[qKey]);
                 }
@@ -813,13 +813,13 @@ const App = {
             if (qNumStr.includes('-')) {
                 qKey = `q${qNumStr.replace('-', '_')}`;
                 userAns = [...document.querySelectorAll(`[name="${qKey}"]:checked`)].map(el => el.value).sort();
-                correctAns = answerKey.multiple[qKey].sort();
+                correctAns = (answerKey.multiple && answerKey.multiple[qKey] || []).sort();
                 isCorrect = userAns.length === correctAns.length && userAns.every((v, i) => v === correctAns[i]);
                 userAnsStr = userAns.length > 0 ? userAns.join(', ') : '<i>No Answer</i>';
                 correctAnsStr = correctAns.join(', ');
             } else {
                 qKey = `q${qNumStr}`;
-                if (answerKey.single[qKey]) {
+                if (answerKey.single && answerKey.single[qKey]) {
                     userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
                     correctAns = answerKey.single[qKey];
                     isCorrect = norm(userAns) === norm(correctAns);

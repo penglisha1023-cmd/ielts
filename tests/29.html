@@ -1150,12 +1150,12 @@ const App = {
             let qKey = `q${qNum}`;
             
             // 匹配题评分
-            if (answerKey.matching[qKey]) {
+            if (answerKey.matching && answerKey.matching[qKey]) {
                 const userAns = document.querySelector(`.match-slot[data-q="${qNum}"] .tag`)?.dataset.value;
                 isCorrect = norm(userAns) === norm(answerKey.matching[qKey]);
             } 
             // 单选题评分
-            else if (answerKey.single[qKey]) {
+            else if (answerKey.single && answerKey.single[qKey]) {
                 const userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
                 isCorrect = norm(userAns) === norm(answerKey.single[qKey]);
             }
@@ -1196,13 +1196,13 @@ const App = {
             let userAns, correctAns, isCorrect, userAnsStr, correctAnsStr;
             let qKey = `q${qNumStr}`;
             
-            if (answerKey.matching[qKey]) {
+            if (answerKey.matching && answerKey.matching[qKey]) {
                 userAns = document.querySelector(`.match-slot[data-q="${qNumStr}"] .tag`)?.dataset.value;
                 correctAns = answerKey.matching[qKey];
                 isCorrect = norm(userAns) === norm(correctAns);
                 userAnsStr = userAns ? userAns : '<i>No Answer</i>';
                 correctAnsStr = correctAns;
-            } else if (answerKey.single[qKey]) {
+            } else if (answerKey.single && answerKey.single[qKey]) {
                 userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
                 correctAns = answerKey.single[qKey];
                 isCorrect = norm(userAns) === norm(correctAns);

@@ -897,7 +897,7 @@ const App = {
             const qKey = `q${qNum}`;
             const userAns = document.querySelector(`input[name="${qKey}"]`)?.value || '';
             
-            if (answerKey.text[qKey]) {
+            if (answerKey.text && answerKey.text[qKey]) {
                 // 对于Q4日期题，有多个正确答案
                 if (qNum === '4') {
                     const correctAnswers = answerKey.text[qKey];

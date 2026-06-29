@@ -672,7 +672,7 @@ const App = {
             let isCorrect = false;
             const qKey = `q${qNum}`;
             
-            if (answerKey.single[qKey]) {
+            if (answerKey.single && answerKey.single[qKey]) {
                 const userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
                 isCorrect = norm(userAns) === norm(answerKey.single[qKey]);
             }

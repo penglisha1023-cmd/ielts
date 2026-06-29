@@ -790,7 +790,7 @@ const App = {
             let isCorrect = false;
             const qKey = `q${qNum}`;
             
-            if (answerKey.text[qKey]) {
+            if (answerKey.text && answerKey.text[qKey]) {
                 const userAns = document.querySelector(`input[name="${qKey}"]`)?.value || '';
                 isCorrect = norm(userAns) === norm(answerKey.text[qKey]);
                 const input = document.querySelector(`input[name="${qKey}"]`);

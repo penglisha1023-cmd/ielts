@@ -1664,12 +1664,12 @@ const App = {
             let qKey = `q${qNum}`;
             
             // 单选题
-            if (answerKey.single[qKey]) {
+            if (answerKey.single && answerKey.single[qKey]) {
                 const userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
                 isCorrect = norm(userAns) === norm(answerKey.single[qKey]);
             } 
             // 匹配题
-            else if (answerKey.matching[qKey]) {
+            else if (answerKey.matching && answerKey.matching[qKey]) {
                 const userAns = document.querySelector(`.match-slot[data-q="${qNum}"] .tag`)?.dataset.value;
                 isCorrect = norm(userAns) === norm(answerKey.matching[qKey]);
             }
@@ -1710,14 +1710,14 @@ const App = {
             let userAns, correctAns, isCorrect, userAnsStr, correctAnsStr;
             let qKey = `q${qNumStr}`;
             
-            if (answerKey.single[qKey]) {
+            if (answerKey.single && answerKey.single[qKey]) {
                 // 单选题
                 userAns = document.querySelector(`[name="${qKey}"]:checked`)?.value;
                 correctAns = answerKey.single[qKey];
                 isCorrect = norm(userAns) === norm(correctAns);
                 userAnsStr = escapeHtml(userAns) || '<i>No Answer</i>';
                 correctAnsStr = escapeHtml(correctAns);
-            } else if (answerKey.matching[qKey]) {
+            } else if (answerKey.matching && answerKey.matching[qKey]) {
                 // 匹配题
                 const tag = document.querySelector(`.match-slot[data-q="${qNumStr}"] .tag`);
                 userAns = tag?.dataset.value;

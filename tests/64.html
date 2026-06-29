@@ -860,7 +860,7 @@ const App = {
             let isCorrect = false;
             let qKey = `q${qNum}`;
             
-            if (answerKey.text[qKey]) {
+            if (answerKey.text && answerKey.text[qKey]) {
                 const userAns = document.querySelector(`input[name="${qKey}"]`).value;
                 // 对于第6题，接受"ice pack"或"an ice pack"
                 if (qNum === '6') {
