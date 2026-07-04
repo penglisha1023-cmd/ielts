@@ -15,6 +15,8 @@
     --accent-hover: #748a7a;
     --high: #d8c1ac;
     --high-text: #6b4a36;
+    --sub: #c7cdb4;
+    --sub-text: #4e5a3a;
     --low: #b9c3cb;
     --low-text: #4d5862;
     --good: #7d9282;
@@ -73,6 +75,7 @@
     background: var(--bg); color: var(--muted); border: 1px solid var(--border);
   }
   .badge.high { background: var(--high); color: var(--high-text); border-color: transparent; }
+  .badge.sub  { background: var(--sub);  color: var(--sub-text);  border-color: transparent; }
   .badge.low  { background: var(--low);  color: var(--low-text);  border-color: transparent; }
   .badge.id { font-variant-numeric: tabular-nums; min-width: 28px; text-align: center; }
   .card-title { font-weight: 500; font-size: .98em; line-height: 1.35; flex-grow: 1; }
@@ -112,6 +115,7 @@
     <select id="filter-frequency">
       <option value="">全部</option>
       <option value="high">高频</option>
+      <option value="sub">次高频</option>
       <option value="low">非高频</option>
     </select>
     <label>状态</label>
@@ -146,6 +150,7 @@ const $ = s => document.querySelector(s);
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+function freqLabel(f) { return f === 'high' ? '高频' : f === 'sub' ? '次高频' : '非高频'; }
 
 (async function () {
   const user = await IELTS.requireAuth();
@@ -183,13 +188,13 @@ async function renderCatalog() {
     root.innerHTML = '';
     let total = 0;
     ['P1','P2','P3','P4'].forEach(sec => {
-      ['high','low'].forEach(freq => {
+      ['high','sub','low'].forEach(freq => {
         const subset = list.filter(t => t.section === sec && t.frequency === freq);
         if (subset.length === 0) return;
         total += subset.length;
         const title = document.createElement('div');
         title.className = 'group-title';
-        title.textContent = `${sec} ${freq === 'high' ? '高频' : '非高频'} · ${subset.length} 篇`;
+        title.textContent = `${sec} ${freqLabel(freq)} · ${subset.length} 篇`;
         root.appendChild(title);
         const grid = document.createElement('div');
         grid.className = 'grid';
@@ -208,7 +213,7 @@ async function renderCatalog() {
     el.innerHTML = `
       <div class="card-top">
         <span class="badge id">${t.id}</span>
-        <span class="badge ${t.frequency === 'high' ? 'high' : 'low'}">${t.frequency === 'high' ? '高频' : '非高频'}</span>
+        <span class="badge ${t.frequency}">${freqLabel(t.frequency)}</span>
         <span class="badge">${t.section}</span>
       </div>
       <div class="card-title">${escapeHtml(t.title)}</div>
