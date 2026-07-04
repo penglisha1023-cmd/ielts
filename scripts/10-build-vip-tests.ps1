@@ -90,6 +90,19 @@ foreach ($sec in $sections) {
             $content = $content -replace '"audio\.mp3"', "`"$audioUrl`""
             $content = $content -replace "'audio\.mp3'", "'$audioUrl'"
 
+            # ---- 1b. Hide the source's promo header (title + owner/ad line);
+            #          keep the Text Size / Color button. Idempotent. ----
+            $headTidy = @"
+<style id="vip-header-tidy">
+  .header h1 { display: none !important; }
+  .header .meta, #ownerMeta { display: none !important; }
+  .header { min-height: 0 !important; }
+</style>
+"@
+            if ($content -notmatch 'id="vip-header-tidy"') {
+                $content = $content -replace '(</head>)', "$headTidy`r`n`$1"
+            }
+
             # ---- 2. Inject Supabase + VIP bridge before </body> (idempotent) ----
             $injection = @"
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
