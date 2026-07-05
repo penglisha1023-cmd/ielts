@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>P1 – Salt</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  html,body { height:100%; }
+  body { font-family: Arial, sans-serif; background:#f5f5f5; }
+  #timer { position:fixed; top:12px; right:12px; background:#fff; border:1px solid #ddd; border-radius:6px; padding:8px 12px; font-size:16px; font-weight:600; color:#0066cc; z-index:1000; }
+  .shell { display:flex; height:100vh; width:100%; }
+  .pane { background:#fff; overflow:auto; padding:24px; }
+  #left { flex: 0 0 50%; border-right:1px solid #ddd; }
+  #right { flex: 1 1 auto; background:#fafafa; }
+  #divider { flex: 0 0 5px; background:#ddd; cursor: ew-resize; }
+  #divider:hover { background:#999; }
+  h2,h3,h4 { margin:0 0 12px; color:#333; }
+  h2 { font-size:20px; }
+  h3 { font-size:18px; color:#0066cc; }
+  h4 { font-size:15px; font-weight:600; margin-top:20px; }
+  h5 { font-size:14px; font-weight:600; margin:12px 0 8px; }
+  #left p { margin: 0 0 14px; line-height: 1.7; text-align:justify; }
+  .group { background:#fff; border:1px solid #ddd; border-radius:6px; padding:16px; margin-bottom:16px; }
+  .group h4 { margin-top:0; color:#0066cc; }
+  .group p { margin:8px 0; font-size:14px; line-height:1.6; }
+  .group ol { margin-left:20px; }
+  .group ol li { margin:12px 0; font-size:14px; line-height:1.6; position:relative; }
+  .group ol li label { display:inline-block; margin-right:8px; cursor: pointer; }
+  .group ul { margin-left:20px; }
+  .group ul li { margin:8px 0; font-size:14px; line-height:1.8; }
+  .question-item, .match-question-item, .q-block { margin:12px 0; font-size:14px; line-height:1.6; }
+  .radio-options label, .options label { display:inline-block; margin-right:12px; cursor:pointer; }
+  .headings { background:#f9f9f9; padding:12px; margin:12px 0; border-radius:4px; }
+  .headings ol { margin-left:20px; }
+  .headings li { margin:4px 0; font-size:13px; }
+  table { border-collapse: collapse; width:100%; margin:12px 0; }
+  th, td { border:1px solid #ddd; padding:6px; text-align:left; font-size:13px; position:relative; }
+  th { background:#f5f5f5; font-weight:600; }
+  .flag-btn { position:absolute; left:2px; top:50%; transform:translateY(-50%); width:8px; height:8px; border-radius:50%; background:#ddd; cursor:pointer; z-index:10; }
+  .flag-btn:hover { background:#999; }
+  .flag-btn.active { background:#ff5722; }
+  input.blank, input.gap-input, input[type="text"] { border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; font-size: 14px; width: 160px; margin: 0 5px; font-family: inherit; }
+  select { border:1px solid #ccc; border-radius:4px; padding:4px 8px; font-size:14px; font-family:inherit; margin:0 5px; }
+  .note-box { border: 1px solid #333; padding: 15px; margin-top: 10px; }
+  .note-title { text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 15px; }
+  .note-text { line-height: 2; }
+  .bottom-bar { display:flex; gap:10px; margin-top:16px; }
+  button { padding:10px 20px; border:1px solid #999; border-radius:6px; background:#fff; cursor:pointer; font-size:14px; }
+  button:hover { background:#f0f0f0; }
+  .btn-primary { background:#0066cc; color:#fff; border-color:#0066cc; }
+  .btn-primary:hover { background:#0052a3; }
+  .btn-danger { background:#dc3545; color:#fff; border-color:#dc3545; }
+  .btn-danger:hover { background:#c82333; }
+  .hl { background:#fff59d; cursor:pointer; }
+  .hl:hover { background:#ffeb3b; }
+  .note { background:#b3d9ff; cursor:pointer; }
+  .note:hover { background:#99ccff; }
+  #selbar { position:fixed; display:none; z-index:2000; background:#fff; border:1px solid #ddd; border-radius:8px; padding:8px; gap:0; box-shadow:0 2px 8px rgba(0,0,0,0.15); flex-direction:column; min-width:120px; }
+  #selbar button { background:#fff; color:#666; border:none; padding:3px 0px; cursor:pointer; font-size:14px; text-align:center; border-radius:4px; }
+  #selbar button:hover { background:#f5f5f5; color:#333; }
+  .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; align-items:center; justify-content:center; }
+  .modal.active { display:flex; }
+  .modal-content { background:#fff; border-radius:8px; padding:24px; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .modal-header h2 { font-size: 28px; color: #333; margin: 0; }
+  .modal-close { font-size: 32px; cursor: pointer; color: #999; line-height: 1; }
+  .modal-close:hover { color: #333; }
+  .result-summary { text-align:center; padding:20px; background:#f0f0f0; margin-bottom:16px; border-radius:6px; }
+  .result-score { font-size:36px; font-weight:600; color:#0066cc; }
+  .result-item { padding:10px; margin:8px 0; border-left:3px solid #ddd; background:#f9f9f9; font-size:13px; }
+  .result-item.correct { border-left-color:#28a745; background:#e8f5e9; }
+  .result-item.incorrect { border-left-color:#dc3545; background:#ffebee; }
+  .wrong-item { background:#fff3e0; padding:16px; margin:8px 0; border-radius:8px; border-left:4px solid #ff9800; display:flex; justify-content:space-between; align-items:start; }
+  .wrong-item-content { flex:1; }
+  .btn-delete { background:#dc3545; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:13px; margin-left:12px; }
+  .btn-delete:hover { background:#c82333; }
+  .modal-actions { display:flex; gap:10px; margin-bottom:20px; }
+</style>
+<style id="morandi-reading-theme">
+  body { background:#ebe4d9 !important; }
+  #left, #right, .pane { background:#f7f1e7 !important; }
+  #right { background:#ebe4d9 !important; }
+  #divider { background:#d7cdbe !important; }
+  h2, h3, h4, .group h4 { color:#3d362e !important; }
+  h3 { color:#748a7a !important; }
+  .group { background:#f7f1e7 !important; border-color:#d7cdbe !important; }
+  .group ol li, .group p { color:#3d362e !important; }
+  .headings { background:#ebe4d9 !important; }
+  button { background:#f7f1e7 !important; border-color:#d7cdbe !important; color:#3d362e !important; }
+  button:hover { background:#ebe4d9 !important; }
+  .btn-primary { background:#8fa394 !important; color:#fff !important; border-color:#8fa394 !important; }
+  .btn-primary:hover { background:#748a7a !important; }
+  .btn-danger { background:#b58575 !important; color:#fff !important; border-color:#b58575 !important; }
+  .hl { background:#d8c1ac !important; }
+  .note { background:#c8d2dc !important; }
+  #timer { background:#f7f1e7 !important; border-color:#d7cdbe !important; color:#748a7a !important; }
+  th { background:#ebe4d9 !important; color:#3d362e !important; }
+  th, td { border-color:#d7cdbe !important; }
+</style>
+</head>
+<body>
+<div id="timer">00:00</div>
+
+<div class="shell">
+  <section class="pane" id="left">
+
+<h2>READING PASSAGE 1</h2>
+            <p>You should spend about 20 minutes on Questions 1–13, which are based on Reading Passage 1 below.</p>
+            
+            <h3>Salt</h3>
+            
+            <p>Salt is the common name for the substance sodium chloride (NaCl), which occurs in the form of transparent cubic crystals. Although salt is most familiar as a food supplement, less than 5% of the salt produced worldwide is used for that purpose. About 70% is utilized by the chemical industry, mostly as a source of chlorine. Salt is also used for countless other purposes, such as removing snow and ice from roads, softening water, preserving food, and stabilizing soils for construction.</p>
+            <p>The earliest humans obtained their salt from natural salt concentrations, as well as from meat. Those people who lived near the ocean may also have obtained it by chewing seaweed or from the natural evaporation of small pools of seawater. Meat became a more important source of salt as hunting was developed, as did milk when sheep, goats, horses, camels, reindeer, and cattle were domesticated. Even today, certain peoples—such as the Bedouin of the Middle Eastern deserts and the Maasai of East Africa—use no other forms of salt.</p>
+            <p>As agriculture developed, leading to a diet consisting mostly of plants, it became necessary to devise ways of obtaining salt in greater amounts. The earliest method of salt production employed by humankind was the evaporation of seawater using the heat of the sun. This method was particularly suited to hot, arid regions near the ocean or near salty lakes, and is still used in those areas. Solar evaporation was soon followed by the quarrying of exposed masses of rock salt, which quickly developed into the mining of underground deposits of salt. Two thousand years ago, the Chinese began using wells to reach underground pools of salt water, some of which were more than one kilometer deep.</p>
+            <p>In areas where the climate did not allow solar evaporation, salt water was poured on burning wood or heated rocks to boil it. The salt left behind was then scraped off. During the time of the Roman Empire, shallow lead pans were used to boil salt water over open fires to extract the salt. Later, in the Middle Ages, these were replaced with iron pans which were heated with coal. In the 1860s, a procedure known as the Michigan process was invented, in which salt water was heated by steam running through pipes immersed in the water. This process is still used to produce certain types of salt.</p>
+            <p>Nowadays, salt is collected from two sources: rock salt and brine. Rock salt is simply crystallized salt, also known as halite. It is the result of the evaporation of ancient oceans millions of years ago. Underground salt deposits are usually discovered by prospectors searching for water or oil. When salt is detected, a diamond-tipped, hollow drill is used to take several regularly spaced core samples throughout the area. These are analyzed to determine if salt mining would be profitable. If the site is thought to be suitable, vertical tunnels are sunk into the center of the salt deposit. Then a machine resembling a gigantic chain saw is used to cut a long horizontal slot through the salt, in a procedure known as undercutting. A series of holes are then drilled into the salt with an electric drill, and the holes are filled with explosives such as dynamite. Cutting and blasting are repeated in a pattern that leaves salt pillars standing to support the roof of the mining area. This is known as the room-and-pillar method and is also used in coal mines. Once blasted, chunks of the rock salt are transported to an underground crushing area where smaller pieces are collected via a metal grill and larger pieces are crushed in a rotating cylinder. Finally, redundant matter is extracted from the rock salt, in what is known as picking.</p>
+            <p>Brine is water containing a high concentration of salt. The most obvious source of brine is the ocean, but it can also be obtained from salty lakes such as the Dead Sea and from underground pools of salt water. Most brine is processed by a multi-effect vacuum evaporator. This device consists of three or more closed metal cylinders. Brine is first treated to remove chemical compounds. It then fills the bottom of the cylinders. The brine in the first cylinder passes through tubes heated by steam. The brine boils and its steam enters the next cylinder. In each cylinder, the condensation of steam causes the pressure inside to drop. A material called slurry forms at the bottom of the cylinders and goes into a tank. The slurry is then filtered to remove excess brine, dried, and passed through screens to sort the salt particles according to how large they are.</p>
+            <p>Specifications for salt vary widely according to the intended use. Salt intended for human consumption must be much purer than salt used for melting snow and ice on roads, but salt used for certain scientific purposes may need to be even purer.</p>
+
+            <div class="empty-space"></div>
+
+  </section>
+
+  <div id="divider" title="Drag to resize"></div>
+
+  <section class="pane" id="right">
+<h3>Questions 1–5</h3>
+
+<div class="group" id="q1-2-3-4-5-anchor">
+                <p>Do the following statements agree with the information given in Reading Passage 1?</p>
+                <p>In boxes 1–5 on your answer sheet, write:</p>
+                <ul style="list-style-type: none; padding-left: 0; margin-bottom: 1rem;">
+                    <li><strong>TRUE</strong> if the statement agrees with the information</li>
+                    <li><strong>FALSE</strong> if the statement contradicts the information</li>
+                    <li><strong>NOT GIVEN</strong> if there is no information on this</li>
+                </ul>
+                
+                <div class="question-item">
+                    <p><strong>1</strong> The chemical industry makes use of the majority of salt produced globally.</p>
+                    <div class="radio-options">
+                        <label><input name="q1" type="radio" value="TRUE"> TRUE</label>
+                        <label><input name="q1" type="radio" value="FALSE"> FALSE</label>
+                        <label><input name="q1" type="radio" value="NOT GIVEN"> NOT GIVEN</label>
+                    </div>
+                </div>
+                <div class="question-item">
+                    <p><strong>2</strong> In ancient times, people were only able to get salt from a single source.</p>
+                    <div class="radio-options">
+                        <label><input name="q2" type="radio" value="TRUE"> TRUE</label>
+                        <label><input name="q2" type="radio" value="FALSE"> FALSE</label>
+                        <label><input name="q2" type="radio" value="NOT GIVEN"> NOT GIVEN</label>
+                    </div>
+                </div>
+                <div class="question-item">
+                    <p><strong>3</strong> Salt production through quarrying rock salt was common before the solar evaporation method of producing salt.</p>
+                    <div class="radio-options">
+                        <label><input name="q3" type="radio" value="TRUE"> TRUE</label>
+                        <label><input name="q3" type="radio" value="FALSE"> FALSE</label>
+                        <label><input name="q3" type="radio" value="NOT GIVEN"> NOT GIVEN</label>
+                    </div>
+                </div>
+                <div class="question-item">
+                    <p><strong>4</strong> Two thousand years ago, the Chinese were quick to develop the equipment needed to mine underground.</p>
+                    <div class="radio-options">
+                        <label><input name="q4" type="radio" value="TRUE"> TRUE</label>
+                        <label><input name="q4" type="radio" value="FALSE"> FALSE</label>
+                        <label><input name="q4" type="radio" value="NOT GIVEN"> NOT GIVEN</label>
+                    </div>
+                </div>
+                <div class="question-item">
+                    <p><strong>5</strong> At the time of the Roman Empire, salt was removed from salt water by heating the water in a type of pan.</p>
+                    <div class="radio-options">
+                        <label><input name="q5" type="radio" value="TRUE"> TRUE</label>
+                        <label><input name="q5" type="radio" value="FALSE"> FALSE</label>
+                        <label><input name="q5" type="radio" value="NOT GIVEN"> NOT GIVEN</label>
+                    </div>
+                </div>
+            </div>
+
+<div class="group" id="q6-7-8-9-anchor">
+                <p>Complete the notes below.</p>
+                <p>Choose <strong>ONE WORD ONLY</strong> from the passage for each answer.</p>
+                <div class="notes-completion">
+                    <h4>The production of rock salt</h4>
+                    <ul>
+                        <li>samples of the salt are collected with the aid of a drill</li>
+                        <li>the salt is analysed to see if mining should go ahead</li>
+                        <li>vertical tunnels are sunk into the middle of the salt deposit</li>
+                        <li>during a process called <strong>6</strong> <input type="text" id="q6_input" name="q6">, a machine is used to break into the salt</li>
+                        <li>explosives are placed in the holes in the salt</li>
+                        <li>after blasting, <strong>7</strong> <input type="text" id="q7_input" name="q7"> of salt are left behind to hold the roof up</li>
+                        <li>in an underground crushing area, small pieces of rock salt are gathered using a <strong>8</strong> <input type="text" id="q8_input" name="q8"></li>
+                        <li>the process of <strong>9</strong> <input type="text" id="q9_input" name="q9"> removes any unwanted material from the rock salt</li>
+                    </ul>
+                </div>
+            </div>
+
+<div class="group" id="q10-11-12-13-anchor">
+                 <p>Complete the flow-chart below.</p>
+                 <p>Choose <strong>ONE WORD ONLY</strong> from the passage for each answer.</p>
+                 <div class="flow-chart">
+                    <h4>Obtaining salt from brine: the multi-effect vacuum evaporator</h4>
+                    <div class="flow-item">
+                        cylinders made of <strong>10</strong> <input type="text" id="q10_input" name="q10"> are filled with brine
+                    </div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-item">
+                        <strong>11</strong> <input type="text" id="q11_input" name="q11"> heats the tube in the first cylinder
+                    </div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-item">
+                        the <strong>12</strong> <input type="text" id="q12_input" name="q12"> in the cylinders falls due to condensation
+                    </div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-item">
+                        slurry collects in the cylinders and passes to a tank
+                    </div>
+                    <div class="flow-arrow">↓</div>
+                     <div class="flow-item">
+                        <strong>13</strong> <input type="text" id="q13_input" name="q13"> are used to separate salt particles by size
+                    </div>
+                 </div>
+            </div>
+
+    <div class="bottom-bar">
+      <button class="btn-primary" onclick="submitAnswers()">提交</button>
+      <button onclick="resetForm()">重置</button>
+      <button onclick="openWrongBook()">本篇错题</button>
+    </div>
+  </section>
+</div>
+
+<div id="selbar">
+  <button id="btnNote">Note</button>
+  <button id="btnHL">Highlight</button>
+  <button id="btnUH" style="display:none;">Clear Highlight</button>
+</div>
+
+<div class="modal" id="resultModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>成绩</h2><span class="modal-close" onclick="closeModal('resultModal')">×</span></div>
+    <div id="resultContent"></div>
+    <button class="btn-primary" style="width:100%; margin-top:16px;" onclick="addWrongToBook()">加入错题本</button>
+  </div>
+</div>
+
+<div class="modal" id="wrongBookModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>本篇错题</h2><span class="modal-close" onclick="closeModal('wrongBookModal')">×</span></div>
+    <div id="wrongBookContent"></div>
+  </div>
+</div>
+
+<div class="modal" id="resetModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>重置练习</h2><span class="modal-close" onclick="closeModal('resetModal')">×</span></div>
+    <div style="margin:16px 0;">
+      <label style="display:block; margin-bottom:10px;"><input type="radio" name="resetType" value="answers" checked> 只清空答案</label>
+      <label style="display:block;"><input type="radio" name="resetType" value="all"> 清空答案和标记</label>
+    </div>
+    <button class="btn-primary" style="width:100%;" onclick="confirmReset()">确定</button>
+  </div>
+</div>
+
+<script>
+const PAPER_ID="R171";
+const ARTICLE_TITLE="Salt";
+
+let t=0;
+const timerEl=document.getElementById('timer');
+setInterval(()=>{ t++; timerEl.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0'); }, 1000);
+
+const divider=document.getElementById('divider'), left=document.getElementById('left'), right=document.getElementById('right');
+let dragging=false;
+divider.onmousedown=()=>{ dragging=true; document.body.style.cursor='ew-resize'; };
+window.onmousemove=(e)=>{ if(!dragging)return; const c=document.querySelector('.shell').getBoundingClientRect(); let x=e.clientX-c.left; x=Math.max(280,Math.min(c.width-280,x)); left.style.flex='0 0 '+x+'px'; right.style.flex='1 1 auto'; };
+window.onmouseup=()=>{ dragging=false; document.body.style.cursor=''; };
+
+const selbar=document.getElementById('selbar'), btnHL=document.getElementById('btnHL'), btnUH=document.getElementById('btnUH'), btnNote=document.getElementById('btnNote');
+let lastRange=null, currentHlNode=null;
+function posSelbar(r){ selbar.style.display='flex'; const t=window.scrollY+r.top-selbar.offsetHeight-8; const l=window.scrollX+r.left+r.width/2-selbar.offsetWidth/2; selbar.style.top=((t>0)?t:(window.scrollY+r.bottom+8))+'px'; selbar.style.left=Math.max(8,l)+'px'; }
+function updSel(){ const s=window.getSelection(); if(!s||s.rangeCount===0||s.isCollapsed){ if(!currentHlNode)selbar.style.display='none'; return; } const r=s.getRangeAt(0); lastRange=r.cloneRange(); currentHlNode=null; btnNote.style.display='block'; btnHL.style.display='block'; btnUH.style.display='none'; posSelbar(r.getBoundingClientRect()); }
+left.onmouseup=updSel; right.onmouseup=updSel;
+document.onselectionchange=()=>{ const s=window.getSelection(); if((!s||s.rangeCount===0||s.isCollapsed)&&!currentHlNode)selbar.style.display='none'; };
+document.addEventListener('click',(e)=>{ if(e.target.classList&&(e.target.classList.contains('hl')||e.target.classList.contains('note'))){ currentHlNode=e.target; lastRange=null; btnNote.style.display='none'; btnHL.style.display='none'; btnUH.style.display='block'; posSelbar(e.target.getBoundingClientRect()); const s=window.getSelection(); if(s)s.removeAllRanges(); }}, true);
+btnHL.onclick=()=>{ if(currentHlNode||!lastRange||lastRange.collapsed)return; const s=document.createElement('span'); s.className='hl'; try{ lastRange.surroundContents(s); }catch(e){ const w=document.createElement('span'); w.className='hl'; w.appendChild(lastRange.cloneContents()); lastRange.deleteContents(); lastRange.insertNode(w); } selbar.style.display='none'; saveHighlights(); };
+btnNote.onclick=()=>{ if(currentHlNode||!lastRange||lastRange.collapsed)return; const s=document.createElement('span'); s.className='note'; try{ lastRange.surroundContents(s); }catch(e){ const w=document.createElement('span'); w.className='note'; w.appendChild(lastRange.cloneContents()); lastRange.deleteContents(); lastRange.insertNode(w); } selbar.style.display='none'; saveHighlights(); };
+btnUH.onclick=()=>{ if(currentHlNode){ const p=currentHlNode.parentNode; while(currentHlNode.firstChild)p.insertBefore(currentHlNode.firstChild,currentHlNode); p.removeChild(currentHlNode); p.normalize(); currentHlNode=null; selbar.style.display='none'; saveHighlights(); }else if(lastRange){ const sR=lastRange.getBoundingClientRect(); const w=document.createTreeWalker(document.body,NodeFilter.SHOW_ELEMENT); const tr=[]; while(w.nextNode()){ const n=w.currentNode; if(n.classList&&(n.classList.contains('hl')||n.classList.contains('note'))){ const r=n.getBoundingClientRect(); if(!(r.right<sR.left||r.left>sR.right||r.bottom<sR.top||r.top>sR.bottom))tr.push(n); }} tr.forEach(el=>{ const p=el.parentNode; while(el.firstChild)p.insertBefore(el.firstChild,el); p.removeChild(el); p.normalize(); }); selbar.style.display='none'; saveHighlights(); }};
+
+document.querySelectorAll('.flag-btn').forEach(btn => { btn.onclick = e => { e.stopPropagation(); btn.classList.toggle('active'); saveFlags(); }; });
+
+const answerKey = {
+  "q1": "TRUE",
+  "q2": "FALSE",
+  "q3": "FALSE",
+  "q4": "NOT GIVEN",
+  "q5": "TRUE",
+  "q6": "undercutting",
+  "q7": "pillars",
+  "q8": "grill",
+  "q9": "picking",
+  "q10": "metal",
+  "q11": "steam",
+  "q12": "pressure",
+  "q13": "screens"
+};
+let lastResults=[];
+
+function coveredIds(name){
+  // combined names drop the "q" on later ids and use "_" or "-":
+  // "q8_9"->["q8","q9"], "q12-13-14"->["q12","q13","q14"]
+  const parts = name.split(/[-_]/);
+  if(!parts.length) return [name];
+  const ids = [parts[0]];
+  for(let i=1;i<parts.length;i++){ ids.push(/^q/.test(parts[i]) ? parts[i] : 'q'+parts[i]); }
+  return ids;
+}
+function inputForKey(q){
+  let el = document.querySelector(`[name="${q}"]`);
+  if(el) return el;
+  // combined checkbox group (e.g. name="q8_9" covering q8,q9)
+  const grp = [...document.querySelectorAll('input[type="checkbox"]')].find(i => coveredIds(i.name).includes(q));
+  return grp || null;
+}
+function gradeOne(q){
+  const cA = answerKey[q];
+  const el = inputForKey(q);
+  let uA = "", iC = false;
+  if(el && el.type === 'checkbox'){
+    const vals = [...document.querySelectorAll(`input[name="${el.name}"]:checked`)].map(i=>i.value);
+    uA = vals.join(', ');
+    const lc = vals.map(x=>x.toLowerCase());
+    if(Array.isArray(cA)){
+      const exp = cA.map(x=>String(x).toLowerCase()).sort();
+      const got = [...lc].sort();
+      iC = exp.length===got.length && exp.every((v,i)=>v===got[i]);
+    } else {
+      iC = lc.includes(String(cA).toLowerCase());
+    }
+  } else if(el && el.type === 'radio'){
+    const ch = document.querySelector(`input[name="${q}"]:checked`);
+    uA = ch ? ch.value : "";
+    const alts = Array.isArray(cA) ? cA : [cA];
+    iC = alts.some(a => uA.toLowerCase() === String(a).toLowerCase());
+  } else if(el){
+    uA = (el.value||'').trim();
+    const alts = Array.isArray(cA) ? cA : [cA];
+    iC = alts.some(a => uA.toLowerCase() === String(a).toLowerCase());
+  }
+  const cADisp = Array.isArray(cA) ? cA.join(', ') : cA;
+  return { id:q, userAns:uA, correctAns:cADisp, isCorrect:iC };
+}
+
+function saveAnswers() {
+  const data = {};
+  const seen = {};
+  Object.keys(answerKey).forEach(q => {
+    const el = inputForKey(q);
+    if(!el) return;
+    if(el.type === 'checkbox'){
+      if(seen[el.name]) return; seen[el.name]=1;
+      data['cb:'+el.name] = [...document.querySelectorAll(`input[name="${el.name}"]:checked`)].map(i=>i.value);
+    } else if(el.type === 'radio'){
+      const ch = document.querySelector(`input[name="${q}"]:checked`);
+      if(ch) data[q] = ch.value;
+    } else {
+      data[q] = el.value;
+    }
+  });
+  localStorage.setItem(`${PAPER_ID}_answers`, JSON.stringify(data));
+}
+function loadAnswers() {
+  const data = JSON.parse(localStorage.getItem(`${PAPER_ID}_answers`) || '{}');
+  Object.keys(data).forEach(k => {
+    const val = data[k];
+    if(k.startsWith('cb:')){
+      const name = k.slice(3);
+      (val||[]).forEach(v => { const cb = document.querySelector(`input[name="${name}"][value="${v}"]`); if(cb) cb.checked = true; });
+      return;
+    }
+    const radio = document.querySelector(`input[name="${k}"][value="${val}"]`);
+    if(radio){ radio.checked = true; return; }
+    const el = document.querySelector(`[name="${k}"]`);
+    if(el && (el.type === 'text' || el.tagName === 'SELECT')) el.value = val;
+  });
+}
+function saveFlags() {
+  const flags = [...document.querySelectorAll('.flag-btn.active')].map(b => b.dataset.q);
+  localStorage.setItem(`${PAPER_ID}_flags`, JSON.stringify(flags));
+}
+function loadFlags() {
+  const flags = JSON.parse(localStorage.getItem(`${PAPER_ID}_flags`) || '[]');
+  flags.forEach(q => document.querySelector(`[data-q="${q}"]`)?.classList.add('active'));
+}
+function saveHighlights() {
+  const highlights = { left: [], right: [] };
+  document.querySelectorAll('#left .hl, #left .note').forEach((el, idx) => { highlights.left.push({ type: el.classList.contains('hl') ? 'hl' : 'note', text: el.textContent, index: idx }); });
+  document.querySelectorAll('#right .hl, #right .note').forEach((el, idx) => { highlights.right.push({ type: el.classList.contains('hl') ? 'hl' : 'note', text: el.textContent, index: idx }); });
+  localStorage.setItem(`${PAPER_ID}_highlights`, JSON.stringify(highlights));
+}
+function loadHighlights() {
+  const data = JSON.parse(localStorage.getItem(`${PAPER_ID}_highlights`) || '{"left":[],"right":[]}');
+  const restore = (pane, items) => {
+    if(!items || items.length === 0) return;
+    items.forEach(item => {
+      const walker = document.createTreeWalker(pane, NodeFilter.SHOW_TEXT);
+      let node;
+      while(node = walker.nextNode()) {
+        if(node.textContent.includes(item.text)) {
+          const span = document.createElement('span'); span.className = item.type;
+          const parent = node.parentNode; const text = node.textContent; const idx = text.indexOf(item.text);
+          if(idx >= 0) {
+            const before = text.substring(0, idx); const match = text.substring(idx, idx + item.text.length); const after = text.substring(idx + item.text.length);
+            parent.insertBefore(document.createTextNode(before), node); span.textContent = match; parent.insertBefore(span, node); parent.insertBefore(document.createTextNode(after), node); parent.removeChild(node); break;
+          }
+        }
+      }
+    });
+  };
+  restore(left, data.left); restore(right, data.right);
+}
+
+document.querySelectorAll('input, select').forEach(input => { input.addEventListener('change', saveAnswers); input.addEventListener('input', saveAnswers); });
+document.addEventListener('DOMContentLoaded', () => { loadAnswers(); loadFlags(); loadHighlights(); });
+
+function submitAnswers(){
+  const res=[]; let cor=0;
+  Object.keys(answerKey).forEach(q=>{ const r=gradeOne(q); if(r.isCorrect)cor++; res.push(r); });
+  lastResults=res;
+  const tot=Object.keys(answerKey).length;
+  const pct=((cor/tot)*100).toFixed(1);
+  localStorage.setItem(`ielts_score_${PAPER_ID}`, `${cor}/${tot}`);
+  document.getElementById('resultContent').innerHTML=`<div class="result-summary"><div class="result-score">${cor} / ${tot}</div><div style="margin-top:8px;font-size:18px;">${pct}%</div></div>${res.map(r=>`<div class="result-item ${r.isCorrect?'correct':'incorrect'}"><div><strong>${r.id}</strong> ${r.isCorrect?'✓':'✗'}</div><div>你的答案: ${r.userAns||'(未作答)'}</div>${!r.isCorrect?`<div>正确答案: ${r.correctAns}</div>`:''}</div>`).join('')}`;
+  document.getElementById('resultModal').classList.add('active');
+}
+function resetForm(){ document.getElementById('resetModal').classList.add('active'); }
+function confirmReset(){
+  const tp=document.querySelector('input[name="resetType"]:checked').value;
+  document.querySelectorAll('input[type="radio"],input[type="checkbox"]').forEach(i=>i.checked=false);
+  document.querySelectorAll('input[type="text"]').forEach(i=>i.value='');
+  document.querySelectorAll('select').forEach(i=>i.selectedIndex=0);
+  localStorage.removeItem(`${PAPER_ID}_answers`);
+  if(tp==='all'){
+    document.querySelectorAll('.hl').forEach(el=>{ const p=el.parentNode; while(el.firstChild)p.insertBefore(el.firstChild,el); p.removeChild(el); p.normalize(); });
+    document.querySelectorAll('.note').forEach(el=>{ const p=el.parentNode; while(el.firstChild)p.insertBefore(el.firstChild,el); p.removeChild(el); p.normalize(); });
+    document.querySelectorAll('.flag-btn').forEach(b => b.classList.remove('active'));
+    localStorage.removeItem(`${PAPER_ID}_highlights`);
+    localStorage.removeItem(`${PAPER_ID}_flags`);
+  }
+  closeModal('resetModal');
+}
+function addWrongToBook(){ const wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); const wr=lastResults.filter(r=>!r.isCorrect); wr.forEach(r=>{ const en={paperId:PAPER_ID,title:ARTICLE_TITLE,questionId:r.id,correctAnswer:r.correctAns,myAnswer:r.userAns||'(未作答)',date:new Date().toISOString().split('T')[0]}; const ix=wb.findIndex(i=>i.paperId===en.paperId&&i.questionId===en.questionId); if(ix>=0)wb[ix]=en; else wb.push(en); }); localStorage.setItem('ielts_wrong_book',JSON.stringify(wb)); alert(`已添加 ${wr.length} 道错题`); closeModal('resultModal'); }
+function deleteWrongItem(pId,qId){ if(!confirm('确定删除这道错题？'))return; let wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); wb=wb.filter(i=>!(i.paperId===pId&&i.questionId===qId)); localStorage.setItem('ielts_wrong_book',JSON.stringify(wb)); openWrongBook(); }
+function clearCurrentWrongBook(){ if(!confirm('确定清空本篇所有错题？'))return; let wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); wb=wb.filter(i=>i.paperId!==PAPER_ID); localStorage.setItem('ielts_wrong_book',JSON.stringify(wb)); openWrongBook(); }
+function openWrongBook(){ const wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); const cu=wb.filter(i=>i.paperId===PAPER_ID); const ct=document.getElementById('wrongBookContent'); if(cu.length===0)ct.innerHTML='<div style="text-align:center;padding:40px;color:#666;">暂无错题</div>'; else ct.innerHTML=`<div class="modal-actions"><button class="btn-danger" onclick="clearCurrentWrongBook()" style="width:100%;">🗑️ 清空本篇错题</button></div>${cu.map(i=>`<div class="wrong-item"><div class="wrong-item-content"><div style="font-weight:600;margin-bottom:8px;">${i.questionId}</div><div style="font-size:13px;color:#666;"><div>✓ 正确: ${i.correctAnswer}</div><div style="color:#d32f2f;">✗ 我的: ${i.myAnswer}</div></div></div><button class="btn-delete" onclick="deleteWrongItem('${i.paperId}','${i.questionId}')">删除</button></div>`).join('')}`; document.getElementById('wrongBookModal').classList.add('active'); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/lib/config.js"></script>
+<script src="/lib/supabase.js"></script>
+<script>window.READING_ID = 171;</script>
+<script src="/lib/reading-bridge.js"></script>
+</body>
+</html>

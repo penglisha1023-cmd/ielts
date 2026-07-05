@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>P1 – Bovids</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  html,body { height:100%; }
+  body { font-family: Arial, sans-serif; background:#f5f5f5; }
+  #timer { position:fixed; top:12px; right:12px; background:#fff; border:1px solid #ddd; border-radius:6px; padding:8px 12px; font-size:16px; font-weight:600; color:#0066cc; z-index:1000; }
+  .shell { display:flex; height:100vh; width:100%; }
+  .pane { background:#fff; overflow:auto; padding:24px; }
+  #left { flex: 0 0 50%; border-right:1px solid #ddd; }
+  #right { flex: 1 1 auto; background:#fafafa; }
+  #divider { flex: 0 0 5px; background:#ddd; cursor: ew-resize; }
+  #divider:hover { background:#999; }
+  h2,h3,h4 { margin:0 0 12px; color:#333; }
+  h2 { font-size:20px; }
+  h3 { font-size:18px; color:#0066cc; }
+  h4 { font-size:15px; font-weight:600; margin-top:20px; }
+  h5 { font-size:14px; font-weight:600; margin:12px 0 8px; }
+  #left p { margin: 0 0 14px; line-height: 1.7; text-align:justify; }
+  .group { background:#fff; border:1px solid #ddd; border-radius:6px; padding:16px; margin-bottom:16px; }
+  .group h4 { margin-top:0; color:#0066cc; }
+  .group p { margin:8px 0; font-size:14px; line-height:1.6; }
+  .group ol { margin-left:20px; }
+  .group ol li { margin:12px 0; font-size:14px; line-height:1.6; position:relative; }
+  .group ol li label { display:inline-block; margin-right:8px; cursor: pointer; }
+  .group ul { margin-left:20px; }
+  .group ul li { margin:8px 0; font-size:14px; line-height:1.8; }
+  .question-item, .match-question-item, .q-block { margin:12px 0; font-size:14px; line-height:1.6; }
+  .radio-options label, .options label { display:inline-block; margin-right:12px; cursor:pointer; }
+  .headings { background:#f9f9f9; padding:12px; margin:12px 0; border-radius:4px; }
+  .headings ol { margin-left:20px; }
+  .headings li { margin:4px 0; font-size:13px; }
+  table { border-collapse: collapse; width:100%; margin:12px 0; }
+  th, td { border:1px solid #ddd; padding:6px; text-align:left; font-size:13px; position:relative; }
+  th { background:#f5f5f5; font-weight:600; }
+  .flag-btn { position:absolute; left:2px; top:50%; transform:translateY(-50%); width:8px; height:8px; border-radius:50%; background:#ddd; cursor:pointer; z-index:10; }
+  .flag-btn:hover { background:#999; }
+  .flag-btn.active { background:#ff5722; }
+  input.blank, input.gap-input, input[type="text"] { border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; font-size: 14px; width: 160px; margin: 0 5px; font-family: inherit; }
+  select { border:1px solid #ccc; border-radius:4px; padding:4px 8px; font-size:14px; font-family:inherit; margin:0 5px; }
+  .note-box { border: 1px solid #333; padding: 15px; margin-top: 10px; }
+  .note-title { text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 15px; }
+  .note-text { line-height: 2; }
+  .bottom-bar { display:flex; gap:10px; margin-top:16px; }
+  button { padding:10px 20px; border:1px solid #999; border-radius:6px; background:#fff; cursor:pointer; font-size:14px; }
+  button:hover { background:#f0f0f0; }
+  .btn-primary { background:#0066cc; color:#fff; border-color:#0066cc; }
+  .btn-primary:hover { background:#0052a3; }
+  .btn-danger { background:#dc3545; color:#fff; border-color:#dc3545; }
+  .btn-danger:hover { background:#c82333; }
+  .hl { background:#fff59d; cursor:pointer; }
+  .hl:hover { background:#ffeb3b; }
+  .note { background:#b3d9ff; cursor:pointer; }
+  .note:hover { background:#99ccff; }
+  #selbar { position:fixed; display:none; z-index:2000; background:#fff; border:1px solid #ddd; border-radius:8px; padding:8px; gap:0; box-shadow:0 2px 8px rgba(0,0,0,0.15); flex-direction:column; min-width:120px; }
+  #selbar button { background:#fff; color:#666; border:none; padding:3px 0px; cursor:pointer; font-size:14px; text-align:center; border-radius:4px; }
+  #selbar button:hover { background:#f5f5f5; color:#333; }
+  .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; align-items:center; justify-content:center; }
+  .modal.active { display:flex; }
+  .modal-content { background:#fff; border-radius:8px; padding:24px; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .modal-header h2 { font-size: 28px; color: #333; margin: 0; }
+  .modal-close { font-size: 32px; cursor: pointer; color: #999; line-height: 1; }
+  .modal-close:hover { color: #333; }
+  .result-summary { text-align:center; padding:20px; background:#f0f0f0; margin-bottom:16px; border-radius:6px; }
+  .result-score { font-size:36px; font-weight:600; color:#0066cc; }
+  .result-item { padding:10px; margin:8px 0; border-left:3px solid #ddd; background:#f9f9f9; font-size:13px; }
+  .result-item.correct { border-left-color:#28a745; background:#e8f5e9; }
+  .result-item.incorrect { border-left-color:#dc3545; background:#ffebee; }
+  .wrong-item { background:#fff3e0; padding:16px; margin:8px 0; border-radius:8px; border-left:4px solid #ff9800; display:flex; justify-content:space-between; align-items:start; }
+  .wrong-item-content { flex:1; }
+  .btn-delete { background:#dc3545; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:13px; margin-left:12px; }
+  .btn-delete:hover { background:#c82333; }
+  .modal-actions { display:flex; gap:10px; margin-bottom:20px; }
+</style>
+<style id="morandi-reading-theme">
+  body { background:#ebe4d9 !important; }
+  #left, #right, .pane { background:#f7f1e7 !important; }
+  #right { background:#ebe4d9 !important; }
+  #divider { background:#d7cdbe !important; }
+  h2, h3, h4, .group h4 { color:#3d362e !important; }
+  h3 { color:#748a7a !important; }
+  .group { background:#f7f1e7 !important; border-color:#d7cdbe !important; }
+  .group ol li, .group p { color:#3d362e !important; }
+  .headings { background:#ebe4d9 !important; }
+  button { background:#f7f1e7 !important; border-color:#d7cdbe !important; color:#3d362e !important; }
+  button:hover { background:#ebe4d9 !important; }
+  .btn-primary { background:#8fa394 !important; color:#fff !important; border-color:#8fa394 !important; }
+  .btn-primary:hover { background:#748a7a !important; }
+  .btn-danger { background:#b58575 !important; color:#fff !important; border-color:#b58575 !important; }
+  .hl { background:#d8c1ac !important; }
+  .note { background:#c8d2dc !important; }
+  #timer { background:#f7f1e7 !important; border-color:#d7cdbe !important; color:#748a7a !important; }
+  th { background:#ebe4d9 !important; color:#3d362e !important; }
+  th, td { border-color:#d7cdbe !important; }
+</style>
+</head>
+<body>
+<div id="timer">00:00</div>
+
+<div class="shell">
+  <section class="pane" id="left">
+
+<h2>Bovids</h2>
+            
+            <p>The family of mammals called bovids belongs to the Artiodactyl class, which also includes giraffes. Bovids are a highly diverse group consisting of 137 species, some of which are man's most important domestic animals.</p>
+            <p>Bovids are well represented in most parts of Eurasia and Southeast Asian islands, but they are by far the most numerous and diverse in the latter. Some species of bovid are solitary, but others live in large groups with complex social structures. Although bovids have adapted to a wide range of habitats, from arctic tundra to deep tropical forest, the majority of species favour open grassland, scrub or desert. This diversity of habitat is also matched by great diversity in size and form: at one extreme is the royal antelope of West Africa, which stands a mere 25 cm at the shoulder; at the other, the massively built bison of North America and Europe, growing to a shoulder height of 2.2m.</p>
+            <p>Despite differences in size and appearance, bovids are united by the possession of certain common features. All species are ruminants, which means that they retain undigested food in their stomachs, and regurgitate it as necessary. Bovids are almost exclusively herbivorous. Typically, their teeth are highly modified for browsing and grazing: grass or foliage is cropped with the upper lip and lower incisors (the upper incisors are usually absent), and then ground down by the cheek teeth. As well as having cloven, or split hooves, the males of all bovid species and the females of most carry horns. Bovid horns have bony cores covered in a sheath of horny material that is constantly renewed from within; they are unbranched and never shed. They vary in shape and size: the relatively simple horns of a large Indian buffalo may measure around 4 m from tip to tip along the outer curve, while the various gazelles have horns with a variety of elegant curves.</p>
+            <p>Five groups, or sub-families, may be distinguished: Bovinae, Antelope, Caprinae, Cephalophinae and Antilocapridae. The sub-family Bovinae comprises most of the larger bovids, including the African bongo, nilgai, eland, bison and cattle. Unlike most other bovids, they are all non-territorial. The ancestors of the various species of domestic cattle (such as banteng, gaur, yak and water buffalo) are generally rare and endangered in the wild, while the auroch (the ancestor of the domestic cattle of Europe) is extinct.</p>
+            <p>The term 'antelope' is not a very precise zoological name – it is used to loosely describe a number of bovids that have followed different lines of development. Antelopes are typically long-legged, fast-running species, often with long horns that may be laid along the back when the animal is in full flight. There are two main sub-groups of antelope: Hippotraginae, which includes the oryx and the addax, and Antilopinae, which generally contains slighter and more graceful animals such as gazelle and the springbok. Antelopes are mainly grassland species, but many have adapted to flooded grasslands: pukus, waterbucks and lechwes are all good at swimming, usually feeding in deep water, while the sitatunga has long, splayed hooves that enable it to walk freely on swampy ground.</p>
+            <p>The sub-family Caprinae includes the sheep and the goat, together with various relatives such as the goral and the tahr. Most are woolly or have long hair. Several species, such as wild goats, chamois and ibex, are agile cliff and mountain-dwellers. Tolerance of extreme conditions is most marked in this group: barbary and bighorn sheep have adapted to arid deserts, while Rocky Mountain sheep survive high up in mountains and musk oxen in arctic tundra.</p>
+            <p>The duiker of Africa belongs to the Cephalophinae sub-family. It is generally small and solitary, often living in thick forest. Although mainly feeding on grass and leaves, some duikers - unlike most other bovids – are believed to eat insects and feed on dead animal carcasses, and even to kill small animals.</p>
+            <p>The pronghorn is the sole survivor of a New World sub-family of herbivorous ruminants, the Antilocapridae in North America. It is similar in appearance and habits to the Old World antelope. Although greatly reduced in numbers since the arrival of Europeans, and the subsequent enclosure of grasslands, the pronghorn is still found in considerable numbers throughout North America, from Washington State to Mexico. When alarmed by the approach of wolves or other predators, hairs on the pronghorn's rump stand erect, so showing and emphasising the white patch there. At this signal, the whole herd gallops off at speed of over 60 km per hour.</p>
+            <div class="empty-space"></div>
+
+  </section>
+
+  <div id="divider" title="Drag to resize"></div>
+
+  <section class="pane" id="right">
+<h3>Questions</h3>
+
+<div class="group" id="q1-2-3-anchor">
+                <h4>Questions 1–3</h4>
+                <p>Choose the correct letter, <strong>A, B, C</strong> or <strong>D</strong>.</p>
+                
+                <div class="question-item">
+                    <p><strong>1</strong> In which region is the biggest range of bovids to be found?</p>
+                    <div class="radio-options">
+                        <label><input name="q1" type="radio" value="A"> A Africa</label>
+                        <label><input name="q1" type="radio" value="B"> B Eurasia</label>
+                        <label><input name="q1" type="radio" value="C"> C North America</label>
+                        <label><input name="q1" type="radio" value="D"> D South-east Asia</label>
+                    </div>
+                </div>
+                <div class="question-item">
+                    <p><strong>2</strong> Most bovids have a preference for living in</p>
+                    <div class="radio-options">
+                        <label><input name="q2" type="radio" value="A"> A isolation.</label>
+                        <label><input name="q2" type="radio" value="B"> B small groups.</label>
+                        <label><input name="q2" type="radio" value="C"> C tropical forest.</label>
+                        <label><input name="q2" type="radio" value="D"> D wide open spaces.</label>
+                    </div>
+                </div>
+                <div class="question-item">
+                    <p><strong>3</strong> Which of the following features do all bovids have in common?</p>
+                    <div class="radio-options">
+                        <label><input name="q3" type="radio" value="A"> A Their horns are shed</label>
+                        <label><input name="q3" type="radio" value="B"> B They have upper incisors</label>
+                        <label><input name="q3" type="radio" value="C"> C They store food in the body</label>
+                        <label><input name="q3" type="radio" value="D"> D Their hooves are undivided</label>
+                    </div>
+                </div>
+            </div>
+
+<div class="group" id="q4-5-6-7-8-anchor">
+                <h4>Questions 4–8</h4><div class="headings"><p><strong>List of Options</strong></p><div>A Antelope</div><div>B Bovinae</div><div>C Caprinae</div><div>D Cephalophinae</div></div>
+                <p>Look at the following characteristics and the list of sub-families below.</p>
+                <p>Match each characteristic with the correct sub-family, <strong>A, B, C</strong> or <strong>D</strong>.</p>
+                <p><em>NB You may use any letter more than once.</em></p>
+                
+                <div class="match-question-item">
+                    <p><strong>4</strong> can endure very harsh environments</p>
+                    <div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q4" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q4" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q4" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q4" value="D"> D</label></div>
+                </div>
+                <div class="match-question-item">
+                    <p><strong>5</strong> includes the ox and the cow</p>
+                    <div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q5" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q5" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q5" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q5" value="D"> D</label></div>
+                </div>
+                <div class="match-question-item">
+                    <p><strong>6</strong> may supplement its diet with meat</p>
+                    <div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q6" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q6" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q6" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q6" value="D"> D</label></div>
+                </div>
+                <div class="match-question-item">
+                    <p><strong>7</strong> can usually move at speed</p>
+                    <div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q7" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q7" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q7" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q7" value="D"> D</label></div>
+                </div>
+                <div class="match-question-item">
+                    <p><strong>8</strong> does not defend a particular area of land</p>
+                    <div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q8" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q8" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q8" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q8" value="D"> D</label></div>
+                </div>
+
+                
+                        
+                        
+                    </div>
+                </div>
+            </div>
+
+<div class="group" id="q9-10-11-12-13-anchor">
+                <h4>Questions 9–13</h4>
+                <p>Answer the questions below.</p>
+                <p>Choose <strong>NO MORE THAN THREE WORDS</strong> from the passage for each answer.</p>
+                
+                <ul class="short-answer-list">
+                    <li class="short-answer-item">
+                        <p><strong>9</strong> What is the smallest species of Bovid called?</p>
+                        <input name="q9" type="text" id="q9_input">
+                    </li>
+                    <li class="short-answer-item">
+                        <p><strong>10</strong> Which species of Bovinae has now died out?</p>
+                        <input name="q10" type="text" id="q10_input">
+                    </li>
+                    <li class="short-answer-item">
+                        <p><strong>11</strong> What facilitates the movement of the sitatunga over wetland?</p>
+                        <input name="q11" type="text" id="q11_input">
+                    </li>
+                    <li class="short-answer-item">
+                        <p><strong>12</strong> What sort of terrain do barbary sheep live in?</p>
+                        <input name="q12" type="text" id="q12_input">
+                    </li>
+                    <li class="short-answer-item">
+                        <p><strong>13</strong> What is the only living member of the Antilocapridae sub-family?</p>
+                        <input name="q13" type="text" id="q13_input">
+                    </li>
+                </ul>
+            </div>
+
+    <div class="bottom-bar">
+      <button class="btn-primary" onclick="submitAnswers()">提交</button>
+      <button onclick="resetForm()">重置</button>
+      <button onclick="openWrongBook()">本篇错题</button>
+    </div>
+  </section>
+</div>
+
+<div id="selbar">
+  <button id="btnNote">Note</button>
+  <button id="btnHL">Highlight</button>
+  <button id="btnUH" style="display:none;">Clear Highlight</button>
+</div>
+
+<div class="modal" id="resultModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>成绩</h2><span class="modal-close" onclick="closeModal('resultModal')">×</span></div>
+    <div id="resultContent"></div>
+    <button class="btn-primary" style="width:100%; margin-top:16px;" onclick="addWrongToBook()">加入错题本</button>
+  </div>
+</div>
+
+<div class="modal" id="wrongBookModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>本篇错题</h2><span class="modal-close" onclick="closeModal('wrongBookModal')">×</span></div>
+    <div id="wrongBookContent"></div>
+  </div>
+</div>
+
+<div class="modal" id="resetModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>重置练习</h2><span class="modal-close" onclick="closeModal('resetModal')">×</span></div>
+    <div style="margin:16px 0;">
+      <label style="display:block; margin-bottom:10px;"><input type="radio" name="resetType" value="answers" checked> 只清空答案</label>
+      <label style="display:block;"><input type="radio" name="resetType" value="all"> 清空答案和标记</label>
+    </div>
+    <button class="btn-primary" style="width:100%;" onclick="confirmReset()">确定</button>
+  </div>
+</div>
+
+<script>
+const PAPER_ID="R108";
+const ARTICLE_TITLE="Bovids";
+
+let t=0;
+const timerEl=document.getElementById('timer');
+setInterval(()=>{ t++; timerEl.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0'); }, 1000);
+
+const divider=document.getElementById('divider'), left=document.getElementById('left'), right=document.getElementById('right');
+let dragging=false;
+divider.onmousedown=()=>{ dragging=true; document.body.style.cursor='ew-resize'; };
+window.onmousemove=(e)=>{ if(!dragging)return; const c=document.querySelector('.shell').getBoundingClientRect(); let x=e.clientX-c.left; x=Math.max(280,Math.min(c.width-280,x)); left.style.flex='0 0 '+x+'px'; right.style.flex='1 1 auto'; };
+window.onmouseup=()=>{ dragging=false; document.body.style.cursor=''; };
+
+const selbar=document.getElementById('selbar'), btnHL=document.getElementById('btnHL'), btnUH=document.getElementById('btnUH'), btnNote=document.getElementById('btnNote');
+let lastRange=null, currentHlNode=null;
+function posSelbar(r){ selbar.style.display='flex'; const t=window.scrollY+r.top-selbar.offsetHeight-8; const l=window.scrollX+r.left+r.width/2-selbar.offsetWidth/2; selbar.style.top=((t>0)?t:(window.scrollY+r.bottom+8))+'px'; selbar.style.left=Math.max(8,l)+'px'; }
+function updSel(){ const s=window.getSelection(); if(!s||s.rangeCount===0||s.isCollapsed){ if(!currentHlNode)selbar.style.display='none'; return; } const r=s.getRangeAt(0); lastRange=r.cloneRange(); currentHlNode=null; btnNote.style.display='block'; btnHL.style.display='block'; btnUH.style.display='none'; posSelbar(r.getBoundingClientRect()); }
+left.onmouseup=updSel; right.onmouseup=updSel;
+document.onselectionchange=()=>{ const s=window.getSelection(); if((!s||s.rangeCount===0||s.isCollapsed)&&!currentHlNode)selbar.style.display='none'; };
+document.addEventListener('click',(e)=>{ if(e.target.classList&&(e.target.classList.contains('hl')||e.target.classList.contains('note'))){ currentHlNode=e.target; lastRange=null; btnNote.style.display='none'; btnHL.style.display='none'; btnUH.style.display='block'; posSelbar(e.target.getBoundingClientRect()); const s=window.getSelection(); if(s)s.removeAllRanges(); }}, true);
+btnHL.onclick=()=>{ if(currentHlNode||!lastRange||lastRange.collapsed)return; const s=document.createElement('span'); s.className='hl'; try{ lastRange.surroundContents(s); }catch(e){ const w=document.createElement('span'); w.className='hl'; w.appendChild(lastRange.cloneContents()); lastRange.deleteContents(); lastRange.insertNode(w); } selbar.style.display='none'; saveHighlights(); };
+btnNote.onclick=()=>{ if(currentHlNode||!lastRange||lastRange.collapsed)return; const s=document.createElement('span'); s.className='note'; try{ lastRange.surroundContents(s); }catch(e){ const w=document.createElement('span'); w.className='note'; w.appendChild(lastRange.cloneContents()); lastRange.deleteContents(); lastRange.insertNode(w); } selbar.style.display='none'; saveHighlights(); };
+btnUH.onclick=()=>{ if(currentHlNode){ const p=currentHlNode.parentNode; while(currentHlNode.firstChild)p.insertBefore(currentHlNode.firstChild,currentHlNode); p.removeChild(currentHlNode); p.normalize(); currentHlNode=null; selbar.style.display='none'; saveHighlights(); }else if(lastRange){ const sR=lastRange.getBoundingClientRect(); const w=document.createTreeWalker(document.body,NodeFilter.SHOW_ELEMENT); const tr=[]; while(w.nextNode()){ const n=w.currentNode; if(n.classList&&(n.classList.contains('hl')||n.classList.contains('note'))){ const r=n.getBoundingClientRect(); if(!(r.right<sR.left||r.left>sR.right||r.bottom<sR.top||r.top>sR.bottom))tr.push(n); }} tr.forEach(el=>{ const p=el.parentNode; while(el.firstChild)p.insertBefore(el.firstChild,el); p.removeChild(el); p.normalize(); }); selbar.style.display='none'; saveHighlights(); }};
+
+document.querySelectorAll('.flag-btn').forEach(btn => { btn.onclick = e => { e.stopPropagation(); btn.classList.toggle('active'); saveFlags(); }; });
+
+const answerKey = {
+  "q1": "D",
+  "q2": "D",
+  "q3": "C",
+  "q4": "C",
+  "q5": "B",
+  "q6": "D",
+  "q7": "A",
+  "q8": "B",
+  "q9": "royal antelope",
+  "q10": "auroch",
+  "q11": "splayed hooves",
+  "q12": "arid deserts",
+  "q13": "pronghorn"
+};
+let lastResults=[];
+
+function coveredIds(name){
+  // combined names drop the "q" on later ids and use "_" or "-":
+  // "q8_9"->["q8","q9"], "q12-13-14"->["q12","q13","q14"]
+  const parts = name.split(/[-_]/);
+  if(!parts.length) return [name];
+  const ids = [parts[0]];
+  for(let i=1;i<parts.length;i++){ ids.push(/^q/.test(parts[i]) ? parts[i] : 'q'+parts[i]); }
+  return ids;
+}
+function inputForKey(q){
+  let el = document.querySelector(`[name="${q}"]`);
+  if(el) return el;
+  // combined checkbox group (e.g. name="q8_9" covering q8,q9)
+  const grp = [...document.querySelectorAll('input[type="checkbox"]')].find(i => coveredIds(i.name).includes(q));
+  return grp || null;
+}
+function gradeOne(q){
+  const cA = answerKey[q];
+  const el = inputForKey(q);
+  let uA = "", iC = false;
+  if(el && el.type === 'checkbox'){
+    const vals = [...document.querySelectorAll(`input[name="${el.name}"]:checked`)].map(i=>i.value);
+    uA = vals.join(', ');
+    const lc = vals.map(x=>x.toLowerCase());
+    if(Array.isArray(cA)){
+      const exp = cA.map(x=>String(x).toLowerCase()).sort();
+      const got = [...lc].sort();
+      iC = exp.length===got.length && exp.every((v,i)=>v===got[i]);
+    } else {
+      iC = lc.includes(String(cA).toLowerCase());
+    }
+  } else if(el && el.type === 'radio'){
+    const ch = document.querySelector(`input[name="${q}"]:checked`);
+    uA = ch ? ch.value : "";
+    const alts = Array.isArray(cA) ? cA : [cA];
+    iC = alts.some(a => uA.toLowerCase() === String(a).toLowerCase());
+  } else if(el){
+    uA = (el.value||'').trim();
+    const alts = Array.isArray(cA) ? cA : [cA];
+    iC = alts.some(a => uA.toLowerCase() === String(a).toLowerCase());
+  }
+  const cADisp = Array.isArray(cA) ? cA.join(', ') : cA;
+  return { id:q, userAns:uA, correctAns:cADisp, isCorrect:iC };
+}
+
+function saveAnswers() {
+  const data = {};
+  const seen = {};
+  Object.keys(answerKey).forEach(q => {
+    const el = inputForKey(q);
+    if(!el) return;
+    if(el.type === 'checkbox'){
+      if(seen[el.name]) return; seen[el.name]=1;
+      data['cb:'+el.name] = [...document.querySelectorAll(`input[name="${el.name}"]:checked`)].map(i=>i.value);
+    } else if(el.type === 'radio'){
+      const ch = document.querySelector(`input[name="${q}"]:checked`);
+      if(ch) data[q] = ch.value;
+    } else {
+      data[q] = el.value;
+    }
+  });
+  localStorage.setItem(`${PAPER_ID}_answers`, JSON.stringify(data));
+}
+function loadAnswers() {
+  const data = JSON.parse(localStorage.getItem(`${PAPER_ID}_answers`) || '{}');
+  Object.keys(data).forEach(k => {
+    const val = data[k];
+    if(k.startsWith('cb:')){
+      const name = k.slice(3);
+      (val||[]).forEach(v => { const cb = document.querySelector(`input[name="${name}"][value="${v}"]`); if(cb) cb.checked = true; });
+      return;
+    }
+    const radio = document.querySelector(`input[name="${k}"][value="${val}"]`);
+    if(radio){ radio.checked = true; return; }
+    const el = document.querySelector(`[name="${k}"]`);
+    if(el && (el.type === 'text' || el.tagName === 'SELECT')) el.value = val;
+  });
+}
+function saveFlags() {
+  const flags = [...document.querySelectorAll('.flag-btn.active')].map(b => b.dataset.q);
+  localStorage.setItem(`${PAPER_ID}_flags`, JSON.stringify(flags));
+}
+function loadFlags() {
+  const flags = JSON.parse(localStorage.getItem(`${PAPER_ID}_flags`) || '[]');
+  flags.forEach(q => document.querySelector(`[data-q="${q}"]`)?.classList.add('active'));
+}
+function saveHighlights() {
+  const highlights = { left: [], right: [] };
+  document.querySelectorAll('#left .hl, #left .note').forEach((el, idx) => { highlights.left.push({ type: el.classList.contains('hl') ? 'hl' : 'note', text: el.textContent, index: idx }); });
+  document.querySelectorAll('#right .hl, #right .note').forEach((el, idx) => { highlights.right.push({ type: el.classList.contains('hl') ? 'hl' : 'note', text: el.textContent, index: idx }); });
+  localStorage.setItem(`${PAPER_ID}_highlights`, JSON.stringify(highlights));
+}
+function loadHighlights() {
+  const data = JSON.parse(localStorage.getItem(`${PAPER_ID}_highlights`) || '{"left":[],"right":[]}');
+  const restore = (pane, items) => {
+    if(!items || items.length === 0) return;
+    items.forEach(item => {
+      const walker = document.createTreeWalker(pane, NodeFilter.SHOW_TEXT);
+      let node;
+      while(node = walker.nextNode()) {
+        if(node.textContent.includes(item.text)) {
+          const span = document.createElement('span'); span.className = item.type;
+          const parent = node.parentNode; const text = node.textContent; const idx = text.indexOf(item.text);
+          if(idx >= 0) {
+            const before = text.substring(0, idx); const match = text.substring(idx, idx + item.text.length); const after = text.substring(idx + item.text.length);
+            parent.insertBefore(document.createTextNode(before), node); span.textContent = match; parent.insertBefore(span, node); parent.insertBefore(document.createTextNode(after), node); parent.removeChild(node); break;
+          }
+        }
+      }
+    });
+  };
+  restore(left, data.left); restore(right, data.right);
+}
+
+document.querySelectorAll('input, select').forEach(input => { input.addEventListener('change', saveAnswers); input.addEventListener('input', saveAnswers); });
+document.addEventListener('DOMContentLoaded', () => { loadAnswers(); loadFlags(); loadHighlights(); });
+
+function submitAnswers(){
+  const res=[]; let cor=0;
+  Object.keys(answerKey).forEach(q=>{ const r=gradeOne(q); if(r.isCorrect)cor++; res.push(r); });
+  lastResults=res;
+  const tot=Object.keys(answerKey).length;
+  const pct=((cor/tot)*100).toFixed(1);
+  localStorage.setItem(`ielts_score_${PAPER_ID}`, `${cor}/${tot}`);
+  document.getElementById('resultContent').innerHTML=`<div class="result-summary"><div class="result-score">${cor} / ${tot}</div><div style="margin-top:8px;font-size:18px;">${pct}%</div></div>${res.map(r=>`<div class="result-item ${r.isCorrect?'correct':'incorrect'}"><div><strong>${r.id}</strong> ${r.isCorrect?'✓':'✗'}</div><div>你的答案: ${r.userAns||'(未作答)'}</div>${!r.isCorrect?`<div>正确答案: ${r.correctAns}</div>`:''}</div>`).join('')}`;
+  document.getElementById('resultModal').classList.add('active');
+}
+function resetForm(){ document.getElementById('resetModal').classList.add('active'); }
+function confirmReset(){
+  const tp=document.querySelector('input[name="resetType"]:checked').value;
+  document.querySelectorAll('input[type="radio"],input[type="checkbox"]').forEach(i=>i.checked=false);
+  document.querySelectorAll('input[type="text"]').forEach(i=>i.value='');
+  document.querySelectorAll('select').forEach(i=>i.selectedIndex=0);
+  localStorage.removeItem(`${PAPER_ID}_answers`);
+  if(tp==='all'){
+    document.querySelectorAll('.hl').forEach(el=>{ const p=el.parentNode; while(el.firstChild)p.insertBefore(el.firstChild,el); p.removeChild(el); p.normalize(); });
+    document.querySelectorAll('.note').forEach(el=>{ const p=el.parentNode; while(el.firstChild)p.insertBefore(el.firstChild,el); p.removeChild(el); p.normalize(); });
+    document.querySelectorAll('.flag-btn').forEach(b => b.classList.remove('active'));
+    localStorage.removeItem(`${PAPER_ID}_highlights`);
+    localStorage.removeItem(`${PAPER_ID}_flags`);
+  }
+  closeModal('resetModal');
+}
+function addWrongToBook(){ const wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); const wr=lastResults.filter(r=>!r.isCorrect); wr.forEach(r=>{ const en={paperId:PAPER_ID,title:ARTICLE_TITLE,questionId:r.id,correctAnswer:r.correctAns,myAnswer:r.userAns||'(未作答)',date:new Date().toISOString().split('T')[0]}; const ix=wb.findIndex(i=>i.paperId===en.paperId&&i.questionId===en.questionId); if(ix>=0)wb[ix]=en; else wb.push(en); }); localStorage.setItem('ielts_wrong_book',JSON.stringify(wb)); alert(`已添加 ${wr.length} 道错题`); closeModal('resultModal'); }
+function deleteWrongItem(pId,qId){ if(!confirm('确定删除这道错题？'))return; let wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); wb=wb.filter(i=>!(i.paperId===pId&&i.questionId===qId)); localStorage.setItem('ielts_wrong_book',JSON.stringify(wb)); openWrongBook(); }
+function clearCurrentWrongBook(){ if(!confirm('确定清空本篇所有错题？'))return; let wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); wb=wb.filter(i=>i.paperId!==PAPER_ID); localStorage.setItem('ielts_wrong_book',JSON.stringify(wb)); openWrongBook(); }
+function openWrongBook(){ const wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); const cu=wb.filter(i=>i.paperId===PAPER_ID); const ct=document.getElementById('wrongBookContent'); if(cu.length===0)ct.innerHTML='<div style="text-align:center;padding:40px;color:#666;">暂无错题</div>'; else ct.innerHTML=`<div class="modal-actions"><button class="btn-danger" onclick="clearCurrentWrongBook()" style="width:100%;">🗑️ 清空本篇错题</button></div>${cu.map(i=>`<div class="wrong-item"><div class="wrong-item-content"><div style="font-weight:600;margin-bottom:8px;">${i.questionId}</div><div style="font-size:13px;color:#666;"><div>✓ 正确: ${i.correctAnswer}</div><div style="color:#d32f2f;">✗ 我的: ${i.myAnswer}</div></div></div><button class="btn-delete" onclick="deleteWrongItem('${i.paperId}','${i.questionId}')">删除</button></div>`).join('')}`; document.getElementById('wrongBookModal').classList.add('active'); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/lib/config.js"></script>
+<script src="/lib/supabase.js"></script>
+<script>window.READING_ID = 108;</script>
+<script src="/lib/reading-bridge.js"></script>
+</body>
+</html>

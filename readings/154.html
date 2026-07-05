@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>P2 – The purpose of facial expressions</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  html,body { height:100%; }
+  body { font-family: Arial, sans-serif; background:#f5f5f5; }
+  #timer { position:fixed; top:12px; right:12px; background:#fff; border:1px solid #ddd; border-radius:6px; padding:8px 12px; font-size:16px; font-weight:600; color:#0066cc; z-index:1000; }
+  .shell { display:flex; height:100vh; width:100%; }
+  .pane { background:#fff; overflow:auto; padding:24px; }
+  #left { flex: 0 0 50%; border-right:1px solid #ddd; }
+  #right { flex: 1 1 auto; background:#fafafa; }
+  #divider { flex: 0 0 5px; background:#ddd; cursor: ew-resize; }
+  #divider:hover { background:#999; }
+  h2,h3,h4 { margin:0 0 12px; color:#333; }
+  h2 { font-size:20px; }
+  h3 { font-size:18px; color:#0066cc; }
+  h4 { font-size:15px; font-weight:600; margin-top:20px; }
+  h5 { font-size:14px; font-weight:600; margin:12px 0 8px; }
+  #left p { margin: 0 0 14px; line-height: 1.7; text-align:justify; }
+  .group { background:#fff; border:1px solid #ddd; border-radius:6px; padding:16px; margin-bottom:16px; }
+  .group h4 { margin-top:0; color:#0066cc; }
+  .group p { margin:8px 0; font-size:14px; line-height:1.6; }
+  .group ol { margin-left:20px; }
+  .group ol li { margin:12px 0; font-size:14px; line-height:1.6; position:relative; }
+  .group ol li label { display:inline-block; margin-right:8px; cursor: pointer; }
+  .group ul { margin-left:20px; }
+  .group ul li { margin:8px 0; font-size:14px; line-height:1.8; }
+  .question-item, .match-question-item, .q-block { margin:12px 0; font-size:14px; line-height:1.6; }
+  .radio-options label, .options label { display:inline-block; margin-right:12px; cursor:pointer; }
+  .headings { background:#f9f9f9; padding:12px; margin:12px 0; border-radius:4px; }
+  .headings ol { margin-left:20px; }
+  .headings li { margin:4px 0; font-size:13px; }
+  table { border-collapse: collapse; width:100%; margin:12px 0; }
+  th, td { border:1px solid #ddd; padding:6px; text-align:left; font-size:13px; position:relative; }
+  th { background:#f5f5f5; font-weight:600; }
+  .flag-btn { position:absolute; left:2px; top:50%; transform:translateY(-50%); width:8px; height:8px; border-radius:50%; background:#ddd; cursor:pointer; z-index:10; }
+  .flag-btn:hover { background:#999; }
+  .flag-btn.active { background:#ff5722; }
+  input.blank, input.gap-input, input[type="text"] { border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; font-size: 14px; width: 160px; margin: 0 5px; font-family: inherit; }
+  select { border:1px solid #ccc; border-radius:4px; padding:4px 8px; font-size:14px; font-family:inherit; margin:0 5px; }
+  .note-box { border: 1px solid #333; padding: 15px; margin-top: 10px; }
+  .note-title { text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 15px; }
+  .note-text { line-height: 2; }
+  .bottom-bar { display:flex; gap:10px; margin-top:16px; }
+  button { padding:10px 20px; border:1px solid #999; border-radius:6px; background:#fff; cursor:pointer; font-size:14px; }
+  button:hover { background:#f0f0f0; }
+  .btn-primary { background:#0066cc; color:#fff; border-color:#0066cc; }
+  .btn-primary:hover { background:#0052a3; }
+  .btn-danger { background:#dc3545; color:#fff; border-color:#dc3545; }
+  .btn-danger:hover { background:#c82333; }
+  .hl { background:#fff59d; cursor:pointer; }
+  .hl:hover { background:#ffeb3b; }
+  .note { background:#b3d9ff; cursor:pointer; }
+  .note:hover { background:#99ccff; }
+  #selbar { position:fixed; display:none; z-index:2000; background:#fff; border:1px solid #ddd; border-radius:8px; padding:8px; gap:0; box-shadow:0 2px 8px rgba(0,0,0,0.15); flex-direction:column; min-width:120px; }
+  #selbar button { background:#fff; color:#666; border:none; padding:3px 0px; cursor:pointer; font-size:14px; text-align:center; border-radius:4px; }
+  #selbar button:hover { background:#f5f5f5; color:#333; }
+  .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; align-items:center; justify-content:center; }
+  .modal.active { display:flex; }
+  .modal-content { background:#fff; border-radius:8px; padding:24px; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .modal-header h2 { font-size: 28px; color: #333; margin: 0; }
+  .modal-close { font-size: 32px; cursor: pointer; color: #999; line-height: 1; }
+  .modal-close:hover { color: #333; }
+  .result-summary { text-align:center; padding:20px; background:#f0f0f0; margin-bottom:16px; border-radius:6px; }
+  .result-score { font-size:36px; font-weight:600; color:#0066cc; }
+  .result-item { padding:10px; margin:8px 0; border-left:3px solid #ddd; background:#f9f9f9; font-size:13px; }
+  .result-item.correct { border-left-color:#28a745; background:#e8f5e9; }
+  .result-item.incorrect { border-left-color:#dc3545; background:#ffebee; }
+  .wrong-item { background:#fff3e0; padding:16px; margin:8px 0; border-radius:8px; border-left:4px solid #ff9800; display:flex; justify-content:space-between; align-items:start; }
+  .wrong-item-content { flex:1; }
+  .btn-delete { background:#dc3545; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:13px; margin-left:12px; }
+  .btn-delete:hover { background:#c82333; }
+  .modal-actions { display:flex; gap:10px; margin-bottom:20px; }
+</style>
+<style id="morandi-reading-theme">
+  body { background:#ebe4d9 !important; }
+  #left, #right, .pane { background:#f7f1e7 !important; }
+  #right { background:#ebe4d9 !important; }
+  #divider { background:#d7cdbe !important; }
+  h2, h3, h4, .group h4 { color:#3d362e !important; }
+  h3 { color:#748a7a !important; }
+  .group { background:#f7f1e7 !important; border-color:#d7cdbe !important; }
+  .group ol li, .group p { color:#3d362e !important; }
+  .headings { background:#ebe4d9 !important; }
+  button { background:#f7f1e7 !important; border-color:#d7cdbe !important; color:#3d362e !important; }
+  button:hover { background:#ebe4d9 !important; }
+  .btn-primary { background:#8fa394 !important; color:#fff !important; border-color:#8fa394 !important; }
+  .btn-primary:hover { background:#748a7a !important; }
+  .btn-danger { background:#b58575 !important; color:#fff !important; border-color:#b58575 !important; }
+  .hl { background:#d8c1ac !important; }
+  .note { background:#c8d2dc !important; }
+  #timer { background:#f7f1e7 !important; border-color:#d7cdbe !important; color:#748a7a !important; }
+  th { background:#ebe4d9 !important; color:#3d362e !important; }
+  th, td { border-color:#d7cdbe !important; }
+</style>
+</head>
+<body>
+<div id="timer">00:00</div>
+
+<div class="shell">
+  <section class="pane" id="left">
+
+<h2>The Purpose of Facial Expressions</h2>
+            <h4>Do facial expressions reflect inner feelings? Or are they social devices for influencing others?</h4>
+            
+            <p><strong>A</strong> The use of facial expressions for measuring people's emotions has dominated psychology since the late 1960s. This was when Paul Ekman of the University of California pioneered the idea that, by carefully measuring facial expression, he could evaluate people's true emotions. Ekman carried out experiments in which people were asked to label photos of basic facial expressions - such as a smile, frown or scowl - with words for emotions. He found, for example, that a smile represented joy and a scowl represented anger. In fact, since the 1970s Ekman has dominated the field of emotion research with his theory that when an emotion occurs, a large number of electrical impulses also occur, creating specific facial expressions and other physiological changes, such as increased or decreased heart rate or heightened blood pressure.</p>
+            <p><strong>B</strong> Many took Ekman's work to imply that facial expressions precisely indicated people's feelings. However, this theory has been attacked by a number of psychologists, such as Alan Fridlund of the University of California, who claim that there is no one-to-one correspondence between facial expressions and emotions. Expressions evolved to set off certain behaviors in other people, says Fridlund. So a smile may prompt people to approach, a scowl may warn them to stay away, and a look of sadness may elicit words of sympathy and reassurance. In other words, in Fridlund's view, facial expressions are inherently social - they involve not one, but two or more people. Even when people are alone they are holding a dialog with another person internally, or imagining themselves in a social situation.</p>
+            <p><strong>C</strong> Thus Fridlund thinks of facial expressions as tools for influencing social interactions, a view which, he claims, enables us to begin predicting when certain facial expressions will occur. This in turn will allow more precise theories about social interactions. His studies find that expressions occur most often during pivotal points, the turning points in social interactions - during greetings, social crises, or times of appeasement, for example. At these pivotal points there is an approach, or closeness, or more intimacy, and facial expressions, as well as gestures, open up the possibilities of various social interactions.</p>
+            <p><strong>D</strong> Although much work on the emotions relies on a link between facial expression and emotions, psychologist James Russell, of the University of British Columbia, says there is very little evidence supporting such a connection. ‘There's some sense in which faces express emotion, but only in the sense that everything expresses emotion,' says Russell, a long-time critic of the expression-emotion link. ‘Music does, posture does, words do, tone of voice does, your behavior does. The real question is, “Is there anything special about faces?” And there we really do not know much. What is more likely, argues Russell, is that facial expressions tell others something about a person's overall mood and context, rather than provide details about specific emotions.'</p>
+            <p><strong>E</strong> Others, including Ekman, argue that the face can display information about emotions, but they admit that it is not reliable one hundred percent of the time. And those who only examine faces when trying to study emotion will jump to false conclusions. But according to Ekman, to say, as Fridlund does, that there is no connection at all between facial expressions and emotions is simply wrong. ‘There is a link between facial expression and emotion,' agrees developmental psychologist Linda Camras of DePaul University, 'but it's not a one-to-one kind of relationship as many once thought.' She believes there are many situations where emotion is experienced, yet no basic facial expression is displayed. And there are times when a facial expression appears with no corresponding emotion.</p>
+            <p><strong>F</strong> Ekman's theory states that if the emotion comes on slowly or is rather weak, the feeling might not be strong enough to trigger the expression. This would explain why there can sometimes be emotion without expression, he argues. In addition, cultural rules - which determine when and whether people of certain cultures display emotional expressions - can prevent this otherwise automatic process from being completed. Facial expressions evolved in humans as signals to others about how they feel, says Ekman. At times, though, it may be uncomfortable or inconvenient for us to let others know our emotions. But in the long run, over the course of evolution, it was useful to us as signalers: an angry look on someone's face may be a warning that they are preparing to behave in an angry fashion.</p>
+            <p><strong>G</strong> Although Fridlund disagrees with Ekman on certain matters, the two basically share the opinion that facial expressions indicate people's future actions. The area of dispute between Fridlund and Ekman draws attention away from their major areas of agreement, says Joseph Campos of the University of California. Indeed, he says, 'there is profound agreement that the face, along with the voice, body posture and hand gestures, forecasts to outside observers what people will do next.' He goes on to say, 'The face is a component [of emotion], but to make it the center of study of the human being experiencing an emotion is like saying the only thing you need to study in a car is the transmission. Not that the transmission is unimportant, but it's only part of an entire system.'</p>
+            <div class="empty-space"></div>
+
+  </section>
+
+  <div id="divider" title="Drag to resize"></div>
+
+  <section class="pane" id="right">
+<h3>Questions</h3>
+
+<div class="group" id="q1-2-3-4-5-anchor">
+                 <h4>Questions 14–18</h4>
+                <p>Reading Passage 2 has seven paragraphs, <strong>A–G</strong>.</p>
+                <p>Which paragraph contains the following information?</p>
+                <div style="overflow-x: auto;">
+                    <table class="matching-table">
+                        <thead>
+                            <tr>
+                                <th style="min-width: 200px;"></th>
+                                <th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>14</strong> a recognition that facial expressions do not always provide a true guide to feelings</td>
+                                <td><input type="radio" name="q1" value="A"></td><td><input type="radio" name="q1" value="B"></td><td><input type="radio" name="q1" value="C"></td><td><input type="radio" name="q1" value="D"></td><td><input type="radio" name="q1" value="E"></td><td><input type="radio" name="q1" value="F"></td><td><input type="radio" name="q1" value="G"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>15</strong> examples of ways that a person's facial expression can affect someone else's actions</td>
+                                <td><input type="radio" name="q2" value="A"></td><td><input type="radio" name="q2" value="B"></td><td><input type="radio" name="q2" value="C"></td><td><input type="radio" name="q2" value="D"></td><td><input type="radio" name="q2" value="E"></td><td><input type="radio" name="q2" value="F"></td><td><input type="radio" name="q2" value="G"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>16</strong> a reference to reasons for hiding emotions</td>
+                                <td><input type="radio" name="q3" value="A"></td><td><input type="radio" name="q3" value="B"></td><td><input type="radio" name="q3" value="C"></td><td><input type="radio" name="q3" value="D"></td><td><input type="radio" name="q3" value="E"></td><td><input type="radio" name="q3" value="F"></td><td><input type="radio" name="q3" value="G"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>17</strong> examples of times when facial expressions are used especially frequently</td>
+                                <td><input type="radio" name="q4" value="A"></td><td><input type="radio" name="q4" value="B"></td><td><input type="radio" name="q4" value="C"></td><td><input type="radio" name="q4" value="D"></td><td><input type="radio" name="q4" value="E"></td><td><input type="radio" name="q4" value="F"></td><td><input type="radio" name="q4" value="G"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>18</strong> examples of changes inside the body when an emotion is felt</td>
+                                <td><input type="radio" name="q5" value="A"></td><td><input type="radio" name="q5" value="B"></td><td><input type="radio" name="q5" value="C"></td><td><input type="radio" name="q5" value="D"></td><td><input type="radio" name="q5" value="E"></td><td><input type="radio" name="q5" value="F"></td><td><input type="radio" name="q5" value="G"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+<div class="group" id="q6-7-8-9-10-anchor">
+                <h4>Questions 19–23</h4><div class="headings"><p><strong>List of Options</strong></p><div>A Paul Ekman</div><div>B Alan Fridlund</div><div>C James Russell</div><div>D Linda Camras</div><div>E Joseph Campos</div></div>
+                <p>Look at the following statements and the list of researchers below.</p>
+                <p>Match each statement with the correct person, <strong>A, B, C, D</strong> or <strong>E</strong>.</p>
+                <p><em>NB You may use any letter more than once.</em></p>
+                
+                <div class="match-question-item">
+                    <p><strong>19</strong> Focusing on the face in researching emotions is similar to researching a large structure by looking at just one small unit of it.</p>
+                    <div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q6" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q6" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q6" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q6" value="D"> D</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q6" value="E"> E</label></div>
+                </div>
+                <div class="match-question-item">
+                    <p><strong>20</strong> Facial expressions developed in order to encourage other people to react in particular ways.</p>
+                    <div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q7" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q7" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q7" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q7" value="D"> D</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q7" value="E"> E</label></div>
+                </div>
+                 <div class="match-question-item">
+                     <p><strong>21</strong> Although certain researchers have different opinions about various points, they share some important ideas.</p>
+                    <div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q8" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q8" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q8" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q8" value="D"> D</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q8" value="E"> E</label></div>
+                </div>
+                 <div class="match-question-item">
+                    <p><strong>22</strong> Both emotion and expression can exist independently of each other in certain circumstances.</p>
+                    <div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q9" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q9" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q9" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q9" value="D"> D</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q9" value="E"> E</label></div>
+                </div>
+                <div class="match-question-item">
+                    <p><strong>23</strong> It cannot be proved that there is a connection between facial expression and real emotion.</p>
+                    <div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q10" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q10" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q10" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q10" value="D"> D</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q10" value="E"> E</label></div>
+                </div>
+
+                
+                        
+                        
+                        
+                    </div>
+                </div>
+            </div>
+
+<div class="group" id="q11-12-13-anchor">
+                <h4>Questions 24–26</h4>
+                <p>Complete the sentences below.</p>
+                <p>Choose <strong>ONE WORD ONLY</strong> from the passage for each answer.</p>
+                
+                <div class="summary-completion">
+                    <p><strong>24</strong> In Fridlund's view a <input name="q11" type="text" id="q24_input"> on someone's face may be intended as an invitation to come nearer.</p>
+                    <p><strong>25</strong> According to Fridlund, when we are by ourselves we still use facial expressions because we are having a <input name="q12" type="text" id="q25_input"> with someone in our minds.</p>
+                    <p><strong>26</strong> Fridlund considers facial expressions to be <input name="q13" type="text" id="q26_input"> that can affect our contact with other people.</p>
+                </div>
+            </div>
+
+    <div class="bottom-bar">
+      <button class="btn-primary" onclick="submitAnswers()">提交</button>
+      <button onclick="resetForm()">重置</button>
+      <button onclick="openWrongBook()">本篇错题</button>
+    </div>
+  </section>
+</div>
+
+<div id="selbar">
+  <button id="btnNote">Note</button>
+  <button id="btnHL">Highlight</button>
+  <button id="btnUH" style="display:none;">Clear Highlight</button>
+</div>
+
+<div class="modal" id="resultModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>成绩</h2><span class="modal-close" onclick="closeModal('resultModal')">×</span></div>
+    <div id="resultContent"></div>
+    <button class="btn-primary" style="width:100%; margin-top:16px;" onclick="addWrongToBook()">加入错题本</button>
+  </div>
+</div>
+
+<div class="modal" id="wrongBookModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>本篇错题</h2><span class="modal-close" onclick="closeModal('wrongBookModal')">×</span></div>
+    <div id="wrongBookContent"></div>
+  </div>
+</div>
+
+<div class="modal" id="resetModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>重置练习</h2><span class="modal-close" onclick="closeModal('resetModal')">×</span></div>
+    <div style="margin:16px 0;">
+      <label style="display:block; margin-bottom:10px;"><input type="radio" name="resetType" value="answers" checked> 只清空答案</label>
+      <label style="display:block;"><input type="radio" name="resetType" value="all"> 清空答案和标记</label>
+    </div>
+    <button class="btn-primary" style="width:100%;" onclick="confirmReset()">确定</button>
+  </div>
+</div>
+
+<script>
+const PAPER_ID="R154";
+const ARTICLE_TITLE="The purpose of facial expressions";
+
+let t=0;
+const timerEl=document.getElementById('timer');
+setInterval(()=>{ t++; timerEl.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0'); }, 1000);
+
+const divider=document.getElementById('divider'), left=document.getElementById('left'), right=document.getElementById('right');
+let dragging=false;
+divider.onmousedown=()=>{ dragging=true; document.body.style.cursor='ew-resize'; };
+window.onmousemove=(e)=>{ if(!dragging)return; const c=document.querySelector('.shell').getBoundingClientRect(); let x=e.clientX-c.left; x=Math.max(280,Math.min(c.width-280,x)); left.style.flex='0 0 '+x+'px'; right.style.flex='1 1 auto'; };
+window.onmouseup=()=>{ dragging=false; document.body.style.cursor=''; };
+
+const selbar=document.getElementById('selbar'), btnHL=document.getElementById('btnHL'), btnUH=document.getElementById('btnUH'), btnNote=document.getElementById('btnNote');
+let lastRange=null, currentHlNode=null;
+function posSelbar(r){ selbar.style.display='flex'; const t=window.scrollY+r.top-selbar.offsetHeight-8; const l=window.scrollX+r.left+r.width/2-selbar.offsetWidth/2; selbar.style.top=((t>0)?t:(window.scrollY+r.bottom+8))+'px'; selbar.style.left=Math.max(8,l)+'px'; }
+function updSel(){ const s=window.getSelection(); if(!s||s.rangeCount===0||s.isCollapsed){ if(!currentHlNode)selbar.style.display='none'; return; } const r=s.getRangeAt(0); lastRange=r.cloneRange(); currentHlNode=null; btnNote.style.display='block'; btnHL.style.display='block'; btnUH.style.display='none'; posSelbar(r.getBoundingClientRect()); }
+left.onmouseup=updSel; right.onmouseup=updSel;
+document.onselectionchange=()=>{ const s=window.getSelection(); if((!s||s.rangeCount===0||s.isCollapsed)&&!currentHlNode)selbar.style.display='none'; };
+document.addEventListener('click',(e)=>{ if(e.target.classList&&(e.target.classList.contains('hl')||e.target.classList.contains('note'))){ currentHlNode=e.target; lastRange=null; btnNote.style.display='none'; btnHL.style.display='none'; btnUH.style.display='block'; posSelbar(e.target.getBoundingClientRect()); const s=window.getSelection(); if(s)s.removeAllRanges(); }}, true);
+btnHL.onclick=()=>{ if(currentHlNode||!lastRange||lastRange.collapsed)return; const s=document.createElement('span'); s.className='hl'; try{ lastRange.surroundContents(s); }catch(e){ const w=document.createElement('span'); w.className='hl'; w.appendChild(lastRange.cloneContents()); lastRange.deleteContents(); lastRange.insertNode(w); } selbar.style.display='none'; saveHighlights(); };
+btnNote.onclick=()=>{ if(currentHlNode||!lastRange||lastRange.collapsed)return; const s=document.createElement('span'); s.className='note'; try{ lastRange.surroundContents(s); }catch(e){ const w=document.createElement('span'); w.className='note'; w.appendChild(lastRange.cloneContents()); lastRange.deleteContents(); lastRange.insertNode(w); } selbar.style.display='none'; saveHighlights(); };
+btnUH.onclick=()=>{ if(currentHlNode){ const p=currentHlNode.parentNode; while(currentHlNode.firstChild)p.insertBefore(currentHlNode.firstChild,currentHlNode); p.removeChild(currentHlNode); p.normalize(); currentHlNode=null; selbar.style.display='none'; saveHighlights(); }else if(lastRange){ const sR=lastRange.getBoundingClientRect(); const w=document.createTreeWalker(document.body,NodeFilter.SHOW_ELEMENT); const tr=[]; while(w.nextNode()){ const n=w.currentNode; if(n.classList&&(n.classList.contains('hl')||n.classList.contains('note'))){ const r=n.getBoundingClientRect(); if(!(r.right<sR.left||r.left>sR.right||r.bottom<sR.top||r.top>sR.bottom))tr.push(n); }} tr.forEach(el=>{ const p=el.parentNode; while(el.firstChild)p.insertBefore(el.firstChild,el); p.removeChild(el); p.normalize(); }); selbar.style.display='none'; saveHighlights(); }};
+
+document.querySelectorAll('.flag-btn').forEach(btn => { btn.onclick = e => { e.stopPropagation(); btn.classList.toggle('active'); saveFlags(); }; });
+
+const answerKey = {
+  "q1": "E",
+  "q2": "B",
+  "q3": "F",
+  "q4": "C",
+  "q5": "A",
+  "q6": "E",
+  "q7": "B",
+  "q8": "E",
+  "q9": "D",
+  "q10": "C",
+  "q11": "smile",
+  "q12": "dialog",
+  "q13": "tools"
+};
+let lastResults=[];
+
+function coveredIds(name){
+  // combined names drop the "q" on later ids and use "_" or "-":
+  // "q8_9"->["q8","q9"], "q12-13-14"->["q12","q13","q14"]
+  const parts = name.split(/[-_]/);
+  if(!parts.length) return [name];
+  const ids = [parts[0]];
+  for(let i=1;i<parts.length;i++){ ids.push(/^q/.test(parts[i]) ? parts[i] : 'q'+parts[i]); }
+  return ids;
+}
+function inputForKey(q){
+  let el = document.querySelector(`[name="${q}"]`);
+  if(el) return el;
+  // combined checkbox group (e.g. name="q8_9" covering q8,q9)
+  const grp = [...document.querySelectorAll('input[type="checkbox"]')].find(i => coveredIds(i.name).includes(q));
+  return grp || null;
+}
+function gradeOne(q){
+  const cA = answerKey[q];
+  const el = inputForKey(q);
+  let uA = "", iC = false;
+  if(el && el.type === 'checkbox'){
+    const vals = [...document.querySelectorAll(`input[name="${el.name}"]:checked`)].map(i=>i.value);
+    uA = vals.join(', ');
+    const lc = vals.map(x=>x.toLowerCase());
+    if(Array.isArray(cA)){
+      const exp = cA.map(x=>String(x).toLowerCase()).sort();
+      const got = [...lc].sort();
+      iC = exp.length===got.length && exp.every((v,i)=>v===got[i]);
+    } else {
+      iC = lc.includes(String(cA).toLowerCase());
+    }
+  } else if(el && el.type === 'radio'){
+    const ch = document.querySelector(`input[name="${q}"]:checked`);
+    uA = ch ? ch.value : "";
+    const alts = Array.isArray(cA) ? cA : [cA];
+    iC = alts.some(a => uA.toLowerCase() === String(a).toLowerCase());
+  } else if(el){
+    uA = (el.value||'').trim();
+    const alts = Array.isArray(cA) ? cA : [cA];
+    iC = alts.some(a => uA.toLowerCase() === String(a).toLowerCase());
+  }
+  const cADisp = Array.isArray(cA) ? cA.join(', ') : cA;
+  return { id:q, userAns:uA, correctAns:cADisp, isCorrect:iC };
+}
+
+function saveAnswers() {
+  const data = {};
+  const seen = {};
+  Object.keys(answerKey).forEach(q => {
+    const el = inputForKey(q);
+    if(!el) return;
+    if(el.type === 'checkbox'){
+      if(seen[el.name]) return; seen[el.name]=1;
+      data['cb:'+el.name] = [...document.querySelectorAll(`input[name="${el.name}"]:checked`)].map(i=>i.value);
+    } else if(el.type === 'radio'){
+      const ch = document.querySelector(`input[name="${q}"]:checked`);
+      if(ch) data[q] = ch.value;
+    } else {
+      data[q] = el.value;
+    }
+  });
+  localStorage.setItem(`${PAPER_ID}_answers`, JSON.stringify(data));
+}
+function loadAnswers() {
+  const data = JSON.parse(localStorage.getItem(`${PAPER_ID}_answers`) || '{}');
+  Object.keys(data).forEach(k => {
+    const val = data[k];
+    if(k.startsWith('cb:')){
+      const name = k.slice(3);
+      (val||[]).forEach(v => { const cb = document.querySelector(`input[name="${name}"][value="${v}"]`); if(cb) cb.checked = true; });
+      return;
+    }
+    const radio = document.querySelector(`input[name="${k}"][value="${val}"]`);
+    if(radio){ radio.checked = true; return; }
+    const el = document.querySelector(`[name="${k}"]`);
+    if(el && (el.type === 'text' || el.tagName === 'SELECT')) el.value = val;
+  });
+}
+function saveFlags() {
+  const flags = [...document.querySelectorAll('.flag-btn.active')].map(b => b.dataset.q);
+  localStorage.setItem(`${PAPER_ID}_flags`, JSON.stringify(flags));
+}
+function loadFlags() {
+  const flags = JSON.parse(localStorage.getItem(`${PAPER_ID}_flags`) || '[]');
+  flags.forEach(q => document.querySelector(`[data-q="${q}"]`)?.classList.add('active'));
+}
+function saveHighlights() {
+  const highlights = { left: [], right: [] };
+  document.querySelectorAll('#left .hl, #left .note').forEach((el, idx) => { highlights.left.push({ type: el.classList.contains('hl') ? 'hl' : 'note', text: el.textContent, index: idx }); });
+  document.querySelectorAll('#right .hl, #right .note').forEach((el, idx) => { highlights.right.push({ type: el.classList.contains('hl') ? 'hl' : 'note', text: el.textContent, index: idx }); });
+  localStorage.setItem(`${PAPER_ID}_highlights`, JSON.stringify(highlights));
+}
+function loadHighlights() {
+  const data = JSON.parse(localStorage.getItem(`${PAPER_ID}_highlights`) || '{"left":[],"right":[]}');
+  const restore = (pane, items) => {
+    if(!items || items.length === 0) return;
+    items.forEach(item => {
+      const walker = document.createTreeWalker(pane, NodeFilter.SHOW_TEXT);
+      let node;
+      while(node = walker.nextNode()) {
+        if(node.textContent.includes(item.text)) {
+          const span = document.createElement('span'); span.className = item.type;
+          const parent = node.parentNode; const text = node.textContent; const idx = text.indexOf(item.text);
+          if(idx >= 0) {
+            const before = text.substring(0, idx); const match = text.substring(idx, idx + item.text.length); const after = text.substring(idx + item.text.length);
+            parent.insertBefore(document.createTextNode(before), node); span.textContent = match; parent.insertBefore(span, node); parent.insertBefore(document.createTextNode(after), node); parent.removeChild(node); break;
+          }
+        }
+      }
+    });
+  };
+  restore(left, data.left); restore(right, data.right);
+}
+
+document.querySelectorAll('input, select').forEach(input => { input.addEventListener('change', saveAnswers); input.addEventListener('input', saveAnswers); });
+document.addEventListener('DOMContentLoaded', () => { loadAnswers(); loadFlags(); loadHighlights(); });
+
+function submitAnswers(){
+  const res=[]; let cor=0;
+  Object.keys(answerKey).forEach(q=>{ const r=gradeOne(q); if(r.isCorrect)cor++; res.push(r); });
+  lastResults=res;
+  const tot=Object.keys(answerKey).length;
+  const pct=((cor/tot)*100).toFixed(1);
+  localStorage.setItem(`ielts_score_${PAPER_ID}`, `${cor}/${tot}`);
+  document.getElementById('resultContent').innerHTML=`<div class="result-summary"><div class="result-score">${cor} / ${tot}</div><div style="margin-top:8px;font-size:18px;">${pct}%</div></div>${res.map(r=>`<div class="result-item ${r.isCorrect?'correct':'incorrect'}"><div><strong>${r.id}</strong> ${r.isCorrect?'✓':'✗'}</div><div>你的答案: ${r.userAns||'(未作答)'}</div>${!r.isCorrect?`<div>正确答案: ${r.correctAns}</div>`:''}</div>`).join('')}`;
+  document.getElementById('resultModal').classList.add('active');
+}
+function resetForm(){ document.getElementById('resetModal').classList.add('active'); }
+function confirmReset(){
+  const tp=document.querySelector('input[name="resetType"]:checked').value;
+  document.querySelectorAll('input[type="radio"],input[type="checkbox"]').forEach(i=>i.checked=false);
+  document.querySelectorAll('input[type="text"]').forEach(i=>i.value='');
+  document.querySelectorAll('select').forEach(i=>i.selectedIndex=0);
+  localStorage.removeItem(`${PAPER_ID}_answers`);
+  if(tp==='all'){
+    document.querySelectorAll('.hl').forEach(el=>{ const p=el.parentNode; while(el.firstChild)p.insertBefore(el.firstChild,el); p.removeChild(el); p.normalize(); });
+    document.querySelectorAll('.note').forEach(el=>{ const p=el.parentNode; while(el.firstChild)p.insertBefore(el.firstChild,el); p.removeChild(el); p.normalize(); });
+    document.querySelectorAll('.flag-btn').forEach(b => b.classList.remove('active'));
+    localStorage.removeItem(`${PAPER_ID}_highlights`);
+    localStorage.removeItem(`${PAPER_ID}_flags`);
+  }
+  closeModal('resetModal');
+}
+function addWrongToBook(){ const wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); const wr=lastResults.filter(r=>!r.isCorrect); wr.forEach(r=>{ const en={paperId:PAPER_ID,title:ARTICLE_TITLE,questionId:r.id,correctAnswer:r.correctAns,myAnswer:r.userAns||'(未作答)',date:new Date().toISOString().split('T')[0]}; const ix=wb.findIndex(i=>i.paperId===en.paperId&&i.questionId===en.questionId); if(ix>=0)wb[ix]=en; else wb.push(en); }); localStorage.setItem('ielts_wrong_book',JSON.stringify(wb)); alert(`已添加 ${wr.length} 道错题`); closeModal('resultModal'); }
+function deleteWrongItem(pId,qId){ if(!confirm('确定删除这道错题？'))return; let wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); wb=wb.filter(i=>!(i.paperId===pId&&i.questionId===qId)); localStorage.setItem('ielts_wrong_book',JSON.stringify(wb)); openWrongBook(); }
+function clearCurrentWrongBook(){ if(!confirm('确定清空本篇所有错题？'))return; let wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); wb=wb.filter(i=>i.paperId!==PAPER_ID); localStorage.setItem('ielts_wrong_book',JSON.stringify(wb)); openWrongBook(); }
+function openWrongBook(){ const wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); const cu=wb.filter(i=>i.paperId===PAPER_ID); const ct=document.getElementById('wrongBookContent'); if(cu.length===0)ct.innerHTML='<div style="text-align:center;padding:40px;color:#666;">暂无错题</div>'; else ct.innerHTML=`<div class="modal-actions"><button class="btn-danger" onclick="clearCurrentWrongBook()" style="width:100%;">🗑️ 清空本篇错题</button></div>${cu.map(i=>`<div class="wrong-item"><div class="wrong-item-content"><div style="font-weight:600;margin-bottom:8px;">${i.questionId}</div><div style="font-size:13px;color:#666;"><div>✓ 正确: ${i.correctAnswer}</div><div style="color:#d32f2f;">✗ 我的: ${i.myAnswer}</div></div></div><button class="btn-delete" onclick="deleteWrongItem('${i.paperId}','${i.questionId}')">删除</button></div>`).join('')}`; document.getElementById('wrongBookModal').classList.add('active'); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/lib/config.js"></script>
+<script src="/lib/supabase.js"></script>
+<script>window.READING_ID = 154;</script>
+<script src="/lib/reading-bridge.js"></script>
+</body>
+</html>

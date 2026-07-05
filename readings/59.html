@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>P2 – Why do we need the arts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  html,body { height:100%; }
+  body { font-family: Arial, sans-serif; background:#f5f5f5; }
+  #timer { position:fixed; top:12px; right:12px; background:#fff; border:1px solid #ddd; border-radius:6px; padding:8px 12px; font-size:16px; font-weight:600; color:#0066cc; z-index:1000; }
+  .shell { display:flex; height:100vh; width:100%; }
+  .pane { background:#fff; overflow:auto; padding:24px; }
+  #left { flex: 0 0 50%; border-right:1px solid #ddd; }
+  #right { flex: 1 1 auto; background:#fafafa; }
+  #divider { flex: 0 0 5px; background:#ddd; cursor: ew-resize; }
+  #divider:hover { background:#999; }
+  h2,h3,h4 { margin:0 0 12px; color:#333; }
+  h2 { font-size:20px; }
+  h3 { font-size:18px; color:#0066cc; }
+  h4 { font-size:15px; font-weight:600; margin-top:20px; }
+  h5 { font-size:14px; font-weight:600; margin:12px 0 8px; }
+  #left p { margin: 0 0 14px; line-height: 1.7; text-align:justify; }
+  .group { background:#fff; border:1px solid #ddd; border-radius:6px; padding:16px; margin-bottom:16px; }
+  .group h4 { margin-top:0; color:#0066cc; }
+  .group p { margin:8px 0; font-size:14px; line-height:1.6; }
+  .group ol { margin-left:20px; }
+  .group ol li { margin:12px 0; font-size:14px; line-height:1.6; position:relative; }
+  .group ol li label { display:inline-block; margin-right:8px; cursor: pointer; }
+  .group ul { margin-left:20px; }
+  .group ul li { margin:8px 0; font-size:14px; line-height:1.8; }
+  .question-item, .match-question-item, .q-block { margin:12px 0; font-size:14px; line-height:1.6; }
+  .radio-options label, .options label { display:inline-block; margin-right:12px; cursor:pointer; }
+  .headings { background:#f9f9f9; padding:12px; margin:12px 0; border-radius:4px; }
+  .headings ol { margin-left:20px; }
+  .headings li { margin:4px 0; font-size:13px; }
+  table { border-collapse: collapse; width:100%; margin:12px 0; }
+  th, td { border:1px solid #ddd; padding:6px; text-align:left; font-size:13px; position:relative; }
+  th { background:#f5f5f5; font-weight:600; }
+  .flag-btn { position:absolute; left:2px; top:50%; transform:translateY(-50%); width:8px; height:8px; border-radius:50%; background:#ddd; cursor:pointer; z-index:10; }
+  .flag-btn:hover { background:#999; }
+  .flag-btn.active { background:#ff5722; }
+  input.blank, input.gap-input, input[type="text"] { border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; font-size: 14px; width: 160px; margin: 0 5px; font-family: inherit; }
+  select { border:1px solid #ccc; border-radius:4px; padding:4px 8px; font-size:14px; font-family:inherit; margin:0 5px; }
+  .note-box { border: 1px solid #333; padding: 15px; margin-top: 10px; }
+  .note-title { text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 15px; }
+  .note-text { line-height: 2; }
+  .bottom-bar { display:flex; gap:10px; margin-top:16px; }
+  button { padding:10px 20px; border:1px solid #999; border-radius:6px; background:#fff; cursor:pointer; font-size:14px; }
+  button:hover { background:#f0f0f0; }
+  .btn-primary { background:#0066cc; color:#fff; border-color:#0066cc; }
+  .btn-primary:hover { background:#0052a3; }
+  .btn-danger { background:#dc3545; color:#fff; border-color:#dc3545; }
+  .btn-danger:hover { background:#c82333; }
+  .hl { background:#fff59d; cursor:pointer; }
+  .hl:hover { background:#ffeb3b; }
+  .note { background:#b3d9ff; cursor:pointer; }
+  .note:hover { background:#99ccff; }
+  #selbar { position:fixed; display:none; z-index:2000; background:#fff; border:1px solid #ddd; border-radius:8px; padding:8px; gap:0; box-shadow:0 2px 8px rgba(0,0,0,0.15); flex-direction:column; min-width:120px; }
+  #selbar button { background:#fff; color:#666; border:none; padding:3px 0px; cursor:pointer; font-size:14px; text-align:center; border-radius:4px; }
+  #selbar button:hover { background:#f5f5f5; color:#333; }
+  .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; align-items:center; justify-content:center; }
+  .modal.active { display:flex; }
+  .modal-content { background:#fff; border-radius:8px; padding:24px; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .modal-header h2 { font-size: 28px; color: #333; margin: 0; }
+  .modal-close { font-size: 32px; cursor: pointer; color: #999; line-height: 1; }
+  .modal-close:hover { color: #333; }
+  .result-summary { text-align:center; padding:20px; background:#f0f0f0; margin-bottom:16px; border-radius:6px; }
+  .result-score { font-size:36px; font-weight:600; color:#0066cc; }
+  .result-item { padding:10px; margin:8px 0; border-left:3px solid #ddd; background:#f9f9f9; font-size:13px; }
+  .result-item.correct { border-left-color:#28a745; background:#e8f5e9; }
+  .result-item.incorrect { border-left-color:#dc3545; background:#ffebee; }
+  .wrong-item { background:#fff3e0; padding:16px; margin:8px 0; border-radius:8px; border-left:4px solid #ff9800; display:flex; justify-content:space-between; align-items:start; }
+  .wrong-item-content { flex:1; }
+  .btn-delete { background:#dc3545; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:13px; margin-left:12px; }
+  .btn-delete:hover { background:#c82333; }
+  .modal-actions { display:flex; gap:10px; margin-bottom:20px; }
+</style>
+<style id="morandi-reading-theme">
+  body { background:#ebe4d9 !important; }
+  #left, #right, .pane { background:#f7f1e7 !important; }
+  #right { background:#ebe4d9 !important; }
+  #divider { background:#d7cdbe !important; }
+  h2, h3, h4, .group h4 { color:#3d362e !important; }
+  h3 { color:#748a7a !important; }
+  .group { background:#f7f1e7 !important; border-color:#d7cdbe !important; }
+  .group ol li, .group p { color:#3d362e !important; }
+  .headings { background:#ebe4d9 !important; }
+  button { background:#f7f1e7 !important; border-color:#d7cdbe !important; color:#3d362e !important; }
+  button:hover { background:#ebe4d9 !important; }
+  .btn-primary { background:#8fa394 !important; color:#fff !important; border-color:#8fa394 !important; }
+  .btn-primary:hover { background:#748a7a !important; }
+  .btn-danger { background:#b58575 !important; color:#fff !important; border-color:#b58575 !important; }
+  .hl { background:#d8c1ac !important; }
+  .note { background:#c8d2dc !important; }
+  #timer { background:#f7f1e7 !important; border-color:#d7cdbe !important; color:#748a7a !important; }
+  th { background:#ebe4d9 !important; color:#3d362e !important; }
+  th, td { border-color:#d7cdbe !important; }
+</style>
+</head>
+<body>
+<div id="timer">00:00</div>
+
+<div class="shell">
+  <section class="pane" id="left">
+
+<h2>READING PASSAGE 2</h2>
+            <p>You should spend about 20 minutes on Questions 14–26, which are based on Reading Passage 2 below.</p>
+            
+            <h3>Why do we need the arts?</h3>
+            <h4>Sometimes people question why we need ‘the arts'; what functions do art, music, dance and literature serve?</h4>
+            
+            <p><strong>A</strong> Imagine a world in which people spend hours working in offices or factories, and then go home in the evening to sit down to dinner, after which they sleep until it's time to get up and work again. In this world, people do not read or watch TV, listen to music, play computer games or have pictures to decorate their homes. In fact, there are no pictures in this world—not even advertisements are illustrated, but all are words, and very plain ones at that, with no playfulness left in them. The buildings are completely functional without a single decorative feature anywhere, and there is no music to dance to and enjoy. Such a world is a world without the arts in any form.</p>
+            <p><strong>B</strong> To ask what the arts are good for is not exactly the same as asking what their purpose is. The arts do not have to have a purpose—they do not exist in order to teach, to make a moral point, to entertain, to distract, to amuse, to support a revolution, to disgust, to challenge, to stimulate or to cheer; they exist chiefly for their own sake. It is artists, not the arts as such, that may have an aim in mind, and their aim may be to do any of the things just listed. But equally, artists may just make a work of art because they feel compelled to. Because the work is its own justification, no aim or goal is necessarily required to explain or, still less, to justify its existence.</p>
+            <p><strong>C</strong> But to say that the arts do not have to serve an aim beyond themselves, even though they may sometimes do so, is not to say that they are good for nothing. On the contrary, as such an important part of human experience, they are good for many things. The distinction here lies between things that are instrumental and things that are ends in themselves. An instrument exists for something beyond itself—namely, for what it can be used to do. We know that pictures are used as instruments in advertising, and the objective is always to persuade us to buy something. Similarly, music can be written chiefly to accompany dancing, or as a soundtrack to a movie. A play can be written to point out to the theatre audience a social injustice or other problems that should be dealt with. But even though the arts can sometimes be instrumental, that fact is not essential to their nature. What the arts are 'good for' arises from their being an end in themselves, or more accurately, representing many different things that are valuable for their own sakes—such as, for instance, the creation of beauty.</p>
+            <p><strong>D</strong> The phrase ‘the arts' includes painting, sculpture, music, literature, dance and theatre performance, and whatever else (to quote the famous US artist Andy Warhol) anyone can get away with in calling their creation a contribution to ‘the arts'. But the generalisation that the arts, whatever else they are, are always an end in themselves, applies to them all. The arts are one major form of response to the world. They are often an attempt to capture an aspect of the world, to draw attention to something about it, to comment on it, to present a surprising or fresh angle on it, to represent it for the sake of exploring something about it, or enjoying or celebrating it. They can help people to focus on, for example, the colour or shape of an object, its eccentricity or typicality, and the interest or perhaps disgust it provokes in them.</p>
+            <p><strong>E</strong> For a loose comparison, think of laughing at a joke. We do not laugh so that we can achieve a further goal—in order to be healthy or relaxed, say, even if we thereby succeed in being healthier or more relaxed—but simply because the joke has elicited that reaction. But although it is merely a reaction, laughing is, in fact, good for something nevertheless; it does make people feel better. The arts are a reaction in the same way. French artist Cézanne painted Mont Sainte-Victoire repeatedly because he was fascinated by it, not because he thought that painting it would say something about politics or society or human hopes. Being fascinated by something, attracted to it, repelled by it, keen to reveal an unusual aspect of it, are all responses to that thing; the making of the arts is one outstanding way of expressing such responses.</p>
+            <p><strong>F</strong> But the arts are a response not only to things in the world but also to experience of the world, which lies inside the artist himself. And they are also often an expression of what presses from within the artist without being elicited by externals. Music is a prime example. A symphony, unless it is devised to represent bird song, rain, the sea and the like, is an abstract expression of a composer's conception. We may be able to describe what the Russian composer Tchaikovsky is doing in his ballet music, but how can we describe what he is expressing in his piano concertos? Composers may experiment with melody and rhythm in very abstract, sometimes mathematical, ways.</p>
+            <p><strong>G</strong> When artists get to work responding to and expressing ideas, whether or not they also want to make a point, entertain, distract, support a revolution and the rest, they are producing something that someone else will react to in some way. They seek to connect with their audience and express an idea or emotion which has the capacity to enrich our experience of life itself.</p>
+            
+            <div class="empty-space"></div>
+
+  </section>
+
+  <div id="divider" title="Drag to resize"></div>
+
+  <section class="pane" id="right">
+<h3>Questions</h3>
+
+<div class="group" id="q1-2-3-4-5-anchor">
+                <h4>Questions 14–18</h4>
+                <p>Reading Passage 2 has seven paragraphs, <strong>A–G</strong>.</p>
+                <p>Which paragraph contains the following information?</p>
+                <p><em>Write the correct letter, <strong>A–G</strong>, in boxes 14–18 on your answer sheet.</em></p>
+                <div style="overflow-x: auto;">
+                    <table class="matching-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>14</strong> a claim that artists may have no clear objective when creating a piece of art</td>
+                                <td><input type="radio" name="q1" value="A"></td><td><input type="radio" name="q1" value="B"></td><td><input type="radio" name="q1" value="C"></td><td><input type="radio" name="q1" value="D"></td><td><input type="radio" name="q1" value="E"></td><td><input type="radio" name="q1" value="F"></td><td><input type="radio" name="q1" value="G"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>15</strong> a description of how artists hope to benefit other people</td>
+                                <td><input type="radio" name="q2" value="A"></td><td><input type="radio" name="q2" value="B"></td><td><input type="radio" name="q2" value="C"></td><td><input type="radio" name="q2" value="D"></td><td><input type="radio" name="q2" value="E"></td><td><input type="radio" name="q2" value="F"></td><td><input type="radio" name="q2" value="G"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>16</strong> a comparison between the arts and things made to perform a particular function</td>
+                                <td><input type="radio" name="q3" value="A"></td><td><input type="radio" name="q3" value="B"></td><td><input type="radio" name="q3" value="C"></td><td><input type="radio" name="q3" value="D"></td><td><input type="radio" name="q3" value="E"></td><td><input type="radio" name="q3" value="F"></td><td><input type="radio" name="q3" value="G"></td>
+                            </tr>
+                             <tr>
+                                <td><strong>17</strong> a claim that it's possible to convince the world that anything you have made is a work of art</td>
+                                <td><input type="radio" name="q4" value="A"></td><td><input type="radio" name="q4" value="B"></td><td><input type="radio" name="q4" value="C"></td><td><input type="radio" name="q4" value="D"></td><td><input type="radio" name="q4" value="E"></td><td><input type="radio" name="q4" value="F"></td><td><input type="radio" name="q4" value="G"></td>
+                            </tr>
+                             <tr>
+                                <td><strong>18</strong> an example of something that has an unintentional benefit for us</td>
+                                <td><input type="radio" name="q5" value="A"></td><td><input type="radio" name="q5" value="B"></td><td><input type="radio" name="q5" value="C"></td><td><input type="radio" name="q5" value="D"></td><td><input type="radio" name="q5" value="E"></td><td><input type="radio" name="q5" value="F"></td><td><input type="radio" name="q5" value="G"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+<div class="group" id="q6-7-8-9-anchor">
+                 <h4>Questions 19–22</h4>
+                <p>Complete the summary below.</p>
+                <p>Choose <strong>ONE WORD ONLY</strong> from the passage for each answer.</p>
+                <div class="summary-completion">
+                    <h4>The arts and human experience</h4>
+                    <p>
+                    Some people may claim that the arts serve no useful purpose, that they achieve nothing measurable and help nobody. But there are many clear examples of their usefulness, such as the interdependent relationship between music and <strong>19</strong> <input type="text" id="q19_input" name="q6"> or between the visual arts and the <strong>20</strong> <input type="text" id="q20_input" name="q7"> business. A dramatist may use a <strong>21</strong> <input type="text" id="q21_input" name="q8"> to draw our attention to various issues in society, for example some kind of injustice which needs correcting. Apart from these obvious practical benefits, there are other benefits that we gain from things, such as the <strong>22</strong> <input type="text" id="q22_input" name="q9"> we find in an artist's work.
+                    </p>
+                </div>
+            </div>
+
+<div class="group" id="q10-11-anchor">
+                <h4>Questions 23 and 24</h4>
+                <p>Choose <strong>TWO</strong> letters, <strong>A–E</strong>.</p>
+                <p>In paragraph D, which <strong>TWO</strong> of the following effects does the writer say the arts can have?</p>
+                <div class="question-options">
+                    <label><input type="checkbox" name="q10_11" value="A"> A They can interest people from all over the world.</label>
+                    <label><input type="checkbox" name="q10_11" value="B"> B They can make us see things from a different perspective.</label>
+                    <label><input type="checkbox" name="q10_11" value="C"> C They can inspire us to take up an artistic activity ourselves.</label>
+                    <label><input type="checkbox" name="q10_11" value="D"> D They can encourage us to think about our reactions to things around us.</label>
+                    <label><input type="checkbox" name="q10_11" value="E"> E They can draw our attention to serious global issues.</label>
+                </div>
+            </div>
+
+<div class="group" id="q12-13-anchor">
+                <h4>Questions 25 and 26</h4>
+                <p>Choose <strong>TWO</strong> letters, <strong>A–E</strong>.</p>
+                <p>Which <strong>TWO</strong> of the following statements about composers and music does the writer make?</p>
+                 <div class="question-options">
+                    <label><input type="checkbox" name="q12_13" value="A"> A Music tends to spring from the composer's individual experiences.</label>
+                    <label><input type="checkbox" name="q12_13" value="B"> B Composers need to structure music very carefully.</label>
+                    <label><input type="checkbox" name="q12_13" value="C"> C Music can be quite unrelated to the natural world.</label>
+                    <label><input type="checkbox" name="q12_13" value="D"> D Music finds its best expression in a symphony.</label>
+                    <label><input type="checkbox" name="q12_13" value="E"> E Composers are good at depicting the world around us.</label>
+                </div>
+            </div>
+
+    <div class="bottom-bar">
+      <button class="btn-primary" onclick="submitAnswers()">提交</button>
+      <button onclick="resetForm()">重置</button>
+      <button onclick="openWrongBook()">本篇错题</button>
+    </div>
+  </section>
+</div>
+
+<div id="selbar">
+  <button id="btnNote">Note</button>
+  <button id="btnHL">Highlight</button>
+  <button id="btnUH" style="display:none;">Clear Highlight</button>
+</div>
+
+<div class="modal" id="resultModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>成绩</h2><span class="modal-close" onclick="closeModal('resultModal')">×</span></div>
+    <div id="resultContent"></div>
+    <button class="btn-primary" style="width:100%; margin-top:16px;" onclick="addWrongToBook()">加入错题本</button>
+  </div>
+</div>
+
+<div class="modal" id="wrongBookModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>本篇错题</h2><span class="modal-close" onclick="closeModal('wrongBookModal')">×</span></div>
+    <div id="wrongBookContent"></div>
+  </div>
+</div>
+
+<div class="modal" id="resetModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>重置练习</h2><span class="modal-close" onclick="closeModal('resetModal')">×</span></div>
+    <div style="margin:16px 0;">
+      <label style="display:block; margin-bottom:10px;"><input type="radio" name="resetType" value="answers" checked> 只清空答案</label>
+      <label style="display:block;"><input type="radio" name="resetType" value="all"> 清空答案和标记</label>
+    </div>
+    <button class="btn-primary" style="width:100%;" onclick="confirmReset()">确定</button>
+  </div>
+</div>
+
+<script>
+const PAPER_ID="R59";
+const ARTICLE_TITLE="Why do we need the arts";
+
+let t=0;
+const timerEl=document.getElementById('timer');
+setInterval(()=>{ t++; timerEl.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0'); }, 1000);
+
+const divider=document.getElementById('divider'), left=document.getElementById('left'), right=document.getElementById('right');
+let dragging=false;
+divider.onmousedown=()=>{ dragging=true; document.body.style.cursor='ew-resize'; };
+window.onmousemove=(e)=>{ if(!dragging)return; const c=document.querySelector('.shell').getBoundingClientRect(); let x=e.clientX-c.left; x=Math.max(280,Math.min(c.width-280,x)); left.style.flex='0 0 '+x+'px'; right.style.flex='1 1 auto'; };
+window.onmouseup=()=>{ dragging=false; document.body.style.cursor=''; };
+
+const selbar=document.getElementById('selbar'), btnHL=document.getElementById('btnHL'), btnUH=document.getElementById('btnUH'), btnNote=document.getElementById('btnNote');
+let lastRange=null, currentHlNode=null;
+function posSelbar(r){ selbar.style.display='flex'; const t=window.scrollY+r.top-selbar.offsetHeight-8; const l=window.scrollX+r.left+r.width/2-selbar.offsetWidth/2; selbar.style.top=((t>0)?t:(window.scrollY+r.bottom+8))+'px'; selbar.style.left=Math.max(8,l)+'px'; }
+function updSel(){ const s=window.getSelection(); if(!s||s.rangeCount===0||s.isCollapsed){ if(!currentHlNode)selbar.style.display='none'; return; } const r=s.getRangeAt(0); lastRange=r.cloneRange(); currentHlNode=null; btnNote.style.display='block'; btnHL.style.display='block'; btnUH.style.display='none'; posSelbar(r.getBoundingClientRect()); }
+left.onmouseup=updSel; right.onmouseup=updSel;
+document.onselectionchange=()=>{ const s=window.getSelection(); if((!s||s.rangeCount===0||s.isCollapsed)&&!currentHlNode)selbar.style.display='none'; };
+document.addEventListener('click',(e)=>{ if(e.target.classList&&(e.target.classList.contains('hl')||e.target.classList.contains('note'))){ currentHlNode=e.target; lastRange=null; btnNote.style.display='none'; btnHL.style.display='none'; btnUH.style.display='block'; posSelbar(e.target.getBoundingClientRect()); const s=window.getSelection(); if(s)s.removeAllRanges(); }}, true);
+btnHL.onclick=()=>{ if(currentHlNode||!lastRange||lastRange.collapsed)return; const s=document.createElement('span'); s.className='hl'; try{ lastRange.surroundContents(s); }catch(e){ const w=document.createElement('span'); w.className='hl'; w.appendChild(lastRange.cloneContents()); lastRange.deleteContents(); lastRange.insertNode(w); } selbar.style.display='none'; saveHighlights(); };
+btnNote.onclick=()=>{ if(currentHlNode||!lastRange||lastRange.collapsed)return; const s=document.createElement('span'); s.className='note'; try{ lastRange.surroundContents(s); }catch(e){ const w=document.createElement('span'); w.className='note'; w.appendChild(lastRange.cloneContents()); lastRange.deleteContents(); lastRange.insertNode(w); } selbar.style.display='none'; saveHighlights(); };
+btnUH.onclick=()=>{ if(currentHlNode){ const p=currentHlNode.parentNode; while(currentHlNode.firstChild)p.insertBefore(currentHlNode.firstChild,currentHlNode); p.removeChild(currentHlNode); p.normalize(); currentHlNode=null; selbar.style.display='none'; saveHighlights(); }else if(lastRange){ const sR=lastRange.getBoundingClientRect(); const w=document.createTreeWalker(document.body,NodeFilter.SHOW_ELEMENT); const tr=[]; while(w.nextNode()){ const n=w.currentNode; if(n.classList&&(n.classList.contains('hl')||n.classList.contains('note'))){ const r=n.getBoundingClientRect(); if(!(r.right<sR.left||r.left>sR.right||r.bottom<sR.top||r.top>sR.bottom))tr.push(n); }} tr.forEach(el=>{ const p=el.parentNode; while(el.firstChild)p.insertBefore(el.firstChild,el); p.removeChild(el); p.normalize(); }); selbar.style.display='none'; saveHighlights(); }};
+
+document.querySelectorAll('.flag-btn').forEach(btn => { btn.onclick = e => { e.stopPropagation(); btn.classList.toggle('active'); saveFlags(); }; });
+
+const answerKey = {
+  "q1": "B",
+  "q2": "G",
+  "q3": "C",
+  "q4": "D",
+  "q5": "E",
+  "q6": "dancing",
+  "q7": "advertising",
+  "q8": "play",
+  "q9": "beauty",
+  "q10": "B",
+  "q11": "D",
+  "q12": "A",
+  "q13": "C"
+};
+let lastResults=[];
+
+function coveredIds(name){
+  // combined names drop the "q" on later ids and use "_" or "-":
+  // "q8_9"->["q8","q9"], "q12-13-14"->["q12","q13","q14"]
+  const parts = name.split(/[-_]/);
+  if(!parts.length) return [name];
+  const ids = [parts[0]];
+  for(let i=1;i<parts.length;i++){ ids.push(/^q/.test(parts[i]) ? parts[i] : 'q'+parts[i]); }
+  return ids;
+}
+function inputForKey(q){
+  let el = document.querySelector(`[name="${q}"]`);
+  if(el) return el;
+  // combined checkbox group (e.g. name="q8_9" covering q8,q9)
+  const grp = [...document.querySelectorAll('input[type="checkbox"]')].find(i => coveredIds(i.name).includes(q));
+  return grp || null;
+}
+function gradeOne(q){
+  const cA = answerKey[q];
+  const el = inputForKey(q);
+  let uA = "", iC = false;
+  if(el && el.type === 'checkbox'){
+    const vals = [...document.querySelectorAll(`input[name="${el.name}"]:checked`)].map(i=>i.value);
+    uA = vals.join(', ');
+    const lc = vals.map(x=>x.toLowerCase());
+    if(Array.isArray(cA)){
+      const exp = cA.map(x=>String(x).toLowerCase()).sort();
+      const got = [...lc].sort();
+      iC = exp.length===got.length && exp.every((v,i)=>v===got[i]);
+    } else {
+      iC = lc.includes(String(cA).toLowerCase());
+    }
+  } else if(el && el.type === 'radio'){
+    const ch = document.querySelector(`input[name="${q}"]:checked`);
+    uA = ch ? ch.value : "";
+    const alts = Array.isArray(cA) ? cA : [cA];
+    iC = alts.some(a => uA.toLowerCase() === String(a).toLowerCase());
+  } else if(el){
+    uA = (el.value||'').trim();
+    const alts = Array.isArray(cA) ? cA : [cA];
+    iC = alts.some(a => uA.toLowerCase() === String(a).toLowerCase());
+  }
+  const cADisp = Array.isArray(cA) ? cA.join(', ') : cA;
+  return { id:q, userAns:uA, correctAns:cADisp, isCorrect:iC };
+}
+
+function saveAnswers() {
+  const data = {};
+  const seen = {};
+  Object.keys(answerKey).forEach(q => {
+    const el = inputForKey(q);
+    if(!el) return;
+    if(el.type === 'checkbox'){
+      if(seen[el.name]) return; seen[el.name]=1;
+      data['cb:'+el.name] = [...document.querySelectorAll(`input[name="${el.name}"]:checked`)].map(i=>i.value);
+    } else if(el.type === 'radio'){
+      const ch = document.querySelector(`input[name="${q}"]:checked`);
+      if(ch) data[q] = ch.value;
+    } else {
+      data[q] = el.value;
+    }
+  });
+  localStorage.setItem(`${PAPER_ID}_answers`, JSON.stringify(data));
+}
+function loadAnswers() {
+  const data = JSON.parse(localStorage.getItem(`${PAPER_ID}_answers`) || '{}');
+  Object.keys(data).forEach(k => {
+    const val = data[k];
+    if(k.startsWith('cb:')){
+      const name = k.slice(3);
+      (val||[]).forEach(v => { const cb = document.querySelector(`input[name="${name}"][value="${v}"]`); if(cb) cb.checked = true; });
+      return;
+    }
+    const radio = document.querySelector(`input[name="${k}"][value="${val}"]`);
+    if(radio){ radio.checked = true; return; }
+    const el = document.querySelector(`[name="${k}"]`);
+    if(el && (el.type === 'text' || el.tagName === 'SELECT')) el.value = val;
+  });
+}
+function saveFlags() {
+  const flags = [...document.querySelectorAll('.flag-btn.active')].map(b => b.dataset.q);
+  localStorage.setItem(`${PAPER_ID}_flags`, JSON.stringify(flags));
+}
+function loadFlags() {
+  const flags = JSON.parse(localStorage.getItem(`${PAPER_ID}_flags`) || '[]');
+  flags.forEach(q => document.querySelector(`[data-q="${q}"]`)?.classList.add('active'));
+}
+function saveHighlights() {
+  const highlights = { left: [], right: [] };
+  document.querySelectorAll('#left .hl, #left .note').forEach((el, idx) => { highlights.left.push({ type: el.classList.contains('hl') ? 'hl' : 'note', text: el.textContent, index: idx }); });
+  document.querySelectorAll('#right .hl, #right .note').forEach((el, idx) => { highlights.right.push({ type: el.classList.contains('hl') ? 'hl' : 'note', text: el.textContent, index: idx }); });
+  localStorage.setItem(`${PAPER_ID}_highlights`, JSON.stringify(highlights));
+}
+function loadHighlights() {
+  const data = JSON.parse(localStorage.getItem(`${PAPER_ID}_highlights`) || '{"left":[],"right":[]}');
+  const restore = (pane, items) => {
+    if(!items || items.length === 0) return;
+    items.forEach(item => {
+      const walker = document.createTreeWalker(pane, NodeFilter.SHOW_TEXT);
+      let node;
+      while(node = walker.nextNode()) {
+        if(node.textContent.includes(item.text)) {
+          const span = document.createElement('span'); span.className = item.type;
+          const parent = node.parentNode; const text = node.textContent; const idx = text.indexOf(item.text);
+          if(idx >= 0) {
+            const before = text.substring(0, idx); const match = text.substring(idx, idx + item.text.length); const after = text.substring(idx + item.text.length);
+            parent.insertBefore(document.createTextNode(before), node); span.textContent = match; parent.insertBefore(span, node); parent.insertBefore(document.createTextNode(after), node); parent.removeChild(node); break;
+          }
+        }
+      }
+    });
+  };
+  restore(left, data.left); restore(right, data.right);
+}
+
+document.querySelectorAll('input, select').forEach(input => { input.addEventListener('change', saveAnswers); input.addEventListener('input', saveAnswers); });
+document.addEventListener('DOMContentLoaded', () => { loadAnswers(); loadFlags(); loadHighlights(); });
+
+function submitAnswers(){
+  const res=[]; let cor=0;
+  Object.keys(answerKey).forEach(q=>{ const r=gradeOne(q); if(r.isCorrect)cor++; res.push(r); });
+  lastResults=res;
+  const tot=Object.keys(answerKey).length;
+  const pct=((cor/tot)*100).toFixed(1);
+  localStorage.setItem(`ielts_score_${PAPER_ID}`, `${cor}/${tot}`);
+  document.getElementById('resultContent').innerHTML=`<div class="result-summary"><div class="result-score">${cor} / ${tot}</div><div style="margin-top:8px;font-size:18px;">${pct}%</div></div>${res.map(r=>`<div class="result-item ${r.isCorrect?'correct':'incorrect'}"><div><strong>${r.id}</strong> ${r.isCorrect?'✓':'✗'}</div><div>你的答案: ${r.userAns||'(未作答)'}</div>${!r.isCorrect?`<div>正确答案: ${r.correctAns}</div>`:''}</div>`).join('')}`;
+  document.getElementById('resultModal').classList.add('active');
+}
+function resetForm(){ document.getElementById('resetModal').classList.add('active'); }
+function confirmReset(){
+  const tp=document.querySelector('input[name="resetType"]:checked').value;
+  document.querySelectorAll('input[type="radio"],input[type="checkbox"]').forEach(i=>i.checked=false);
+  document.querySelectorAll('input[type="text"]').forEach(i=>i.value='');
+  document.querySelectorAll('select').forEach(i=>i.selectedIndex=0);
+  localStorage.removeItem(`${PAPER_ID}_answers`);
+  if(tp==='all'){
+    document.querySelectorAll('.hl').forEach(el=>{ const p=el.parentNode; while(el.firstChild)p.insertBefore(el.firstChild,el); p.removeChild(el); p.normalize(); });
+    document.querySelectorAll('.note').forEach(el=>{ const p=el.parentNode; while(el.firstChild)p.insertBefore(el.firstChild,el); p.removeChild(el); p.normalize(); });
+    document.querySelectorAll('.flag-btn').forEach(b => b.classList.remove('active'));
+    localStorage.removeItem(`${PAPER_ID}_highlights`);
+    localStorage.removeItem(`${PAPER_ID}_flags`);
+  }
+  closeModal('resetModal');
+}
+function addWrongToBook(){ const wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); const wr=lastResults.filter(r=>!r.isCorrect); wr.forEach(r=>{ const en={paperId:PAPER_ID,title:ARTICLE_TITLE,questionId:r.id,correctAnswer:r.correctAns,myAnswer:r.userAns||'(未作答)',date:new Date().toISOString().split('T')[0]}; const ix=wb.findIndex(i=>i.paperId===en.paperId&&i.questionId===en.questionId); if(ix>=0)wb[ix]=en; else wb.push(en); }); localStorage.setItem('ielts_wrong_book',JSON.stringify(wb)); alert(`已添加 ${wr.length} 道错题`); closeModal('resultModal'); }
+function deleteWrongItem(pId,qId){ if(!confirm('确定删除这道错题？'))return; let wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); wb=wb.filter(i=>!(i.paperId===pId&&i.questionId===qId)); localStorage.setItem('ielts_wrong_book',JSON.stringify(wb)); openWrongBook(); }
+function clearCurrentWrongBook(){ if(!confirm('确定清空本篇所有错题？'))return; let wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); wb=wb.filter(i=>i.paperId!==PAPER_ID); localStorage.setItem('ielts_wrong_book',JSON.stringify(wb)); openWrongBook(); }
+function openWrongBook(){ const wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); const cu=wb.filter(i=>i.paperId===PAPER_ID); const ct=document.getElementById('wrongBookContent'); if(cu.length===0)ct.innerHTML='<div style="text-align:center;padding:40px;color:#666;">暂无错题</div>'; else ct.innerHTML=`<div class="modal-actions"><button class="btn-danger" onclick="clearCurrentWrongBook()" style="width:100%;">🗑️ 清空本篇错题</button></div>${cu.map(i=>`<div class="wrong-item"><div class="wrong-item-content"><div style="font-weight:600;margin-bottom:8px;">${i.questionId}</div><div style="font-size:13px;color:#666;"><div>✓ 正确: ${i.correctAnswer}</div><div style="color:#d32f2f;">✗ 我的: ${i.myAnswer}</div></div></div><button class="btn-delete" onclick="deleteWrongItem('${i.paperId}','${i.questionId}')">删除</button></div>`).join('')}`; document.getElementById('wrongBookModal').classList.add('active'); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/lib/config.js"></script>
+<script src="/lib/supabase.js"></script>
+<script>window.READING_ID = 59;</script>
+<script src="/lib/reading-bridge.js"></script>
+</body>
+</html>
