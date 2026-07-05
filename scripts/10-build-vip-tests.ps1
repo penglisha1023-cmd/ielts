@@ -90,6 +90,18 @@ foreach ($sec in $sections) {
             $content = $content -replace '"audio\.mp3"', "`"$audioUrl`""
             $content = $content -replace "'audio\.mp3'", "'$audioUrl'"
 
+            # ---- 1a. Point map/diagram image at Supabase (uploaded by
+            #          12-upload-vip-images.ps1 as <appId>.png). The source
+            #          references a bare "image":"map.png" / "diagram.png" that
+            #          does not exist on the deployed site. Only rewrite when the
+            #          source folder actually ships an image. ----
+            $imgFile = Get-ChildItem $artDir.FullName -File |
+                Where-Object { $_.Name -in @('map.png', 'diagram.png') } | Select-Object -First 1
+            if ($imgFile) {
+                $imageUrl = "$audioBase/$appId.png"
+                $content = $content -replace '"image":"(?:map|diagram)\.png"', "`"image`":`"$imageUrl`""
+            }
+
             # ---- 1b. Hide the source's promo header (title + owner/ad line);
             #          keep the Text Size / Color button. Idempotent. ----
             $headTidy = @"
