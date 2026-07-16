@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>IELTS Listening Simulator - Sea Urchins</title>
+    <style>
+        /* ---------- 全局变量与基础样式 ---------- */
+        :root {
+            --bg-color: #f0f2f5;
+            --panel-color: #ffffff;
+            --text-color: #333333;
+            --border-color: #dcdfe6;
+            --accent-color: #0071bc;
+            --correct-color: #27ae60;
+            --incorrect-color: #e74c3c;
+            --hl-brown: #8B4513;
+            --hl-rose: #C2185B;
+            --hl-blue: #3b82f6;
+        }
+
+        body.dark-mode {
+            --bg-color: #1a1a1a;
+            --panel-color: #2c2c2c;
+            --text-color: #e0e0e0;
+            --border-color: #444444;
+            --accent-color: #4da3ff;
+        }
+
+        * { box-sizing: border-box; font-weight: 400; }
+        body, html { height: 100%; margin: 0; font-family: Arial, sans-serif; background-color: var(--bg-color); color: var(--text-color); overflow: hidden; }
+
+        /* ---------- 布局 ---------- */
+        .container { display: flex; flex-direction: column; height: 100vh; }
+        
+        .header {
+            height: 50px; background: var(--panel-color); border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center; padding: 0 20px; flex-shrink: 0;
+        }
+        .header h1 { font-size: 18px; margin: 0; font-weight: 500; }
+
+        .main-content { display: flex; flex: 1; overflow: hidden; position: relative; }
+        
+        #left-pane { flex: 1; overflow-y: auto; padding: 0 40px 100px 40px; background: var(--panel-color); position: relative; }
+        #splitter { width: 6px; cursor: col-resize; background: var(--bg-color); border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color); display: none;}
+        #right-pane { width: 0; overflow-y: auto; padding: 20px; background: var(--bg-color); display: none; border-left: 1px solid var(--border-color);}
+        
+        /* 分栏显示逻辑 */
+        .split-view #right-pane { display: block; width: 45%; }
+        .split-view #splitter { display: block; }
+
+        /* ---------- 音频播放器 (Sticky) ---------- */
+        .audio-wrapper {
+            position: sticky; top: 0; background: var(--panel-color); z-index: 10;
+            padding: 20px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 20px;
+        }
+        .audio-player { display: flex; align-items: center; gap: 15px; }
+        .play-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--accent-color); color: white; cursor: pointer; font-size: 18px; }
+        .progress-container { flex: 1; height: 8px; background: #eee; border-radius: 4px; cursor: pointer; position: relative; }
+        .progress-bar { height: 100%; background: var(--accent-color); border-radius: 4px; width: 0; }
+        .time-display { font-size: 14px; min-width: 80px; }
+        .speed-select { padding: 4px; border-radius: 4px; border: 1px solid var(--border-color); }
+
+        /* ---------- 题目样式 ---------- */
+        .question-area { max-width: 800px; margin: 0 auto; line-height: 1.8; }
+        .question-area h2 { font-size: 22px; border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; margin-top: 30px; font-weight: 500; }
+        .question-group { margin-bottom: 30px; }
+        .instruction { font-style: italic; color: #666; margin-bottom: 15px; font-size: 0.9em; }
+        
+        .fill-blank { 
+            border: none; border-bottom: 1px solid #999; outline: none; 
+            width: 150px; padding: 2px 5px; font-size: 16px; 
+            background: transparent; color: var(--text-color);
+        }
+        .fill-blank:focus { border-bottom: 2px solid var(--accent-color); }
+        .q-num { font-weight: 500; margin-right: 5px; }
+
+        /* ---------- 高亮 & 笔记工具栏 ---------- */
+        #toolbar {
+            position: absolute; display: none; background: #333; color: white;
+            border-radius: 4px; padding: 5px; z-index: 1000; gap: 5px;
+        }
+        #toolbar button { background: transparent; border: none; color: white; cursor: pointer; padding: 5px 10px; font-size: 12px; }
+        #toolbar button:hover { background: #555; }
+
+        .hl-brown { background-color: var(--hl-brown); color: white; }
+        .hl-rose { background-color: var(--hl-rose); color: white; }
+        .hl-blue { background-color: var(--hl-blue); color: white; }
+
+        /* ---------- 笔记侧边栏 ---------- */
+        #notes-sidebar {
+            position: fixed; right: -300px; top: 50px; width: 300px; height: calc(100% - 120px);
+            background: var(--panel-color); border-left: 1px solid var(--border-color);
+            transition: right 0.3s; z-index: 99; padding: 15px; overflow-y: auto;
+        }
+        .note-card { background: #f9f9f9; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; margin-bottom: 10px; position: relative; }
+        body.dark-mode .note-card { background: #3d3d3d; }
+        .note-card blockquote { margin: 0 0 10px 0; font-weight: 500; font-size: 13px; border-left: 3px solid var(--accent-color); padding-left: 8px; }
+        .note-card textarea { width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 5px; resize: vertical; min-height: 60px; }
+        .note-card .del-note { position: absolute; top: 5px; right: 5px; cursor: pointer; color: #999; }
+
+        /* ---------- 底栏 ---------- */
+        .bottom-bar {
+            height: 70px; background: var(--panel-color); border-top: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 20px; flex-shrink: 0;
+        }
+        .q-nav { display: flex; gap: 5px; }
+        .nav-item { 
+            width: 30px; height: 30px; border: 1px solid var(--border-color); 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 12px; border-radius: 4px; cursor: pointer; font-weight: 500;
+        }
+        .nav-item.answered { background: #e3f2fd; border-color: var(--accent-color); }
+        .nav-item.correct { background: var(--correct-color) !important; color: white; border: none; }
+        .nav-item.incorrect { background: var(--incorrect-color) !important; color: white; border: none; }
+
+        .controls { display: flex; align-items: center; gap: 15px; }
+        #timer { font-family: monospace; font-size: 20px; font-weight: 500; }
+        button.action-btn { 
+            padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border-color);
+            background: var(--panel-color); cursor: pointer; font-weight: 500;
+        }
+        button.action-btn:hover { background: #f0f0f0; }
+        #finish-btn { background: var(--accent-color); color: white; border: none; }
+
+        /* ---------- 批改表格 & 原文 ---------- */
+        .result-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        .result-table th, .result-table td { border: 1px solid var(--border-color); padding: 8px; text-align: left; }
+        .result-table th { background: #f5f5f5; font-weight: 500; }
+        body.dark-mode .result-table th { background: #333; }
+        .ans-correct { color: var(--correct-color); font-weight: 500; }
+        .ans-incorrect { color: var(--incorrect-color); font-weight: 500; }
+        
+        .transcript-p { margin-bottom: 18px; line-height: 1.6; font-size: 15px; color: #444; }
+        body.dark-mode .transcript-p { color: #ccc; }
+        .answer-highlight { background-color: #ffff00; color: black; padding: 0 2px; font-weight: 500; }
+
+        /* ---------- Toast ---------- */
+        #toast {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            background: #27ae60; color: white; padding: 10px 25px; border-radius: 5px;
+            display: none; z-index: 2000; font-weight: 500;
+        }
+    </style>
+<style id="vip-header-tidy">
+  .header h1 { display: none !important; }
+  .header .meta, #ownerMeta { display: none !important; }
+  .header { min-height: 0 !important; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <header class="header">
+        <h1>IELTS Listening Practice</h1>
+        <button class="action-btn" onclick="toggleSettings()">Text Size/Color</button>
+    </header>
+
+    <div class="main-content" id="main-shell">
+        <div id="left-pane">
+            <div class="audio-wrapper">
+                <div class="audio-player">
+                    <button class="play-btn" id="play-pause">▶</button>
+                    <div class="progress-container" id="progress-container">
+                        <div class="progress-bar" id="progress-bar"></div>
+                    </div>
+                    <div class="time-display" id="time-display">00:00 / 00:00</div>
+                    <select class="speed-select" id="speed-select">
+                        <option value="0.7">0.7x</option>
+                        <option value="1.0" selected>1.0x</option>
+                        <option value="1.1">1.1x</option>
+                        <option value="1.2">1.2x</option>
+                        <option value="1.5">1.5x</option>
+                    </select>
+                </div>
+                <audio id="audio-el" src="https://qyccvyyigtjhzunumbqf.supabase.co/storage/v1/object/public/audio/201.mp3"></audio>
+            </div>
+
+            <div class="question-area">
+<p>此内容由🍠@Listening 永不虾滑整理，仅作为分享供个人使用；禁止商用、倒卖和引流。有问题请先仔细看🍠这个账号的置顶和分享贴。没有团队，不是机构，纯个人分享。督学和其他相关课程请咨询主页另一个号@心情有点虾滑（不回任何机经相关消息）。</p>
+                <p>Question 31-40</p>
+                <p>Complete the sentence below.</p>
+                <div class="instruction">Write NO MORE THAN THREE WORDS AND/OR A NUMBER.</div>
+                
+                <h2>Sea Urchins</h2>
+                
+                <div class="question-group">
+                    <strong>Physical Features:</strong>
+                    <ul>
+                        <li>Feeds on <span class="q-num">31</span> <input type="text" class="fill-blank" data-q="31"></li>
+                        <li>Covered in <span class="q-num">32</span> <input type="text" class="fill-blank" data-q="32"> that protect it.</li>
+                    </ul>
+                </div>
+
+                <div class="question-group">
+                    <strong>Economic Value:</strong>
+                    <ul>
+                        <li>Once regarded to be a <span class="q-num">33</span> <input type="text" class="fill-blank" data-q="33"></li>
+                        <li><span class="q-num">34</span> <input type="text" class="fill-blank" data-q="34"> is an important market for exporting Urchins from California.</li>
+                        <li>Scientists concerned <span class="q-num">35</span> <input type="text" class="fill-blank" data-q="35"> of urchin population due to overhunting.</li>
+                    </ul>
+                </div>
+
+                <div class="question-group">
+                    <strong>Life cycle research:</strong>
+                    <ul>
+                        <li>No evidence of <span class="q-num">36</span> <input type="text" class="fill-blank" data-q="36"></li>
+                        <li>Maximum of life span: up to <span class="q-num">37</span> <input type="text" class="fill-blank" data-q="37"> old</li>
+                        <li>After 22 years old, it grows <span class="q-num">38</span> <input type="text" class="fill-blank" data-q="38"> per year.</li>
+                        <li>It is still able to <span class="q-num">39</span> <input type="text" class="fill-blank" data-q="39"> when it is old.</li>
+                        <li>The growth sea urchin is unconnected to <span class="q-num">40</span> <input type="text" class="fill-blank" data-q="40"> and other external factors.</li>
+                    </ul>
+                </div>
+
+                <div id="results-container"></div>
+            </div>
+        </div>
+
+        <div id="splitter"></div>
+
+        <div id="right-pane">
+            <h3 style="margin-top:0; font-weight: 500;">Listening Transcript</h3>
+            <div id="transcript-body"></div>
+        </div>
+    </div>
+
+    <div id="notes-sidebar">
+        <h3 style="margin-top:0; font-weight: 500;">My Notes</h3>
+        <div id="notes-list"></div>
+    </div>
+
+    <div class="bottom-bar">
+        <div class="q-nav" id="q-nav">
+            <!-- 题号导航 -->
+        </div>
+        <div class="controls">
+            <span id="timer">00:00</span>
+            <button class="action-btn" id="finish-btn">Finish</button>
+            <button class="action-btn" onclick="saveProgress()">Save</button>
+            <button class="action-btn" onclick="clearProgress()">Clear</button>
+            <button class="action-btn" onclick="toggleNotes()">Notes</button>
+            <button class="action-btn" onclick="toggleTranscript()">Transcript</button>
+        </div>
+    </div>
+</div>
+
+<div id="toolbar">
+    <button onclick="applyHighlight('hl-brown')">Highlight</button>
+    <button onclick="applyHighlight('hl-blue', true)">Note</button>
+    <button onclick="removeHighlight()">Clear</button>
+</div>
+
+<div id="toast">Progress saved!</div>
+
+<script>
+    const ANSWERS = {
+        "31": ["plants"],
+        "32": ["spines"],
+        "33": ["pest"],
+        "34": ["asia", "japan"],
+        "35": ["decline"],
+        "36": ["aging"],
+        "37": ["200 years"],
+        "38": ["0.1 centimeters"],
+        "39": ["breed"],
+        "40": ["ocean conditions"]
+    };
+
+    // 一字不漏的原文数据
+    const TRANSCRIPT_PARAGRAPHS = [
+        "The sea urchin is found across the ocean floor so weren't wide, but rarely in a quarter polar regions.",
+        "Sea urchins are commonly found along the rocky ocean floor in both shallow and deeper water, and sea urchins are also commonly found living coral reefs, and sea urchin mainly <span class='answer-highlight'>feeds on plants</span> on coral and rocks. (Q31)",
+        "They are preyed by many predators that live their marine environment. Sea urchins have around shaped the body, with the lost <span class='answer-highlight'>spines</span>, that come off it, which are used for protection, to move around, and to jump food particles floating around in the water. (Q32)",
+        "Sea urchins have five bare-to-roes of tiny tube of feet. The feet of sea urchin have suckers which help sea urchin to move, capture food, and to hold onto the ocean floor.",
+        "Urchins will <span class='answer-highlight'>once consider a pest</span>, because their large habitat for kelp severely affected the kelp harvest, but this changed in the 1970s when another use was discovered, as a delicious food. (Q33)",
+        "With access to proper processing and overnight shipping to markets, the sea urchin got outrushed again. Urchins are now California's largest export item from the ocean, thanks to the steady market from <span class='answer-highlight'>Asia / Japan</span>. (Q34)",
+        "They are estimated 10,000 or more people who provide income for their families, either directly or indirectly from the sea urchin industry in the state of California.",
+        "Due to intense demand for US sea urchin in Japan, today the creature is so aggressively haunted that scientists have began to worry about the number of population actually <span class='answer-highlight'>declined</span>, which is in danger in the sea urchin supply. (Q35)",
+        "In California, it is now the largest export item from the ocean, valued at over 75 million dollars per year, most of which comes from Japan.",
+        "Sea urchins are remarkable organisms that can quickly record damage to the spines and feet. Some species also live extraordinary old age, and even more remarkably <span class='answer-highlight'>no size of aging</span>, such as decline in regenerative capacity or increase in Asia-related immortality. (Q36)",
+        "In a paper recently published in the Aging Cell, the scientist has shown new light on the process in sea urchins, bracing the prospects of the physical decline that typically accompanied aging is not inevitable.",
+        "The new study has concluded that sea urchin, a small spiny creature that lives in the shallow coastal waters, is among the longest living animals on Earth. They can live to be 100 years old and some may reach <span class='answer-highlight'>200 years</span> in good health. (Q37)",
+        "The red sea urchin, in fact, does grow fairly quickly when it's young. At the age of two years, it can grow from 2 centimeters to 4 centimeters in one year. By the time the sea urchin is a teenager, it grows slowly, dramatically.",
+        "At the age of 22, researchers have found it to grow each year from about 12 centimeters to only 12.1 centimeters, which means only <span class='answer-highlight'>0.1 centimeters</span> bigger than a year before. (Q38)",
+        "But somewhat remarkably, it appears never really stop growing, it's just very, very slow. The evidence suggests that 100-year-old red sea urchin is just as apt to live another year or produce as a 10-year-old sea urchin.",
+        "The more mature red sea urchins, in fact, appear to be the producers of sperm and eggs and are perfectly able to <span class='answer-highlight'>breed</span> even when incredibly old. (Q39)",
+        "Radio-carbon testing in its time of a situation provided a very strong and independent test of growth rates and age. Among other things, it confirms that in older sea urchins, there's a very steady, very consistent growth as quite independent of <span class='answer-highlight'>ocean conditions</span> or other variables. (Q40)",
+        "And once they're near the adult size, our research indicates that they do not have growth. With the speeches, it's pretty simple. The bigger they are, the older they are.",
+        "The bigger they are, the more mature red sea urchins, the more mature red sea urchins are."
+    ];
+
+    let timerSeconds = 0;
+    let timerInterval;
+    let isReviewing = false;
+    let notes = {};
+
+    // ---------- 初始化 ----------
+    window.onload = () => {
+        initNav();
+        startTimer();
+        initAudio();
+        initSplitter();
+        loadProgress();
+        renderTranscript();
+        
+        document.addEventListener('mouseup', handleTextSelection);
+        document.querySelectorAll('.fill-blank').forEach(input => {
+            input.addEventListener('input', updateNav);
+        });
+    };
+
+    function initNav() {
+        const nav = document.getElementById('q-nav');
+        for (let i = 31; i <= 40; i++) {
+            const div = document.createElement('div');
+            div.className = 'nav-item';
+            div.innerText = i;
+            div.id = `nav-${i}`;
+            div.onclick = () => document.querySelector(`[data-q="${i}"]`).focus();
+            nav.appendChild(div);
+        }
+    }
+
+    function renderTranscript() {
+        const body = document.getElementById('transcript-body');
+        body.innerHTML = TRANSCRIPT_PARAGRAPHS.map(p => `<p class="transcript-p">${p}</p>`).join('');
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            timerSeconds++;
+            const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const s = (timerSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('timer').innerText = `${m}:${s}`;
+        }, 1000);
+    }
+
+    // ---------- 音频控制 ----------
+    function initAudio() {
+        const audio = document.getElementById('audio-el');
+        const playBtn = document.getElementById('play-pause');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const timeDisplay = document.getElementById('time-display');
+        const speedSelect = document.getElementById('speed-select');
+
+        playBtn.onclick = () => audio.paused ? audio.play() : audio.pause();
+        audio.onplay = () => playBtn.innerText = '⏸';
+        audio.onpause = () => playBtn.innerText = '▶';
+        
+        audio.ontimeupdate = () => {
+            const pct = (audio.currentTime / audio.duration) * 100;
+            progressBar.style.width = pct + '%';
+            timeDisplay.innerText = formatTime(audio.currentTime) + ' / ' + formatTime(audio.duration);
+        };
+
+        progressContainer.onclick = (e) => {
+            const rect = progressContainer.getBoundingClientRect();
+            const pct = (e.clientX - rect.left) / rect.width;
+            audio.currentTime = pct * audio.duration;
+        };
+
+        speedSelect.onchange = () => audio.playbackRate = parseFloat(speedSelect.value);
+    }
+
+    function formatTime(secs) {
+        if (isNaN(secs)) return "00:00";
+        const m = Math.floor(secs / 60).toString().padStart(2, '0');
+        const s = Math.floor(secs % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    // ---------- 拖拽分隔条 ----------
+    function initSplitter() {
+        const splitter = document.getElementById('splitter');
+        const shell = document.getElementById('main-shell');
+        const left = document.getElementById('left-pane');
+        const right = document.getElementById('right-pane');
+        let isDragging = false;
+
+        splitter.onmousedown = () => isDragging = true;
+        document.onmouseup = () => isDragging = false;
+        document.onmousemove = (e) => {
+            if (!isDragging) return;
+            const containerWidth = shell.offsetWidth;
+            const leftWidth = (e.clientX / containerWidth) * 100;
+            if (leftWidth > 20 && leftWidth < 80) {
+                left.style.flex = `0 0 ${leftWidth}%`;
+                right.style.flex = `0 0 ${100 - leftWidth}%`;
+            }
+        };
+    }
+
+    // ---------- 高亮与笔记逻辑 ----------
+    function handleTextSelection(e) {
+        const selection = window.getSelection();
+        const toolbar = document.getElementById('toolbar');
+        
+        if (selection.rangeCount > 0 && selection.toString().trim().length > 0) {
+            const range = selection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            toolbar.style.top = (rect.top + window.scrollY - 40) + 'px';
+            toolbar.style.left = (rect.left + window.scrollX) + 'px';
+            toolbar.style.display = 'flex';
+        } else {
+            toolbar.style.display = 'none';
+        }
+    }
+
+    function applyHighlight(className, isNote = false) {
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+        
+        const range = selection.getRangeAt(0);
+        let span = document.createElement('span');
+        
+        const parent = range.commonAncestorContainer.parentElement;
+        if (parent && parent.classList.contains('hl-brown') && className === 'hl-brown') {
+            parent.className = 'hl-rose';
+        } else {
+            span.className = className;
+            if (isNote) {
+                const noteId = 'note-' + Date.now();
+                span.dataset.noteId = noteId;
+                createNoteCard(noteId, selection.toString());
+            }
+            range.surroundContents(span);
+        }
+        window.getSelection().removeAllRanges();
+        document.getElementById('toolbar').style.display = 'none';
+    }
+
+    function removeHighlight() {
+        const selection = window.getSelection();
+        const parent = selection.anchorNode.parentElement;
+        if (parent.classList.contains('hl-brown') || parent.classList.contains('hl-rose') || parent.classList.contains('hl-blue')) {
+            if (parent.dataset.noteId) deleteNote(parent.dataset.noteId);
+            parent.replaceWith(...parent.childNodes);
+        }
+        document.getElementById('toolbar').style.display = 'none';
+    }
+
+    function createNoteCard(id, quote) {
+        const list = document.getElementById('notes-list');
+        const card = document.createElement('div');
+        card.className = 'note-card';
+        card.id = 'card-' + id;
+        card.innerHTML = `
+            <span class="del-note" onclick="deleteNote('${id}', true)">✕</span>
+            <blockquote style="font-weight: 500;">"${quote}"</blockquote>
+            <textarea placeholder="Write note here..." oninput="updateNoteText('${id}', this.value)"></textarea>
+        `;
+        list.prepend(card);
+        document.getElementById('notes-sidebar').style.right = '0';
+        notes[id] = { quote: quote, text: "" };
+    }
+
+    function updateNoteText(id, val) { notes[id].text = val; }
+
+    function deleteNote(id, removeHighlightToo = false) {
+        document.getElementById('card-' + id)?.remove();
+        delete notes[id];
+        if (removeHighlightToo) {
+            const span = document.querySelector(`[data-note-id="${id}"]`);
+            if (span) span.replaceWith(...span.childNodes);
+        }
+    }
+
+    // ---------- 功能按钮 ----------
+    function toggleNotes() {
+        const sb = document.getElementById('notes-sidebar');
+        sb.style.right = sb.style.right === '0px' ? '-300px' : '0px';
+    }
+
+    function toggleTranscript() {
+        document.getElementById('main-shell').classList.toggle('split-view');
+    }
+
+    function toggleSettings() {
+        document.body.classList.toggle('dark-mode');
+    }
+
+    function updateNav() {
+        document.querySelectorAll('.fill-blank').forEach(input => {
+            const q = input.dataset.q;
+            const navItem = document.getElementById(`nav-${q}`);
+            navItem.classList.toggle('answered', input.value.trim() !== "");
+        });
+    }
+
+    // ---------- Finish & Review Mode ----------
+    document.getElementById('finish-btn').onclick = function() {
+        if (!isReviewing) {
+            if (!confirm("Are you sure you want to finish the test?")) return;
+            enterReviewMode();
+        } else {
+            exitReviewMode();
+        }
+    };
+
+    function enterReviewMode() {
+        isReviewing = true;
+        document.getElementById('finish-btn').innerText = "Return to Test";
+        document.getElementById('main-shell').classList.add('split-view');
+        
+        const resultsContainer = document.getElementById('results-container');
+        let html = `<h3 style="font-weight: 500;">Review Results</h3><table class="result-table">
+            <tr><th>Q</th><th>Your Answer</th><th>Correct Answer</th><th>Result</th></tr>`;
+
+        for (let i = 31; i <= 40; i++) {
+            const input = document.querySelector(`[data-q="${i}"]`);
+            const userAns = input.value.trim().toLowerCase();
+            const correctList = ANSWERS[i];
+            const isCorrect = correctList.some(a => userAns === a);
+            
+            const navItem = document.getElementById(`nav-${i}`);
+            navItem.className = isCorrect ? 'nav-item correct' : 'nav-item incorrect';
+
+            html += `<tr>
+                <td>${i}</td>
+                <td class="${isCorrect ? 'ans-correct' : 'ans-incorrect'}">${userAns || '(Empty)'}</td>
+                <td>${correctList.join(' / ')}</td>
+                <td>${isCorrect ? '✔' : '✘'}</td>
+            </tr>`;
+            input.disabled = true;
+        }
+        html += `</table><div style="height:50px"></div>`;
+        resultsContainer.innerHTML = html;
+        clearInterval(timerInterval);
+    }
+
+    function exitReviewMode() {
+        isReviewing = false;
+        document.getElementById('finish-btn').innerText = "Finish";
+        document.getElementById('main-shell').classList.remove('split-view');
+        document.getElementById('results-container').innerHTML = "";
+        document.querySelectorAll('.fill-blank').forEach(input => input.disabled = false);
+        updateNav();
+        startTimer();
+    }
+
+    // ---------- 数据持久化 ----------
+    function saveProgress() {
+        const answers = {};
+        document.querySelectorAll('.fill-blank').forEach(input => {
+            answers[input.dataset.q] = input.value;
+        });
+        
+        const data = {
+            answers: answers,
+            timer: timerSeconds,
+            htmlContent: document.getElementById('left-pane').innerHTML,
+            notes: notes,
+            notesHTML: document.getElementById('notes-list').innerHTML
+        };
+        localStorage.setItem('sea_urchin_exam_v2', JSON.stringify(data));
+        showToast();
+    }
+
+    function loadProgress() {
+        const saved = localStorage.getItem('sea_urchin_exam_v2');
+        if (!saved) return;
+        const data = JSON.parse(saved);
+        
+        const oldBody = document.querySelector('.question-area');
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = data.htmlContent;
+        const newBody = tempDiv.querySelector('.question-area');
+        if (newBody) oldBody.innerHTML = newBody.innerHTML;
+
+        for (let q in data.answers) {
+            const input = document.querySelector(`[data-q="${q}"]`);
+            if (input) input.value = data.answers[q];
+        }
+        
+        timerSeconds = data.timer || 0;
+        notes = data.notes || {};
+        document.getElementById('notes-list').innerHTML = data.notesHTML || "";
+        updateNav();
+    }
+
+    function clearProgress() {
+        if (!confirm("Clear all answers and highlights?")) return;
+        localStorage.removeItem('sea_urchin_exam_v2');
+        location.reload();
+    }
+
+    function showToast() {
+        const toast = document.getElementById('toast');
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 2000);
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/lib/config.js"></script>
+<script src="/lib/supabase.js"></script>
+<script>window.TEST_ID = 201;</script>
+<script src="/lib/vip-test-bridge.js"></script>
+</body>
+</html>

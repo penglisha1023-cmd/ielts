@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Elephant Research - Final Grading Edition</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --panel: #ffffff;
+            --text: #1e293b;
+            --accent: #2563eb;
+            --hl-color: #ffeb3b;
+            --border: #e2e8f0;
+            --correct: #22c55e;
+            --incorrect: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 顶部音频控制 */
+        .audio-container {
+            background: var(--panel);
+            padding: 12px 20px;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .play-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .progress-box {
+            flex: 1; height: 8px;
+            background: #e2e8f0; border-radius: 4px;
+            position: relative; cursor: pointer;
+        }
+
+        .progress-bar {
+            height: 100%; background: var(--accent);
+            border-radius: 4px; width: 0%; pointer-events: none;
+        }
+
+        /* 布局 */
+        .main-content { display: flex; flex: 1; overflow: hidden; }
+        .pane { overflow-y: auto; padding: 25px; height: 100%; scroll-behavior: smooth; }
+        .questions-pane { flex: 1; border-right: 1px solid var(--border); }
+        .transcript-pane { flex: 0.8; background: #fafafa; display: none; }
+        .show-t .transcript-pane { display: block; }
+
+        /* 题目样式 */
+        .question-block {
+            background: white; border: 1px solid var(--border);
+            padding: 20px; margin-bottom: 30px; border-radius: 8px;
+            position: relative;
+        }
+
+        .option-item {
+            display: block; margin: 12px 0; padding: 10px;
+            border-radius: 6px; cursor: pointer; transition: 0.2s;
+        }
+        .option-item:hover { background: #f8fafc; }
+
+        /* 批改状态样式 */
+        .correct-opt { background: #dcfce7 !important; border: 1px solid var(--correct); }
+        .incorrect-opt { background: #fee2e2 !important; border: 1px solid var(--incorrect); }
+        .correct-ans-label { color: var(--correct); font-weight: bold; margin-left: 10px; display: none; }
+        .graded .correct-ans-label { display: inline; }
+
+        /* 高亮按钮 */
+        #highlighter-btn {
+            position: fixed; display: none;
+            background: #1e293b; color: white;
+            padding: 6px 14px; border-radius: 4px;
+            font-size: 13px; cursor: pointer; z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: none;
+        }
+        .hl { background-color: var(--hl-color) !important; color: black !important; }
+
+        /* 底部导航 */
+        footer {
+            padding: 10px 20px; background: white;
+            border-top: 2px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .nav-dots { display: flex; gap: 8px; }
+        .dot {
+            width: 32px; height: 32px; border-radius: 6px;
+            border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: bold; cursor: pointer;
+            background: white;
+        }
+        .dot.done { background: #e2e8f0; }
+        .dot.correct { background: #22c55e; color: white; border: none; }
+        .dot.incorrect { background: #ef4444; color: white; border: none; }
+
+        .btn { padding: 8px 16px; border-radius: 6px; border: 1px solid #cbd5e1; cursor: pointer; background: white; }
+        .btn-primary { background: var(--accent); color: white; border: none; }
+        
+        #score-display { font-weight: bold; color: var(--accent); margin-right: 15px; font-size: 1.1rem; }
+    </style>
+<style id="vip-header-tidy">
+  .header h1 { display: none !important; }
+  .header .meta, #ownerMeta { display: none !important; }
+  .header { min-height: 0 !important; }
+</style>
+</head>
+<body id="body-root">
+
+<button id="highlighter-btn">Highlight</button>
+
+<div class="audio-container">
+    <button class="play-btn" id="playBtn">▶</button>
+    <div class="progress-box" id="progBox">
+        <div class="progress-bar" id="progBar"></div>
+    </div>
+    <span id="timeText" style="font-family: monospace;">00:00</span>
+    <audio id="audio" src="https://qyccvyyigtjhzunumbqf.supabase.co/storage/v1/object/public/audio/200.mp3"></audio>
+</div>
+
+<div class="main-content" id="layout">
+    <div class="pane questions-pane" id="qPane">
+        
+        <div class="question-block" id="q21">
+            <strong>Questions 21-22</strong>
+            <p>Choose TWO letters, A–E. What are the problems mentioned regarding farmers and elephants in Kenya?</p>
+            <label class="option-item" data-q="21_22" data-val="A"><input type="checkbox" name="group21" value="A"> A. farmers moved away from the affected areas</label>
+            <label class="option-item" data-q="21_22" data-val="B"><input type="checkbox" name="group21" value="B"> B. some farmers' homes were destroyed</label>
+            <label class="option-item" data-q="21_22" data-val="C"><input type="checkbox" name="group21" value="C"> C. farmers have less support for elephant conservation <span class="correct-ans-label">✓</span></label>
+            <label class="option-item" data-q="21_22" data-val="D"><input type="checkbox" name="group21" value="D"> D. farmers tried to protect their families</label>
+            <label class="option-item" data-q="21_22" data-val="E"><input type="checkbox" name="group21" value="E"> E. elephants became aggressive towards the farmers <span class="correct-ans-label">✓</span></label>
+        </div>
+
+        <div class="question-block" id="q23">
+            <strong>Questions 23-24</strong>
+            <p>Choose TWO letters, A–E. What is true about bees and elephants?</p>
+            <label class="option-item" data-q="23_24" data-val="A"><input type="checkbox" name="group23" value="A"> A. they can hurt the skin of adult elephants</label>
+            <label class="option-item" data-q="23_24" data-val="B"><input type="checkbox" name="group23" value="B"> B. they like to attack sensitive parts of elephants <span class="correct-ans-label">✓</span></label>
+            <label class="option-item" data-q="23_24" data-val="C"><input type="checkbox" name="group23" value="C"> C. elephants are not afraid of bees</label>
+            <label class="option-item" data-q="23_24" data-val="D"><input type="checkbox" name="group23" value="D"> D. young elephants are affected negatively <span class="correct-ans-label">✓</span></label>
+            <label class="option-item" data-q="23_24" data-val="E"><input type="checkbox" name="group23" value="E"> E. they have little effect on elephants</label>
+        </div>
+
+        <div class="question-block" id="q25">
+            <p><strong>25.</strong> What is the result of the experiment of hanging a container of bees by the farms?</p>
+            <label class="option-item" data-q="25" data-val="A"><input type="radio" name="group25" value="A"> A. the trees with bees were trampled down</label>
+            <label class="option-item" data-q="25" data-val="B"><input type="radio" name="group25" value="B"> B. elephants started to look for trees with bees</label>
+            <label class="option-item" data-q="25" data-val="C"><input type="radio" name="group25" value="C"> C. it can be used for protecting farmer's crops <span class="correct-ans-label">✓ (Correct)</span></label>
+        </div>
+
+        <div class="question-block" id="q26">
+            <p><strong>26.</strong> How did elephants respond to the audio recording of bees?</p>
+            <label class="option-item" data-q="26" data-val="A"><input type="radio" name="group26" value="A"> A. not aware of danger</label>
+            <label class="option-item" data-q="26" data-val="B"><input type="radio" name="group26" value="B"> B. ran away quickly and kept looking back <span class="correct-ans-label">✓ (Correct)</span></label>
+            <label class="option-item" data-q="26" data-val="C"><input type="radio" name="group26" value="C"> C. stopped and looked for source</label>
+        </div>
+
+        <div class="question-block" id="q27">
+            <p><strong>27.</strong> Why one herd of elephants didn't run away?</p>
+            <label class="option-item" data-q="27" data-val="A"><input type="radio" name="group27" value="A"> A. didn't hear clear</label>
+            <label class="option-item" data-q="27" data-val="B"><input type="radio" name="group27" value="B"> B. never had experience before <span class="correct-ans-label">✓ (Correct)</span></label>
+            <label class="option-item" data-q="27" data-val="C"><input type="radio" name="group27" value="C"> C. didn't pay attention</label>
+        </div>
+
+        <div class="question-block" id="q28">
+            <p><strong>28.</strong> What surprised researchers when elephants heard recording?</p>
+            <label class="option-item" data-q="28" data-val="A"><input type="radio" name="group28" value="A"> A. some elephants reacted immediately <span class="correct-ans-label">✓ (Correct)</span></label>
+            <label class="option-item" data-q="28" data-val="B"><input type="radio" name="group28" value="B"> B. scared for only 10 seconds</label>
+            <label class="option-item" data-q="28" data-val="C"><input type="radio" name="group28" value="C"> C. most didn't take action</label>
+        </div>
+
+        <div class="question-block" id="q29">
+            <p><strong>29.</strong> Drawback of bee recording application?</p>
+            <label class="option-item" data-q="29" data-val="A"><input type="radio" name="group29" value="A"> A. suitable power to run device</label>
+            <label class="option-item" data-q="29" data-val="B"><input type="radio" name="group29" value="B"> B. training people to set out device <span class="correct-ans-label">✓ (Correct)</span></label>
+            <label class="option-item" data-q="29" data-val="C"><input type="radio" name="group29" value="C"> C. battery can't last long</label>
+        </div>
+
+        <div class="question-block" id="q30">
+            <p><strong>30.</strong> Other effective deterrent method?</p>
+            <label class="option-item" data-q="30" data-val="A"><input type="radio" name="group30" value="A"> A. hanging cowbells <span class="correct-ans-label">✓ (Correct)</span></label>
+            <label class="option-item" data-q="30" data-val="B"><input type="radio" name="group30" value="B"> B. electric fences</label>
+            <label class="option-item" data-q="30" data-val="C"><input type="radio" name="group30" value="C"> C. growing chili peppers</label>
+        </div>
+
+    </div>
+
+    <div class="pane transcript-pane" id="tPane">
+        <h3>Transcript (Section 3)</h3>
+        <p><b>0:00</b> Section 3. You are here with two students called Ruth and Edward discussing their assignment about a conservation issue involving elephants in Kenya...</p>
+        <p><b>0:24</b> Right, Edward. I've got some notes here for our conservation assignment. I had a look at the research you mentioned in Kenya. I hadn't realized that farmers were having so many problems with elephants eating their crops there. Yes, the trouble is when elephants get into farmers field and destroy their crops that has all sorts of other results. I don't suppose the farmers can just get up and go somewhere else. No, but it's a real problem because farmers are shooting the elephants to keep their crops safe. And then the other elephants are affected and become very hostile to humans. But you can see for the farmers it's not homes and families that have been threatened. And it's understandable that farmers don't feel like supporting elephant conservation if their own livelihood is being destroyed.</p>
+        <p><b>1:35</b> So now we get on to the bees. I never thought elephants would be afraid of bees. But I suppose even if you're as big as an elephant a bee sting can still hurt. Well I think it depends. Bees can't sting through the thick skin on an adult elephant's body but they target the sensitive areas like near the eyes. Oh that must really hurt and I heard they get right inside the elephant's trunk and sting there. Yes and then there are the baby elephants, the calves which have thinner skin so they can be really badly affected especially if they get attacked by a whole swarm of bees. So elephants with babies may be threatened by bees even if they don't get stung themselves.</p>
+        <p><b>2:33</b> Okay so next week we can go on to describe the experiments based on this fear that elephants have of bees. So there was one way they hung containers full of bees in trees near the farms and they listened in trees without containers and they found the elephants trampled down the trees that didn't have any containers. And stayed well away from the ones with the bees in. Okay so did you read the articles about the experiment where it was done with the audio recording of bees instead of real bees? No. Well they've got a recording of a swarm of angry bees and they played it to herds of elephants out in the wild and they all stopped what they were doing immediately and stood erect with their heads up and their ears extended. They must have been really aware there was danger somewhere. But not the sort of danger that they can face up to in charge so they dashed off in the opposite direction they kept turning their heads around. Presumably looking for the swarm of bees which wasn't there. Yes and researchers tested 18 different herds of the elephants and all but one responded in a same way. Maybe that herd just didn't hear it properly. It seems a very small exception to the main finding. I think researchers actually concluded that this particular herd lacked any experience of bees. They've never encountered any so they weren't afraid of the recording. Right. Oh so that was the reason. Exactly. But what surprised the researchers was? From the 17 herds they did take action when they heard the recording. They found almost 50% of the herds did this very quickly within 10 seconds of hearing the recording. Oh that's interesting. Right. So playing the recordings of bees could be a good deterrent to elephants but it's not all that straightforward actually. Yes you've got to have the electricity to run the machinery. No that's okay it can run on batteries but the whole thing's quite difficult for electrical outlet which might be easy and then someone's got to set it all out and make sure it's working. That's not difficult but it's really a job. They're trying other methods as well like electric fences to keep the elephants away from the crops they haven't had much success but when they hang cowbells on the fences that seem to scare them off. Yes I've read they tried chili peppers as a deterrent too but that didn't scare the elephants at all. Right so I think we've got plenty of information. That is the end of section 3.</p>
+    </div>
+</div>
+
+<footer>
+    <div class="nav-dots" id="dotsContainer"></div>
+    <div style="display: flex; align-items: center;">
+        <div id="score-display"></div>
+        <button class="btn" id="tToggle" style="margin-right: 10px;">Show Transcript</button>
+        <button class="btn btn-primary" id="submitBtn">Submit Answers</button>
+    </div>
+</footer>
+
+<script>
+    // 正确答案数据
+    const ANSWER_KEY = {
+        group21: ['C', 'E'],
+        group23: ['B', 'D'],
+        group25: 'C',
+        group26: 'B',
+        group27: 'B',
+        group28: 'A',
+        group29: 'B',
+        group30: 'A'
+    };
+
+    const audio = document.getElementById('audio');
+    const playBtn = document.getElementById('playBtn');
+    const progBox = document.getElementById('progBox');
+    const progBar = document.getElementById('progBar');
+    const timeText = document.getElementById('timeText');
+    const hlBtn = document.getElementById('highlighter-btn');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // --- 音频拖拽 ---
+    let dragging = false;
+    playBtn.onclick = () => {
+        if(audio.paused) { audio.play(); playBtn.innerText = '⏸'; }
+        else { audio.pause(); playBtn.innerText = '▶'; }
+    };
+    audio.ontimeupdate = () => { if(!dragging) updateUI(); };
+    function updateUI() {
+        const p = (audio.currentTime / audio.duration) * 100;
+        progBar.style.width = (p || 0) + '%';
+        const m = Math.floor(audio.currentTime / 60);
+        const s = Math.floor(audio.currentTime % 60);
+        timeText.innerText = `${m}:${s.toString().padStart(2,'0')}`;
+    }
+    progBox.onmousedown = (e) => { dragging = true; handleMove(e); };
+    window.onmousemove = (e) => { if(dragging) handleMove(e); };
+    window.onmouseup = () => { dragging = false; };
+    function handleMove(e) {
+        const rect = progBox.getBoundingClientRect();
+        let p = (e.clientX - rect.left) / rect.width;
+        p = Math.max(0, Math.min(1, p));
+        audio.currentTime = p * (audio.duration || 0);
+        updateUI();
+    }
+
+    // --- 划词高亮系统 (修复题干高亮) ---
+    let currentRange = null;
+    document.onmouseup = (e) => {
+        const selection = window.getSelection();
+        const text = selection.toString().trim();
+        if (text.length > 0) {
+            currentRange = selection.getRangeAt(0).cloneRange();
+            const rect = currentRange.getBoundingClientRect();
+            hlBtn.style.top = (rect.top - 45) + 'px';
+            hlBtn.style.left = rect.left + 'px';
+            hlBtn.style.display = 'block';
+        } else if (e.target !== hlBtn) {
+            hlBtn.style.display = 'none';
+        }
+    };
+    hlBtn.onmousedown = (e) => {
+        e.preventDefault();
+        if (currentRange) {
+            const span = document.createElement('span');
+            span.className = 'hl';
+            try { currentRange.surroundContents(span); }
+            catch {
+                const contents = currentRange.extractContents();
+                span.appendChild(contents);
+                currentRange.insertNode(span);
+            }
+            window.getSelection().removeAllRanges();
+            hlBtn.style.display = 'none';
+        }
+    };
+
+    // --- 批改功能 ---
+    submitBtn.onclick = () => {
+        let totalScore = 0;
+        document.body.classList.add('graded');
+
+        // 遍历所有题目块进行比对
+        Object.keys(ANSWER_KEY).forEach(key => {
+            const inputs = document.querySelectorAll(`input[name="${key}"]`);
+            const correctVals = Array.isArray(ANSWER_KEY[key]) ? ANSWER_KEY[key] : [ANSWER_KEY[key]];
+            
+            let blockIsCorrect = true; // 针对单选
+            let pointsForGroup = 0;   // 针对多选
+
+            inputs.forEach(input => {
+                const parentLabel = input.parentElement;
+                const isChecked = input.checked;
+                const isCorrectVal = correctVals.includes(input.value);
+
+                // 样式重置与应用
+                parentLabel.classList.remove('correct-opt', 'incorrect-opt');
+                
+                if (isCorrectVal) {
+                    parentLabel.classList.add('correct-opt');
+                    if (isChecked) pointsForGroup++; 
+                } else if (isChecked && !isCorrectVal) {
+                    parentLabel.classList.add('incorrect-opt');
+                }
+                
+                input.disabled = true; // 提交后禁止修改
+            });
+
+            // 计算得分
+            if (key === 'group21' || key === 'group23') {
+                // 多选题，每个正确字母 1 分
+                totalScore += pointsForGroup;
+                updateDotStatus(key, pointsForGroup === 2);
+            } else {
+                // 单选题
+                const userSelected = document.querySelector(`input[name="${key}"]:checked`)?.value;
+                const isCorrect = userSelected === ANSWER_KEY[key];
+                if (isCorrect) totalScore++;
+                updateDotStatus(key, isCorrect);
+            }
+        });
+
+        document.getElementById('score-display').innerText = `Score: ${totalScore} / 10`;
+        submitBtn.innerText = "Check Complete";
+        submitBtn.disabled = true;
+        
+        // 自动打开原文进行对照
+        document.getElementById('layout').classList.add('show-t');
+    };
+
+    function updateDotStatus(groupName, isCorrect) {
+        const num = groupName.replace('group', '');
+        const dot = document.getElementById('dot-' + num);
+        dot.classList.remove('done');
+        dot.classList.add(isCorrect ? 'correct' : 'incorrect');
+        
+        // 处理 22 和 24 点
+        if(num == '21') document.getElementById('dot-22').className = dot.className;
+        if(num == '23') document.getElementById('dot-24').className = dot.className;
+    }
+
+    // --- 导航点 ---
+    function initDots() {
+        const container = document.getElementById('dotsContainer');
+        for (let i = 21; i <= 30; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'dot';
+            dot.innerText = i;
+            dot.id = 'dot-' + i;
+            dot.onclick = () => {
+                let tid = i;
+                if(i==22) tid=21; if(i==24) tid=23;
+                document.getElementById('q' + tid).scrollIntoView();
+            };
+            container.appendChild(dot);
+        }
+    }
+    initDots();
+
+    // 实时更新做题进度（变色）
+    document.addEventListener('change', (e) => {
+        if (e.target.name) {
+            const num = e.target.name.replace('group', '');
+            const dot = document.getElementById('dot-' + num);
+            dot.classList.add('done');
+            if(num == '21') document.getElementById('dot-22').classList.add('done');
+            if(num == '23') document.getElementById('dot-24').classList.add('done');
+        }
+    });
+
+    document.getElementById('tToggle').onclick = function() {
+        document.getElementById('layout').classList.toggle('show-t');
+        this.innerText = this.innerText.includes('Show') ? 'Hide Transcript' : 'Show Transcript';
+    };
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/lib/config.js"></script>
+<script src="/lib/supabase.js"></script>
+<script>window.TEST_ID = 200;</script>
+<script src="/lib/vip-test-bridge.js"></script>
+</body>
+</html>

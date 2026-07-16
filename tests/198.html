@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IELTS Listening · Adwaita Turtles</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-weight: 400; /* base weight ≤ 500 */
+    }
+    :root {
+      --splitter-width: 5px;
+      --splitter-color: #d0d5dd;
+      --bg-color: #f2f5f9;
+      --panel-bg: #ffffff;
+      --text-color: #1e293b;
+      --border-light: #e2e8f0;
+      --accent: #2563eb;
+      --answered-bg: #dbeafe;
+      --answered-border: #9bb7f4;
+      --answered-text: #1e3a8a;
+      --correct-bg: #dcfce7;
+      --correct-border: #86efac;
+      --correct-text: #166534;
+      --incorrect-bg: #fee2e2;
+      --incorrect-border: #fca5a5;
+      --incorrect-text: #991b1b;
+      --shadow: 0 20px 30px -10px rgba(0,20,40,0.15);
+      --toolbar-bg: #f8fafc;
+    }
+    html.font-regular { font-size: 16px; }
+    html.font-large { font-size: 18px; }
+    html.font-xlarge { font-size: 20px; }
+
+    body.dark-mode {
+      --bg-color: #0b1120;
+      --panel-bg: #1e293b;
+      --text-color: #e2e8f0;
+      --border-light: #334155;
+      --splitter-color: #334155;
+      --accent: #60a5fa;
+      --answered-bg: #1e3a5f;
+      --answered-border: #2563eb;
+      --answered-text: #bfdbfe;
+      --correct-bg: #14532d;
+      --correct-border: #22c55e;
+      --correct-text: #bbf7d0;
+      --incorrect-bg: #7f1d1d;
+      --incorrect-border: #b91c1c;
+      --incorrect-text: #fecaca;
+      --toolbar-bg: #1a2635;
+    }
+
+    html, body { height: 100%; overflow: hidden; background: var(--bg-color); color: var(--text-color); font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+    .app { display: flex; flex-direction: column; height: 100vh; max-height: 100vh; }
+
+    /* header */
+    .header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 24px; background: var(--panel-bg); border-bottom: 1px solid var(--border-light);
+      flex-shrink: 0;
+    }
+    .header h1 { font-size: 1.3rem; font-weight: 500; letter-spacing: -0.2px; }
+    .settings-btn { background: var(--toolbar-bg); border: 1px solid var(--border-light); border-radius: 40px; padding: 6px 16px; font-weight: 500; cursor: pointer; color: var(--text-color); }
+    #settingsPanel {
+      position: fixed; top: 65px; right: 24px; width: 230px; background: var(--panel-bg);
+      border-radius: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-light); z-index: 2000;
+      padding: 12px; display: none;
+    }
+    .settings-group { margin-bottom: 12px; }
+    .settings-label { font-size: 0.75rem; text-transform: uppercase; color: #64748b; margin-bottom: 6px; padding-left: 4px; }
+    .option-row { display: flex; gap: 5px; }
+    .option-row button { flex:1; background: var(--toolbar-bg); border:1px solid var(--border-light); border-radius: 30px; padding: 6px 0; font-weight:500; cursor:pointer; color:var(--text-color); }
+    .option-row button.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .overlay { position: fixed; inset:0; background: rgba(0,0,0,0.2); z-index: 1999; display: none; }
+
+    /* main split */
+    .main-row { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+    #leftPane { flex: 1 1 100%; overflow-y: auto; background: var(--panel-bg); transition: flex 0.2s; display: flex; flex-direction: column; }
+    #splitter { width: var(--splitter-width); background: var(--splitter-color); cursor: col-resize; display: none; }
+    #rightPane { flex: 0 0 0; overflow-y: auto; background: var(--bg-color); display: none; padding: 0 20px; }
+    .split-view #leftPane { flex: 1 1 50%; }
+    .split-view #splitter { display: block; }
+    .split-view #rightPane { display: block; flex: 1 1 calc(50% - var(--splitter-width)); }
+
+    /* sticky audio player */
+    .sticky-audio { position: sticky; top:0; background: var(--panel-bg); z-index: 100; padding: 16px 24px 8px; border-bottom: 1px solid var(--border-light); }
+    .audio-player { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .play-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); border: none; color: white; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .progress-area { flex: 1; min-width: 160px; }
+    .progress-bar-bg { height: 8px; background: var(--border-light); border-radius: 20px; cursor: pointer; }
+    .progress-fill { height: 8px; background: var(--accent); width: 0%; border-radius: 20px; }
+    .time { font-size: 0.8rem; font-family: monospace; min-width: 85px; }
+    .speed-select { background: var(--toolbar-bg); border:1px solid var(--border-light); border-radius: 20px; padding: 4px 8px; color: var(--text-color); font-weight: 500; }
+
+    /* question area */
+    .questions-container { padding: 0 24px 30px; }
+    .group { background: var(--panel-bg); border: 1px solid var(--border-light); border-radius: 24px; padding: 24px; margin: 20px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+    .group h4 { font-weight: 500; font-size: 1.2rem; margin-bottom: 16px; color: var(--accent); }
+    .instructions { background: var(--bg-color); padding: 10px 16px; border-radius: 40px; font-size: 0.9rem; margin-bottom: 20px; }
+    .question-line { margin: 14px 0; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+    .q-num { font-weight: 500; min-width: 28px; }
+    input.blank { border: 1.5px solid var(--border-light); border-radius: 12px; padding: 6px 12px; width: 130px; background: var(--bg-color); color: var(--text-color); font-weight: 400; font-size: 0.95rem; }
+    input.blank:focus { outline: none; border-color: var(--accent); }
+    input.blank.correct-review { border-color: var(--correct-border); background: var(--correct-bg); }
+    input.blank.incorrect-review { border-color: var(--incorrect-border); background: var(--incorrect-bg); }
+
+    /* bottom bar */
+    .bottom-bar {
+      background: var(--panel-bg); border-top: 1px solid var(--border-light);
+      height: 70px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; box-shadow: 0 -4px 12px rgba(0,0,0,0.02);
+    }
+    .nav-area { display: flex; gap: 6px; flex-wrap: wrap; }
+    .q-nav { display: flex; align-items: center; justify-content: center; min-width: 36px; height: 36px; border-radius: 12px; background: var(--toolbar-bg); border: 1px solid var(--border-light); font-weight: 500; cursor: pointer; transition: 0.1s; }
+    .q-nav.answered { background: var(--answered-bg); border-color: var(--answered-border); color: var(--answered-text); }
+    .q-nav.correct { background: var(--correct-bg); border-color: var(--correct-border); color: var(--correct-text); }
+    .q-nav.incorrect { background: var(--incorrect-bg); border-color: var(--incorrect-border); color: var(--incorrect-text); }
+    .timer { font-family: monospace; font-size: 1.4rem; font-weight: 500; margin-right: 10px; }
+    .action-btn { background: var(--toolbar-bg); border: 1px solid var(--border-light); border-radius: 30px; padding: 8px 18px; font-weight: 500; color: var(--text-color); cursor: pointer; }
+    .action-btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+
+    /* notes panel */
+    #notesPanel {
+      position: fixed; right: -420px; top: 0; bottom: 70px; width: 380px; background: var(--panel-bg);
+      border-left: 1px solid var(--border-light); transition: right 0.25s; z-index: 500;
+      display: flex; flex-direction: column;
+    }
+    body.notes-open #notesPanel { right: 0; }
+    .notes-header { padding: 16px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; font-weight: 500; }
+    .notes-close { background: none; border: none; font-size: 1.6rem; cursor: pointer; color: var(--text-color); }
+    #notesList { flex:1; overflow-y: auto; padding: 16px; }
+    .note-card { background: var(--bg-color); border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border-light); }
+    .note-quote { font-weight: 500; margin-bottom: 10px; padding-left: 6px; border-left: 4px solid var(--accent); }
+    .note-card textarea { width:100%; min-height: 70px; background: var(--panel-bg); border:1px solid var(--border-light); border-radius: 12px; padding: 8px; color: var(--text-color); margin: 6px 0; }
+    .delete-note { background: transparent; border: 1px solid var(--incorrect-border); color: var(--incorrect-text); padding: 5px 10px; border-radius: 30px; cursor: pointer; font-size:0.8rem; }
+
+    /* highlighter toolbar */
+    #selToolbar { position: absolute; background: white; border-radius: 40px; box-shadow: var(--shadow); border:1px solid var(--border-light); padding: 5px; display: flex; gap: 2px; z-index: 10000; }
+    #selToolbar button { border: none; background: var(--toolbar-bg); border-radius: 30px; padding: 6px 12px; cursor: pointer; color: #1e293b; font-weight: 500; }
+    #selToolbar button.hl { background: #fff59d; } 
+    #selToolbar button.note { background: #CEDDFE; }
+    #selToolbar button.del { background: #fee2e2; }
+    body.dark-mode #selToolbar button { color: #0f172a; }
+
+    .hl { background: #fff59d; }
+    .hl-blue { background: #CEDDFE; cursor: pointer; }
+    body.dark-mode .hl { background: #b68b40; }
+    body.dark-mode .hl-blue { background: #2d374b; }
+
+    /* transcript / review */
+    #transcriptContent { padding: 30px 0; position: relative; }
+    .t-line { margin-bottom: 1em; line-height: 1.6; }
+    .answer-highlight { background: #fef9c3; border-radius: 4px; padding: 2px 4px; font-weight: 500; border-bottom: 2px solid #fbbf24; }
+    body.dark-mode .answer-highlight { background: #854d0e; border-bottom-color: #eab308; }
+    #closeTranscript { position: sticky; top: 20px; float: right; background: var(--panel-bg); border:1px solid var(--border-light); border-radius: 50%; width: 40px; height: 40px; font-size:1.4rem; cursor: pointer; z-index: 10; }
+    .results-table { width:100%; border-collapse: collapse; margin-top: 24px; background: var(--panel-bg); border-radius: 16px; overflow: hidden; }
+    .results-table th { background: var(--bg-color); padding: 12px; font-weight: 500; }
+    .results-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-light); }
+
+    /* toast */
+    #toast { position: fixed; bottom: 90px; right: 30px; background: #059669; color: white; padding: 12px 24px; border-radius: 60px; box-shadow: var(--shadow); opacity: 0; transition: 0.2s; pointer-events: none; z-index: 5000; }
+    #toast.show { opacity: 1; }
+  </style>
+<style id="vip-header-tidy">
+  .header h1 { display: none !important; }
+  .header .meta, #ownerMeta { display: none !important; }
+  .header { min-height: 0 !important; }
+</style>
+</head>
+<body class="font-regular">
+  <div class="app">
+    <header class="header">
+      <h1>IELTS Listening · Adwaita Turtles</h1>
+      <button class="settings-btn" id="settingsBtn">⚙️ Text Size/Color</button>
+    </header>
+    <div id="settingsPanel">
+      <div class="settings-group"><div class="settings-label">Font size</div><div class="option-row"><button data-size="regular" class="active">Reg</button><button data-size="large">Large</button><button data-size="xlarge">X-L</button></div></div>
+      <div class="settings-group"><div class="settings-label">Mode</div><div class="option-row"><button data-mode="light" class="active">Light</button><button data-mode="dark">Dark</button></div></div>
+    </div>
+    <div class="overlay"></div>
+
+    <div class="main-row" id="mainShell">
+      <div id="leftPane">
+        <div class="sticky-audio">
+          <div class="audio-player">
+            <button class="play-btn" id="playPause">▶</button>
+            <div class="progress-area" id="progressContainer">
+              <div class="progress-bar-bg"><div class="progress-fill" id="progressFill"></div></div>
+            </div>
+            <span class="time" id="timeDisplay">00:00 / 00:00</span>
+            <select class="speed-select" id="speedSelect">
+              <option value="0.7">0.7x</option><option value="1.0" selected>1.0x</option><option value="1.1">1.1x</option><option value="1.2">1.2x</option><option value="1.5">1.5x</option>
+            </select>
+            <audio id="listeningAudio" src="https://qyccvyyigtjhzunumbqf.supabase.co/storage/v1/object/public/audio/198.mp3" preload="metadata"></audio>
+          </div>
+        </div>
+        <div class="questions-container" id="testPages"></div>
+      </div>
+      <div id="splitter"></div>
+      <div id="rightPane">
+        <div id="transcriptContent"></div>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="nav-area" id="qNav"></div>
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <span class="timer" id="timer">00:00</span>
+        <button class="action-btn primary" id="finishBtn">Finish</button>
+        <button class="action-btn" id="saveBtn">Save</button>
+        <button class="action-btn" id="clearBtn">Clear</button>
+        <button class="action-btn" id="notesToggle">Notes</button>
+        <button class="action-btn" id="transcriptToggle">Transcript</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- notes panel -->
+  <div id="notesPanel">
+    <div class="notes-header"><span>📝 My notes</span><button class="notes-close" id="closeNotes">&times;</button></div>
+    <div id="notesList"></div>
+  </div>
+
+  <!-- floating toolbar -->
+  <div id="selToolbar" hidden><button data-act="hl">Highlight</button><button data-act="note">Note</button><button data-act="del">Clear</button></div>
+  <div id="toast">Progress saved!</div>
+
+  <script>
+    (function() {
+      const CONFIG = {
+        localStorageKey: 'ielts_adwaita_2025',
+        questionList: ['31','32','33','34','35','36','37','38','39','40'],
+        answerKey: {
+          text: {
+            q31: 'streams', q32: 'fragile', q33: 'claws', q34: 'mushrooms',
+            q35: 'critical', q36: 'dogs', q37: 'dry', q38: 'relocation',
+            q39: 'elephant', q40: 'training'
+          }
+        },
+        transcriptLines: [
+          ["00:00:00,000", "00:00:11,160", "Today, we will discuss the Advaita Turtle, a species that has drawn significant attention"],
+          ["00:00:11,160", "00:00:16,040", "due to its unique characteristics and conservation challenges."],
+          ["00:00:16,040", "00:00:22,560", "These turtles are typically found in <span class='answer-highlight'>streams</span> of freshwater where they thrive in slow-moving water."],
+          ["00:00:22,560", "00:00:30,920", "Their preferred environment consists of shallow areas with abundant vegetation, offering both food and shelter."],
+          ["00:00:30,920", "00:00:37,000", "Unlike some other turtles, they are not well adapted to deep or fast-moving rivers."],
+          ["00:00:37,000", "00:00:42,680", "One of the most distinguishing features of the Advaita Turtle is its shell."],
+          ["00:00:42,680", "00:00:50,440", "Unlike species with tough protective outer layers, this turtle's shell is unusually <span class='answer-highlight'>fragile</span>."],
+          ["00:00:50,440", "00:01:01,480", "This makes it highly vulnerable to predators and environmental damage. As a result, they tend to stay hidden for long periods, avoiding direct threats whenever possible."],
+          ["00:01:03,520", "00:01:09,080", "Another key characteristic is their strong <span class='answer-highlight'>claws</span>, which serve multiple purposes."],
+          ["00:01:09,080", "00:01:16,040", "These turtles use their claws for digging burrows in soft riverbeds, allowing them to rest safely out of sight."],
+          ["00:01:16,040", "00:01:24,240", "Additionally, their claws help them in foraging as they scrape through mud and vegetation to uncover food sources."],
+          ["00:01:24,240", "00:01:32,080", "Speaking of diet, Advaita turtles are omnivorous, meaning they consume both plant and animal matter."],
+          ["00:01:32,080", "00:01:39,560", "While they often feed on insects and aquatic plants, they are also known to eat <span class='answer-highlight'>mushrooms</span> that grow near the water's edge."],
+          ["00:01:39,560", "00:01:45,800", "These fungi provide essential nutrients that contribute to their growth and overall health."],
+          ["00:01:45,800", "00:01:51,320", "Despite their adaptability, Advaita turtles face significant risks."],
+          ["00:01:51,320", "00:01:57,640", "Their population is currently under a <span class='answer-highlight'>critical</span> threat due to several environmental challenges."],
+          ["00:01:57,640", "00:02:08,680", "Deforestation and water pollution have destroyed many of their natural habitats, making it increasingly difficult for them to find safe nesting areas."],
+          ["00:02:08,680", "00:02:13,160", "One of the greatest dangers they face comes from domestic <span class='answer-highlight'>dogs</span>."],
+          ["00:02:13,160", "00:02:21,120", "These animals often disturb nesting sites, preying on young turtles before they have a chance to develop properly."],
+          ["00:02:21,120", "00:02:26,440", "Conservation efforts have attempted to reduce these attacks by setting up protective barriers around nesting areas."],
+          ["00:02:29,480", "00:02:33,720", "Another issue impacting their survival is climate change."],
+          ["00:02:33,720", "00:02:40,480", "Rising temperatures and deforestation have led to a loss of moisture in many of their traditional habitats."],
+          ["00:02:40,480", "00:02:51,000", "As a result, some areas that once supported these turtles have now become <span class='answer-highlight'>dry</span>, forcing them to migrate in search of better conditions."],
+          ["00:02:51,000", "00:02:56,040", "Unfortunately, many turtles do not survive these long journeys."],
+          ["00:02:56,040", "00:03:02,840", "To combat these challenges, conservationists have implemented species <span class='answer-highlight'>relocation</span> programs."],
+          ["00:03:02,840", "00:03:12,400", "These initiatives involve moving turtles from high-risk zones to safer, protected areas where they can thrive without external threats."],
+          ["00:03:12,400", "00:03:18,600", "In some cases, relocating turtles has required creative solutions."],
+          ["00:03:18,600", "00:03:26,920", "Due to the difficult terrain in certain regions, researchers have used an <span class='answer-highlight'>elephant</span> to help transport turtles across long distances."],
+          ["00:03:26,920", "00:03:31,760", "This has proven to be an effective method for ensuring their safe relocation."],
+          ["00:03:31,760", "00:03:37,920", "Finally, community involvement plays a crucial role in conservation efforts."],
+          ["00:03:37,920", "00:03:45,440", "Local populations are now receiving specialized <span class='answer-highlight'>training</span> on how to protect Adwaita turtles and their habitats."],
+          ["00:03:45,440", "00:03:54,000", "By educating people on the importance of these turtles, conservationists hope to create long-term solutions that will secure their future."]
+        ]
+      };
+
+      // ----- render initial -----
+      document.getElementById('testPages').innerHTML = `
+        <div class="group">
+          <h4>Questions 31–40</h4>
+          <p class="instructions">Complete the note below. Write <b>ONE WORD ONLY</b> for each answer.</p>
+          <p style="font-weight:500; margin-top:12px;">Adwaita Turtles</p>
+          <p><span class="q-num">31</span> Adwaita turtles primarily live in freshwater <input type="text" name="q31" data-q="31" class="blank" autocomplete="off"> .</p>
+          <p><span class="q-num">32</span> Their shells are extremely <input type="text" name="q32" data-q="32" class="blank" autocomplete="off"> , making them vulnerable to predators.</p>
+          <p><span class="q-num">33</span> They use their <input type="text" name="q33" data-q="33" class="blank" autocomplete="off"> to dig into soft riverbeds and search for food.</p>
+          <p><span class="q-num">34</span> One of the foods in their diet includes <input type="text" name="q34" data-q="34" class="blank" autocomplete="off"> that grow near water.</p>
+          <p style="margin-top:16px;"><b>Threats and Conservation Status</b></p>
+          <p><span class="q-num">35</span> The survival of Adwaita turtles is under a <input type="text" name="q35" data-q="35" class="blank" autocomplete="off"> threat due to environmental changes.</p>
+          <p><span class="q-num">36</span> One of the biggest threats to Adwaita turtles comes from <input type="text" name="q36" data-q="36" class="blank" autocomplete="off"> , which prey on them.</p>
+          <p><span class="q-num">37</span> Their habitat is becoming <input type="text" name="q37" data-q="37" class="blank" autocomplete="off"> due to climate change, making it harder for them to nest.</p>
+          <p style="margin-top:16px;"><b>Conservation Efforts and Future Plans</b></p>
+          <p><span class="q-num">38</span> Conservationists are using species <input type="text" name="q38" data-q="38" class="blank" autocomplete="off"> programs to move turtles to safer locations.</p>
+          <p><span class="q-num">39</span> In some cases, turtles are transported with the help of an <input type="text" name="q39" data-q="39" class="blank" autocomplete="off"> .</p>
+          <p><span class="q-num">40</span> Local communities are receiving <input type="text" name="q40" data-q="40" class="blank" autocomplete="off"> to help protect the turtles and their habitat.</p>
+        </div>
+        <div class="results-in-page"></div>
+      `;
+
+      // ----- state -----
+      let timerSec = 0, interval, isReview = false, notesOpen = false, settingsOpen = false;
+      let audio = document.getElementById('listeningAudio');
+      let playBtn = document.getElementById('playPause');
+      let progressFill = document.getElementById('progressFill');
+      let timeDisplay = document.getElementById('timeDisplay');
+      let speedSelect = document.getElementById('speedSelect');
+      const mainShell = document.getElementById('mainShell');
+      const finishBtn = document.getElementById('finishBtn');
+      const saveBtn = document.getElementById('saveBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const notesToggle = document.getElementById('notesToggle');
+      const closeNotes = document.getElementById('closeNotes');
+      const transcriptToggle = document.getElementById('transcriptToggle');
+      const qNav = document.getElementById('qNav');
+      const timerSpan = document.getElementById('timer');
+      const toast = document.getElementById('toast');
+      const settingsBtn = document.getElementById('settingsBtn');
+      const settingsPanel = document.getElementById('settingsPanel');
+      const overlay = document.querySelector('.overlay');
+
+      // navigation build
+      function buildNav() {
+        qNav.innerHTML = '';
+        CONFIG.questionList.forEach(q => {
+          let div = document.createElement('div');
+          div.className = 'q-nav';
+          div.dataset.qnum = q;
+          div.textContent = q;
+          div.addEventListener('click', ()=> {
+            let inp = document.querySelector(`input[name="q${q}"]`);
+            if(inp) inp.closest('.group')?.scrollIntoView({behavior:'smooth', block:'center'});
+          });
+          qNav.appendChild(div);
+        });
+      }
+      buildNav();
+
+      // timer
+      function tick() { timerSec++; updateTimer(); }
+      function updateTimer() { let m = Math.floor(timerSec/60); let s = timerSec%60; timerSpan.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; }
+      function startTimer() { if(interval) clearInterval(interval); interval = setInterval(tick,1000); }
+      startTimer();
+
+      // audio logic
+      audio.addEventListener('loadedmetadata', updateTime);
+      audio.addEventListener('timeupdate', updateTime);
+      function updateTime() {
+        if(audio.duration) {
+          let cur = audio.currentTime, dur = audio.duration;
+          progressFill.style.width = (cur/dur*100)+'%';
+          timeDisplay.textContent = `${formatTime(cur)} / ${formatTime(dur)}`;
+        }
+      }
+      function formatTime(t) { let m = Math.floor(t/60); let s = Math.floor(t%60); return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; }
+      playBtn.addEventListener('click', ()=> { if(audio.paused) audio.play(); else audio.pause(); });
+      audio.addEventListener('play', ()=> playBtn.innerHTML = '❚❚');
+      audio.addEventListener('pause', ()=> playBtn.innerHTML = '▶');
+      document.getElementById('progressContainer').addEventListener('click', (e)=> {
+        let rect = e.currentTarget.getBoundingClientRect();
+        let p = (e.clientX - rect.left)/rect.width;
+        audio.currentTime = p * audio.duration;
+      });
+      speedSelect.addEventListener('change', ()=> audio.playbackRate = parseFloat(speedSelect.value));
+
+      // save/load
+      function saveToStorage() {
+        let answers = {};
+        document.querySelectorAll('input.blank').forEach(i => answers[i.name] = i.value);
+        let notesHTML = document.getElementById('notesList').innerHTML;
+        let notesText = {};
+        document.querySelectorAll('.note-card').forEach(c => { let hid = c.dataset.hid; let ta = c.querySelector('textarea'); if(hid && ta) notesText[hid] = ta.value; });
+        let data = { answers, notesHTML, notesText, timerSec, fontSize: document.documentElement.className, darkMode: document.body.classList.contains('dark-mode') };
+        localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(data));
+        toast.classList.add('show'); setTimeout(()=> toast.classList.remove('show'), 1200);
+      }
+      function loadFromStorage() {
+        let raw = localStorage.getItem(CONFIG.localStorageKey); if(!raw) return;
+        try {
+          let data = JSON.parse(raw);
+          if(data.answers) Object.entries(data.answers).forEach(([k,v]) => { let i = document.querySelector(`[name="${k}"]`); if(i) i.value = v; });
+          if(data.notesHTML) document.getElementById('notesList').innerHTML = data.notesHTML;
+          if(data.notesText) Object.entries(data.notesText).forEach(([hid,val]) => { let ta = document.querySelector(`.note-card[data-hid="${hid}"] textarea`); if(ta) ta.value = val; });
+          if(data.timerSec) { timerSec = data.timerSec; updateTimer(); }
+          if(data.fontSize) document.documentElement.className = data.fontSize;
+          if(data.darkMode) document.body.classList.toggle('dark-mode', data.darkMode);
+        } catch (e) {}
+        updateNavAnswered();
+      }
+      loadFromStorage();
+
+      // update navigation answered style
+      function updateNavAnswered() {
+        CONFIG.questionList.forEach(q => {
+          let inp = document.querySelector(`input[name="q${q}"]`);
+          let nav = document.querySelector(`.q-nav[data-qnum="${q}"]`);
+          if(!nav) return;
+          let answered = inp && inp.value.trim() !== '';
+          nav.classList.toggle('answered', answered);
+        });
+      }
+      document.addEventListener('input', updateNavAnswered);
+
+      // clear
+      clearBtn.addEventListener('click', ()=> {
+        if(confirm('Clear all progress?')) {
+          localStorage.removeItem(CONFIG.localStorageKey);
+          location.reload();
+        }
+      });
+
+      // save
+      saveBtn.addEventListener('click', saveToStorage);
+
+      // highlight and notes ------------------------------------------------
+      let selToolbar = document.getElementById('selToolbar');
+      let selectedText = '';
+      document.addEventListener('mouseup', (e) => {
+        if (e.target.closest('#selToolbar, .note-card, .bottom-bar')) return;
+        let sel = window.getSelection();
+        if (!sel.isCollapsed && sel.toString().trim() !== '') {
+          let range = sel.getRangeAt(0);
+          let rect = range.getBoundingClientRect();
+          selToolbar.hidden = false;
+          selToolbar.style.left = (rect.left + rect.width/2 - 60) + 'px';
+          selToolbar.style.top = (rect.top - 45) + 'px';
+          selToolbar.targetRange = range;
+          selToolbar.querySelector('[data-act="hl"]').hidden = false;
+          selToolbar.querySelector('[data-act="note"]').hidden = false;
+          selToolbar.querySelector('[data-act="del"]').hidden = true;
+        } else if (e.target.classList.contains('hl-blue') || e.target.classList.contains('hl')) {
+          let span = e.target;
+          let rect = span.getBoundingClientRect();
+          selToolbar.hidden = false;
+          selToolbar.style.left = (rect.left + rect.width/2 - 40) + 'px';
+          selToolbar.style.top = (rect.top - 45) + 'px';
+          selToolbar.targetElement = span;
+          selToolbar.querySelector('[data-act="hl"]').hidden = true;
+          selToolbar.querySelector('[data-act="note"]').hidden = true;
+          selToolbar.querySelector('[data-act="del"]').hidden = false;
+        } else {
+          selToolbar.hidden = true;
+        }
+      });
+      selToolbar.addEventListener('click', (e) => {
+        let act = e.target.closest('button')?.dataset.act;
+        if (!act) return;
+        if (act === 'hl' || act === 'note') {
+          let range = selToolbar.targetRange;
+          if (!range) return;
+          let span = document.createElement('span');
+          span.className = act === 'hl' ? 'hl' : 'hl-blue';
+          try { range.surroundContents(span); } catch { let frag = range.extractContents(); span.appendChild(frag); range.insertNode(span); }
+          if (act === 'note') {
+            let hid = 'hid_'+Date.now()+Math.random();
+            span.dataset.hid = hid;
+            let noteHTML = `<div class="note-card" data-hid="${hid}"><div class="note-quote">${span.textContent}</div><textarea placeholder="Write note here..."></textarea><button class="delete-note" data-hid="${hid}">Delete</button></div>`;
+            document.getElementById('notesList').insertAdjacentHTML('afterbegin', noteHTML);
+            document.body.classList.add('notes-open');
+          }
+          window.getSelection().removeAllRanges();
+          selToolbar.hidden = true;
+        } else if (act === 'del') {
+          let el = selToolbar.targetElement;
+          if (el) {
+            let hid = el.dataset.hid;
+            if (hid) document.querySelector(`.note-card[data-hid="${hid}"]`)?.remove();
+            let parent = el.parentNode;
+            while(el.firstChild) parent.insertBefore(el.firstChild, el);
+            parent.removeChild(el);
+            parent.normalize();
+          }
+          selToolbar.hidden = true;
+        }
+      });
+      // delete note from card
+      document.getElementById('notesList').addEventListener('click', (e) => {
+        if (e.target.classList.contains('delete-note')) {
+          let hid = e.target.dataset.hid;
+          document.querySelector(`span[data-hid="${hid}"]`)?.classList.remove('hl-blue');
+          let span = document.querySelector(`span[data-hid="${hid}"]`);
+          if (span) { let p = span.parentNode; while(span.firstChild) p.insertBefore(span.firstChild, span); p.removeChild(span); p.normalize(); }
+          e.target.closest('.note-card')?.remove();
+        }
+      });
+
+      // transcript & finish
+      function buildTranscript() {
+        let tc = document.getElementById('transcriptContent');
+        tc.innerHTML = '<button id="closeTranscript">&times;</button>';
+        CONFIG.transcriptLines.forEach(([s,e,t]) => {
+          let p = document.createElement('p'); p.className = 't-line'; p.innerHTML = t; tc.appendChild(p);
+        });
+        document.getElementById('closeTranscript').addEventListener('click', ()=> mainShell.classList.remove('split-view'));
+      }
+
+      transcriptToggle.addEventListener('click', ()=> {
+        mainShell.classList.toggle('split-view');
+        if(!document.getElementById('transcriptContent').innerHTML) buildTranscript();
+      });
+
+      finishBtn.addEventListener('click', ()=> {
+        if (!isReview) {
+          if (!confirm('Finish and review answers?')) return;
+          isReview = true;
+          finishBtn.textContent = 'Return to Test';
+          mainShell.classList.add('split-view');
+          if(!document.getElementById('transcriptContent').innerHTML) buildTranscript();
+
+          // disable inputs
+          document.querySelectorAll('input.blank').forEach(i => i.disabled = true);
+
+          // grade & show results
+          let correctMap = CONFIG.answerKey.text;
+          CONFIG.questionList.forEach(q => {
+            let inp = document.querySelector(`input[name="q${q}"]`);
+            if (!inp) return;
+            let user = inp.value.trim().toLowerCase();
+            let correct = correctMap['q'+q].toLowerCase();
+            let isCorrect = user === correct;
+            inp.classList.add(isCorrect ? 'correct-review' : 'incorrect-review');
+            let nav = document.querySelector(`.q-nav[data-qnum="${q}"]`);
+            if (nav) { nav.classList.remove('answered'); nav.classList.add(isCorrect ? 'correct' : 'incorrect'); }
+          });
+
+          // results table
+          let html = '<h4 style="margin-top:24px;">Answer review</h4><table class="results-table"><tr><th>Q</th><th>Your answer</th><th>Correct</th><th></th></tr>';
+          CONFIG.questionList.forEach(q => {
+            let inp = document.querySelector(`input[name="q${q}"]`);
+            let user = inp ? inp.value.trim() || '(blank)' : '(blank)';
+            let correct = CONFIG.answerKey.text['q'+q];
+            let ok = user.toLowerCase() === correct.toLowerCase();
+            html += `<tr><td>${q}</td><td>${user}</td><td>${correct}</td><td>${ok ? '✅' : '❌'}</td></tr>`;
+          });
+          html += '</table>';
+          document.querySelector('.results-in-page').innerHTML = html;
+          clearInterval(interval); interval = null;
+        } else {
+          isReview = false;
+          finishBtn.textContent = 'Finish';
+          mainShell.classList.remove('split-view');
+          document.querySelectorAll('input.blank').forEach(i => { i.disabled = false; i.classList.remove('correct-review','incorrect-review'); });
+          document.querySelectorAll('.q-nav').forEach(n => n.classList.remove('correct','incorrect'));
+          updateNavAnswered();
+          document.querySelector('.results-in-page').innerHTML = '';
+          startTimer();
+        }
+      });
+
+      // notes panel toggle
+      notesToggle.addEventListener('click', ()=> { document.body.classList.toggle('notes-open'); });
+      closeNotes.addEventListener('click', ()=> document.body.classList.remove('notes-open'));
+
+      // splitter
+      let splitter = document.getElementById('splitter');
+      let left = document.getElementById('leftPane'), right = document.getElementById('rightPane');
+      splitter.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        document.body.style.cursor = 'col-resize';
+        function onMove(e) {
+          let total = mainShell.offsetWidth;
+          let newLeft = e.clientX;
+          if (newLeft < 200) newLeft = 200;
+          if (total - newLeft - 5 < 200) newLeft = total - 205;
+          left.style.flex = '0 0 ' + newLeft + 'px';
+          right.style.flex = '0 0 ' + (total - newLeft - 5) + 'px';
+        }
+        function up() {
+          document.body.style.cursor = '';
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', up);
+        }
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', up);
+      });
+
+      // settings
+      settingsBtn.addEventListener('click', (e) => { e.stopPropagation(); settingsOpen = !settingsOpen; settingsPanel.style.display = settingsOpen ? 'block' : 'none'; overlay.style.display = settingsOpen ? 'block' : 'none'; });
+      overlay.addEventListener('click', () => { settingsOpen = false; settingsPanel.style.display = 'none'; overlay.style.display = 'none'; });
+      document.querySelectorAll('[data-size]').forEach(b => b.addEventListener('click', (e) => {
+        document.documentElement.className = 'font-'+e.target.dataset.size;
+        document.querySelectorAll('[data-size]').forEach(bb => bb.classList.remove('active')); e.target.classList.add('active');
+      }));
+      document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', (e) => {
+        document.body.classList.toggle('dark-mode', e.target.dataset.mode === 'dark');
+        document.querySelectorAll('[data-mode]').forEach(bb => bb.classList.remove('active')); e.target.classList.add('active');
+      }));
+    })();
+  </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/lib/config.js"></script>
+<script src="/lib/supabase.js"></script>
+<script>window.TEST_ID = 198;</script>
+<script src="/lib/vip-test-bridge.js"></script>
+</body>
+</html>

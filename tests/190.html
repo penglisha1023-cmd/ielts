@@ -1,0 +1,737 @@
+此内容由🍠@Listening 永不虾滑整理，仅作为分享供个人使用；禁止商用、倒卖和引流。有问题请先仔细看🍠这个账号的置顶和分享贴。没有团队，不是机构，纯个人分享。督学和其他相关课程请咨询主页另一个号@心情有点虾滑（不回任何机经相关消息）。
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>IELTS Listening Simulator | 雅思听力机考 (Section 3)</title>
+    <style>
+        /* ---------- 全局变量 & 重置 ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --splitter-width: 6px;
+            --splitter-color: #e2e8f0;
+            --bg-color: #f8fafc;
+            --panel-color: #ffffff;
+            --text-color: #0f172a;
+            --border-color: #e2e8f0;
+            --accent-color: #3b82f6;
+            --answered-bg: #dbeafe;
+            --answered-border: #93c5fd;
+            --answered-text: #1e40af;
+            --correct-bg: #dcfce7;
+            --correct-border: #4ade80;
+            --correct-text: #166534;
+            --incorrect-bg: #fee2e2;
+            --incorrect-border: #f87171;
+            --incorrect-text: #991b1b;
+            --shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.02);
+        }
+
+        html.font-regular { font-size: 16px; }
+        html.font-large { font-size: 18px; }
+        html.font-xlarge { font-size: 20px; }
+
+        body.dark-mode {
+            --bg-color: #0f172a;
+            --panel-color: #1e293b;
+            --text-color: #e2e8f0;
+            --border-color: #334155;
+            --splitter-color: #334155;
+            --accent-color: #60a5fa;
+            --answered-bg: #1e3a8a;
+            --answered-border: #3b82f6;
+            --answered-text: #bfdbfe;
+            --correct-bg: #14532d;
+            --correct-border: #22c55e;
+            --correct-text: #bbf7d0;
+            --incorrect-bg: #7f1d1d;
+            --incorrect-border: #ef4444;
+            --incorrect-text: #fecaca;
+        }
+
+        body {
+            background: var(--bg-color);
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text-color);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .shell {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 28px;
+            background: var(--panel-color);
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .header h1 {
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin: 0;
+        }
+        .header-btn {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 40px;
+            padding: 6px 18px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-color);
+            transition: 0.2s;
+        }
+        .header-btn:hover { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+
+        /* 设置面板 */
+        #settings-panel {
+            position: fixed; top: 68px; right: 24px; width: 240px;
+            background: var(--panel-color); border-radius: 20px; box-shadow: var(--shadow);
+            border: 1px solid var(--border-color); z-index: 1001; padding: 12px;
+            display: none; backdrop-filter: blur(8px);
+        }
+        .settings-group { margin-bottom: 12px; }
+        .settings-title { font-size: 0.75rem; color: #64748b; margin-bottom: 8px; font-weight: 500; }
+        .settings-options { display: flex; gap: 8px; }
+        .settings-option {
+            flex: 1; text-align: center; padding: 6px; border: 1px solid var(--border-color);
+            background: var(--bg-color); cursor: pointer; font-size: 0.85rem; border-radius: 40px;
+        }
+        .settings-option.active { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+        .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.2); z-index: 1000; display: none; }
+
+        /* 分栏布局 */
+        #main-shell { display: flex; flex-grow: 1; overflow: hidden; position: relative; }
+        #left-pane { flex: 1 1 100%; overflow-y: auto; background: var(--panel-color); transition: flex-basis 0.2s ease; }
+        #splitter { width: var(--splitter-width); background: var(--splitter-color); cursor: col-resize; display: none; }
+        #splitter:hover { background: var(--accent-color); }
+        #right-pane { flex: 0 0 0; overflow-y: auto; background: var(--bg-color); display: none; padding: 0 28px; border-left: 1px solid var(--border-color); }
+        #main-shell.split-view #left-pane { flex-basis: 55%; }
+        #main-shell.split-view #splitter { display: block; }
+        #main-shell.split-view #right-pane { display: block; flex-basis: calc(45% - var(--splitter-width)); }
+
+        /* 音频置顶 */
+        #sticky-header {
+            position: sticky; top: 0; z-index: 12;
+            background: var(--panel-color); padding: 20px 28px 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .audio-player { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .play-pause-btn {
+            background: var(--accent-color); color: white; border: none; border-radius: 60px;
+            width: 42px; height: 42px; font-size: 1.3rem; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .progress-container { flex-grow: 1; min-width: 160px; cursor: pointer; }
+        .progress-bar-wrapper { width: 100%; height: 6px; background-color: #e2e8f0; border-radius: 10px; overflow: hidden; }
+        body.dark-mode .progress-bar-wrapper { background-color: #334155; }
+        .progress-bar { width: 0%; height: 100%; background-color: var(--accent-color); border-radius: 10px; }
+        .time-display { font-size: 0.85rem; font-family: monospace; min-width: 100px; }
+        .speed-control select { padding: 5px 8px; border-radius: 30px; border: 1px solid var(--border-color); background: var(--bg-color); }
+
+        /* 题目区域 */
+        #test-pages-container {
+            padding: 20px 28px 120px;
+        }
+        .group {
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 20px 24px;
+            margin: 28px 0;
+            background: var(--panel-color);
+        }
+        .group h4 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        .instructions {
+            background: var(--bg-color);
+            padding: 8px 14px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent-color);
+            font-weight: 400;
+        }
+        .question-text {
+            font-weight: 500;
+            margin: 12px 0 6px;
+        }
+        .radio-group {
+            margin: 14px 0 8px 20px;
+        }
+        .radio-group label {
+            display: block;
+            margin: 10px 0;
+            font-weight: 400;
+            cursor: pointer;
+        }
+        /* 填空段落样式 (段落形式) */
+        .summary-paragraph {
+            font-size: 1rem;
+            line-height: 1.65;
+            margin: 1rem 0;
+            text-align: justify;
+        }
+        .summary-paragraph p {
+            margin-bottom: 1rem;
+        }
+        input.blank {
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 6px 12px;
+            width: 170px;
+            font-size: 0.9rem;
+            background: var(--bg-color);
+            color: var(--text-color);
+            margin: 0 4px;
+            transition: 0.2s;
+        }
+        input.blank:focus {
+            border-color: var(--accent-color);
+            outline: none;
+        }
+
+        /* 底部工具栏 */
+        .bottom-bar {
+            position: fixed; left: 0; right: 0; bottom: 0; height: 74px;
+            background: var(--panel-color); border-top: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 28px; z-index: 100;
+        }
+        .bb-left, .bb-center { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .q-nav-container { display: flex; gap: 10px; flex-wrap: wrap; max-width: 460px; }
+        .q-nav-item {
+            display: flex; align-items: center; justify-content: center;
+            min-width: 38px; height: 38px; border-radius: 40px;
+            background: var(--bg-color); border: 1px solid var(--border-color);
+            font-weight: 500; cursor: pointer;
+        }
+        .q-nav-item.answered { background: var(--answered-bg); border-color: var(--answered-border); color: var(--answered-text); }
+        .q-nav-item.correct { background: var(--correct-bg); border-color: var(--correct-border); color: var(--correct-text); }
+        .q-nav-item.incorrect { background: var(--incorrect-bg); border-color: var(--incorrect-border); color: var(--incorrect-text); }
+        button {
+            background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 40px;
+            padding: 8px 18px; cursor: pointer; font-weight: 500; color: var(--text-color);
+            transition: 0.2s;
+        }
+        button:hover { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+        #timer { font-family: monospace; font-size: 1.3rem; font-weight: 500; background: #0f172a10; padding: 4px 12px; border-radius: 60px; }
+
+        /* 高亮样式 */
+        .hl-brown { background-color: #8B4513 !important; color: #ffffff !important; border-radius: 6px; padding: 0 2px; }
+        .hl-rose { background-color: #C2185B !important; color: #ffffff !important; border-radius: 6px; padding: 0 2px; }
+        .hl-blue { background-color: #3b82f6 !important; color: #ffffff !important; border-radius: 6px; cursor: pointer; padding: 0 2px; }
+        #selbar {
+            position: absolute; background: var(--panel-color); backdrop-filter: blur(12px);
+            border-radius: 60px; box-shadow: var(--shadow); padding: 6px 12px; gap: 8px;
+            display: inline-flex; z-index: 1000; border: 1px solid var(--border-color);
+        }
+        #selbar[hidden] { display: none; }
+        #selbar button { border: none; background: #f1f5f9; padding: 6px 14px; border-radius: 40px; font-size: 0.8rem; cursor: pointer; }
+
+        /* 笔记侧边栏 */
+        body.notes-open { padding-right: 420px; }
+        #notes {
+            position: fixed; right: -420px; top: 0; bottom: 74px; width: 420px;
+            background: var(--panel-color); border-left: 1px solid var(--border-color);
+            transition: right 0.25s ease; z-index: 99; display: flex; flex-direction: column;
+            box-shadow: -5px 0 20px rgba(0,0,0,0.05);
+        }
+        body.notes-open #notes { right: 0; }
+        .side-panel-header { display: flex; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-color); font-weight: 600; }
+        #notes-list { overflow-y: auto; padding: 16px; flex-grow: 1; }
+        .note-card { background: var(--bg-color); border-radius: 20px; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border-color); }
+        .note-quote { font-weight: 500; font-size: 0.9rem; margin-bottom: 12px; background: #f1f5f9; padding: 8px; border-radius: 12px; }
+        .note-card textarea { width: 100%; min-height: 80px; border-radius: 16px; border: 1px solid var(--border-color); padding: 10px; background: var(--panel-color); color: var(--text-color); margin: 8px 0; }
+
+        /* 总的答案回顾表格（只生成一次） */
+        .global-results {
+            margin: 32px 28px 40px 28px;
+            background: var(--panel-color);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 20px 24px;
+        }
+        .global-results h4 {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .results-table th, .results-table td {
+            border: 1px solid var(--border-color);
+            padding: 10px 12px;
+            text-align: left;
+        }
+        .result-correct { color: #16a34a; font-weight: 700; }
+        .result-incorrect { color: #dc2626; font-weight: 700; }
+
+        /* Transcript 区域 - 底部留足空间 */
+        .answer-highlight { background-color: #fde047; color: #0f172a; padding: 2px 4px; border-radius: 8px; }
+        body.dark-mode .answer-highlight { background-color: #facc15; color: #0f172a; }
+        #transcript-content {
+            padding-bottom: 130px;
+        }
+        #transcript-content p {
+            line-height: 1.65;
+            margin-bottom: 16px;
+        }
+        #close-transcript-btn {
+            float: right; background: var(--panel-color); border-radius: 60px;
+            padding: 4px 12px; margin-top: -8px; cursor: pointer;
+            border: 1px solid var(--border-color);
+        }
+
+        #toast {
+            position: fixed; bottom: 90px; right: 28px; background: #10b981; color: white;
+            padding: 10px 20px; border-radius: 60px; opacity: 0; transition: 0.2s;
+            pointer-events: none; z-index: 200; font-weight: 500;
+        }
+        #toast.show { opacity: 1; transform: translateY(-6px); }
+    </style>
+<style id="vip-header-tidy">
+  .header h1 { display: none !important; }
+  .header .meta, #ownerMeta { display: none !important; }
+  .header { min-height: 0 !important; }
+</style>
+</head>
+<body class="font-regular">
+<div class="shell">
+    <header class="header">
+        <h1>IELTS Listening Practice</h1>
+        <button id="settings-btn" class="header-btn">⚙️ Text Size/Color</button>
+    </header>
+    <div id="settings-panel">
+        <div class="settings-group"><div class="settings-title">Font Size</div><div class="settings-options"><button class="settings-option active" data-size="regular">Regular</button><button class="settings-option" data-size="large">Large</button><button class="settings-option" data-size="xlarge">X-Large</button></div></div>
+        <div class="settings-group"><div class="settings-title">Color Mode</div><div class="settings-options"><button class="settings-option active" data-mode="light">Light</button><button class="settings-option" data-mode="dark">Dark</button></div></div>
+    </div>
+    <div class="overlay"></div>
+    <div id="main-shell">
+        <div id="left-pane">
+            <div id="sticky-header"><div class="audio-player-wrapper"></div></div>
+            <div id="test-pages-container"></div>
+        </div>
+        <div id="splitter"></div>
+        <div id="right-pane"><div id="transcript-content"><h4>📖 Listening Transcript</h4></div></div>
+    </div>
+    <div class="bottom-bar">
+        <div class="bb-left"><div id="q-nav-container" class="q-nav-container"></div></div>
+        <div class="bb-center"><span id="timer">00:00</span><button id="finish-btn">Finish</button><button id="save-btn">Save</button><button id="clear-btn">Clear</button><button id="toggle-notes-btn">📝 Notes</button><button id="toggle-transcript-btn">📄 Transcript</button></div>
+    </div>
+    <div id="notes">
+        <div class="side-panel-header"><span>📘 My Notes</span><button id="notes-close" class="side-panel-close">✕</button></div>
+        <div id="notes-list"></div>
+    </div>
+    <div id="selbar" hidden><button data-act="hl">Highlight</button><button data-act="note">Note</button><button data-act="del">Clear</button></div>
+    <div id="toast">Progress saved!</div>
+</div>
+
+<script>
+    (function() {
+        // ---------- 答案 (107文档) q27 支持 role of motivation / motivation ----------
+        const ANSWER_KEY = {
+            single: {
+                q21: "B", q22: "B", q23: "C", q24: "C", q25: "A"
+            },
+            text: {
+                q26: "solution",
+                q27: ["motivation", "role of motivation"],
+                q28: "culture",
+                q29: "management of change",
+                q30: "nature of volunteering"
+            }
+        };
+
+        function isTextAnswerCorrect(qNum, userAnswer) {
+            if (!userAnswer) return false;
+            const norm = userAnswer.trim().toLowerCase();
+            const correct = ANSWER_KEY.text[`q${qNum}`];
+            if (Array.isArray(correct)) {
+                return correct.some(c => norm === c.toLowerCase());
+            }
+            return norm === correct.toLowerCase();
+        }
+
+        const STORAGE_KEY = "ielts_listening_section3_final_global";
+
+        // 完整听力原文（带高亮答案，底部留足空隙）
+        const FULL_TRANSCRIPT = `
+            <p><strong>Section 3</strong></p>
+            <p>Excuse me, Dr. Thompson, may I speak to you for a minute?<br>Of course, please come in.<br>I'm Alexandra Jones, I'm studying business here at the university. And for my assignment I have to carry out a survey of people who own their own organizations. I heard that you are the founder of your own company, and I was wondering if I could ask you some questions about it.<br>Yes of course, please, fire away.</p>
+            <p>Okay great, we'll get started. Did you encounter any problems whilst you were starting your company?<br>Actually, it was not as hard as I anticipated. I started out with very clear objectives, so I knew exactly what I wanted my corporate identity to be. It was very difficult to find the correct premises as the property market in London is so competitive, but eventually I found the perfect site. <span class="answer-highlight">The hardest part was structuring the business, as I had no formal template</span>, so I had to create it myself.</p>
+            <p>Yes, that is very impressive. Was it difficult dealing with staff?<br>It's always tricky trying to satisfy a group of people with varying interests. However, I didn't encounter many problems. I found it very important to make the staff feel appreciated, so I hosted a staff day where we could all introduce ourselves. I was also able to talk to them about the type of work that they would be doing and gave them the opportunity to share with me the issues they had with <span class="answer-highlight">the allocation of the work</span>.</p>
+            <p>Okay, did you hire a management team or did you take on the role of the manager?<br>Oh no, I already had enough tasks to take care of. I employed someone else to take on the role of the manager. However, <span class="answer-highlight">he never consulted me before making decisions</span>, so I was forced to let him go and hire someone else.</p>
+            <p>And what did the other staff think of the new manager?<br>They had a great deal of respect for him. It definitely helped that I consulted with them before hiring him. <span class="answer-highlight">They were surprised that he has been so successful</span> in his role at the company, despite the longer meeting hours.</p>
+            <p>Since the company opened, has it had any great achievements?<br>There are many aspects of the company that I am pleased with. However, there is one achievement of which I am particularly proud. I wanted a mural painted to brighten up our entrance area, so I decided it would be a great idea to <span class="answer-highlight">invite the local primary school to create one for us</span>. The youngsters had a great time, and I know they were thrilled to be included.</p>
+            <p><strong>Now listen and answer questions 26 to 30.</strong></p>
+            <p>Have you encountered any major problems since you opened the company?<br>Yes, we are always encountering issues with employment, because it is very hard to find people who are qualified for the roles that we are offering. But unfortunately, <span class="answer-highlight">there is no solution</span> to this. One of our administrators also recently left to go on maternity leave, which put us in a tricky situation. However, we have managed to find a temporary replacement for her. It is also now approaching the period when we must carry out our financial training, so I need to find a venue with enough space to hold everyone.</p>
+            <p>Organisation is a difficult thing to master, but it is also essential for success. Whilst I was learning how to stay organised, I realised that <span class="answer-highlight">the role of motivation</span> is essential. I also suggest that you visit the library, as there is <span class="answer-highlight">a section on culture</span> that will have some very valuable material on how to develop your organisation skills. They also have a collection of documentaries on the subject of personal organisation, and I suggest that you look up the <span class="answer-highlight">literature on management of change</span>. I personally found these sources incredibly useful. Articles are also a valuable resource, and we have a whole collection of them in our university library. I advise that you look at section 2, where you will find <span class="answer-highlight">articles on the nature of volunteering</span>.</p>
+            <p>That's great. Thank you so much for your help.<br>No problem.<br>That is the end of section 3.</p>
+            <div style="height: 20px;"></div>
+        `;
+
+        let timerSeconds = 0, timerInterval = null, isReviewing = false;
+
+        // 渲染题目（填空题采用段落形式）
+        function renderQuestions() {
+            const container = document.getElementById('test-pages-container');
+            container.innerHTML = `
+                <div class="group" id="group-21-25">
+                    <h4>📌 Questions 21-25</h4>
+                    <div class="instructions">Choose the correct letter A, B or C.</div>
+                    <div class="question-text"><strong>21</strong> What was the most difficult problem when the company was founded?</div>
+                    <div class="radio-group"><label><input type="radio" name="q21" value="A"> A No clear objectives</label><label><input type="radio" name="q21" value="B"> B No formal structures</label><label><input type="radio" name="q21" value="C"> C No perfect premises</label></div>
+                    <div class="question-text"><strong>22</strong> What is the staff unsatisfied with?</div>
+                    <div class="radio-group"><label><input type="radio" name="q22" value="A"> A The type of work</label><label><input type="radio" name="q22" value="B"> B The work assignment</label><label><input type="radio" name="q22" value="C"> C The feeling of appreciation</label></div>
+                    <div class="question-text"><strong>23</strong> What was the problem of the manager?</div>
+                    <div class="radio-group"><label><input type="radio" name="q23" value="A"> A He had a lot of tasks to do.</label><label><input type="radio" name="q23" value="B"> B He employed too many people and let them go then.</label><label><input type="radio" name="q23" value="C"> C He always made decisions by himself.</label></div>
+                    <div class="question-text"><strong>24</strong> What does the staff think of the new manager of the company?</div>
+                    <div class="radio-group"><label><input type="radio" name="q24" value="A"> A They are delighted to see that the meeting time is shorter.</label><label><input type="radio" name="q24" value="B"> B They feel annoyed toward him.</label><label><input type="radio" name="q24" value="C"> C They are amazed that he has done it well.</label></div>
+                    <div class="question-text"><strong>25</strong> What achievement has the organization made already?</div>
+                    <div class="radio-group"><label><input type="radio" name="q25" value="A"> A Children were involved in painting the entrance area.</label><label><input type="radio" name="q25" value="B"> B There was no particular achievement.</label><label><input type="radio" name="q25" value="C"> C It built a local primary school.</label></div>
+                </div>
+                <div class="group" id="group-26-30">
+                    <h4>📝 Questions 26-30</h4>
+                    <div class="instructions">Complete the summary. Write NO MORE THAN THREE WORDS for each answer.</div>
+                    <div class="summary-paragraph">
+                        <p>Since the company opened, there have been many problems with employment, but there is no <input type="text" class="blank" name="q26" autocomplete="off">. He needs to find a venue for financial training. It is very hard to run an organization and the <input type="text" class="blank" name="q27" autocomplete="off"> is of great importance to staying organized. To enhance the organization skills, there is a section on <input type="text" class="blank" name="q28" autocomplete="off"> in the library where some valuable books can be found. In addition, the library contains some useful resources, such as a collection of documentaries on personal organization, the literature on <input type="text" class="blank" name="q29" autocomplete="off">, and the articles on the <input type="text" class="blank" name="q30" autocomplete="off">.</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function buildNav() {
+            const container = document.getElementById('q-nav-container');
+            container.innerHTML = '';
+            for (let i = 21; i <= 30; i++) {
+                const btn = document.createElement('div');
+                btn.className = 'q-nav-item';
+                btn.innerText = i;
+                btn.dataset.q = i;
+                btn.onclick = () => {
+                    const targetId = (i <= 25) ? 'group-21-25' : 'group-26-30';
+                    document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                };
+                container.appendChild(btn);
+            }
+        }
+
+        function updateNavState() {
+            if (isReviewing) return;
+            for (let i = 21; i <= 30; i++) {
+                const nav = document.querySelector(`.q-nav-item[data-q="${i}"]`);
+                if (!nav) continue;
+                let answered = false;
+                if (i <= 25) answered = !!document.querySelector(`input[name="q${i}"]:checked`);
+                else answered = !!document.querySelector(`input[name="q${i}"]`)?.value.trim();
+                nav.classList.toggle('answered', answered);
+                nav.classList.remove('correct', 'incorrect');
+            }
+        }
+
+        function colorNavByResults() {
+            for (let i = 21; i <= 30; i++) {
+                const nav = document.querySelector(`.q-nav-item[data-q="${i}"]`);
+                if (!nav) continue;
+                let isCorrect = false;
+                if (i <= 25) {
+                    const user = document.querySelector(`input[name="q${i}"]:checked`)?.value;
+                    isCorrect = (user === ANSWER_KEY.single[`q${i}`]);
+                } else {
+                    const user = document.querySelector(`input[name="q${i}"]`)?.value || '';
+                    isCorrect = isTextAnswerCorrect(i, user);
+                }
+                nav.classList.remove('answered', 'correct', 'incorrect');
+                nav.classList.add(isCorrect ? 'correct' : 'incorrect');
+            }
+        }
+
+        // ***** 关键修改：只生成一个全局的答案表格，放在题目区域底部 *****
+        function generateGlobalResultTable() {
+            // 移除之前可能存在的全局表格
+            const oldGlobal = document.getElementById('global-results-table');
+            if (oldGlobal) oldGlobal.remove();
+
+            // 收集所有题目的答案和正确性
+            const rows = [];
+            for (let q = 21; q <= 25; q++) {
+                const user = document.querySelector(`input[name="q${q}"]:checked`)?.value || '—';
+                const correct = ANSWER_KEY.single[`q${q}`];
+                const isCorrect = (user === correct);
+                rows.push(`<tr><td><b>${q}</b></td><td>${user}</td><td>${correct}</td><td class="${isCorrect ? 'result-correct' : 'result-incorrect'}">${isCorrect ? '✔ Correct' : '✖ Incorrect'}</td></tr>`);
+            }
+            for (let q = 26; q <= 30; q++) {
+                const user = (document.querySelector(`input[name="q${q}"]`)?.value || '—').trim();
+                let correctDisplay = ANSWER_KEY.text[`q${q}`];
+                if (Array.isArray(correctDisplay)) correctDisplay = correctDisplay.join(' / ');
+                const isCorrect = (q === 27) ? isTextAnswerCorrect(q, user) : (user.toLowerCase() === (Array.isArray(ANSWER_KEY.text[`q${q}`]) ? ANSWER_KEY.text[`q${q}`][0] : ANSWER_KEY.text[`q${q}`]).toLowerCase());
+                rows.push(`<tr><td><b>${q}</b></td><td>${user || '—'}</td><td>${correctDisplay}</td><td class="${isCorrect ? 'result-correct' : 'result-incorrect'}">${isCorrect ? '✔ Correct' : '✖ Incorrect'}</td></tr>`);
+            }
+
+            const tableHTML = `
+                <div id="global-results-table" class="global-results">
+                    <h4>📊 Final Answer Review (All Questions)</h4>
+                    <table class="results-table">
+                        <thead><tr><th>Question</th><th>Your Answer</th><th>Correct Answer</th><th>Result</th></tr></thead>
+                        <tbody>${rows.join('')}</tbody>
+                    </table>
+                </div>
+            `;
+            // 插入到 test-pages-container 末尾（所有题目之后）
+            const container = document.getElementById('test-pages-container');
+            container.insertAdjacentHTML('beforeend', tableHTML);
+        }
+
+        function enableDisableInputs(disabled) {
+            document.querySelectorAll('input.blank, input[type="radio"]').forEach(inp => inp.disabled = disabled);
+        }
+
+        function buildTranscriptPane() {
+            const rightPane = document.getElementById('transcript-content');
+            rightPane.innerHTML = `<h4>📖 Listening Transcript (Answers Highlighted)</h4>${FULL_TRANSCRIPT}<button id="close-transcript-btn">✕</button>`;
+            const closeBtn = document.getElementById('close-transcript-btn');
+            if (closeBtn) closeBtn.onclick = () => document.getElementById('main-shell').classList.remove('split-view');
+        }
+
+        // Finish 切换：复习模式 / 做题模式
+        function toggleFinishMode() {
+            if (isReviewing) {
+                // 返回做题模式，清除所有批改痕迹
+                isReviewing = false;
+                document.getElementById('finish-btn').innerText = 'Finish';
+                document.getElementById('main-shell').classList.remove('split-view');
+                enableDisableInputs(false);
+                // 移除全局表格
+                const globalTable = document.getElementById('global-results-table');
+                if (globalTable) globalTable.remove();
+                // 重置导航样式
+                for (let i = 21; i <= 30; i++) {
+                    const nav = document.querySelector(`.q-nav-item[data-q="${i}"]`);
+                    if (nav) nav.classList.remove('correct', 'incorrect');
+                }
+                updateNavState();
+                if (!timerInterval && timerSeconds >= 0) startTimer();
+            } else {
+                if (confirm('提交答案并进入复习模式（显示答案回顾及原文）？')) {
+                    isReviewing = true;
+                    document.getElementById('finish-btn').innerText = 'Return to Test';
+                    document.getElementById('main-shell').classList.add('split-view');
+                    buildTranscriptPane();
+                    enableDisableInputs(true);
+                    // 只生成一个全局答案表格（所有题型汇总）
+                    generateGlobalResultTable();
+                    colorNavByResults();
+                    if (timerInterval) clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+            }
+        }
+
+        // 音频控件
+        function initAudio() {
+            const wrapper = document.querySelector('.audio-player-wrapper');
+            wrapper.innerHTML = `
+                <div class="audio-player"><button class="play-pause-btn">▶</button><div class="progress-container"><div class="progress-bar-wrapper"><div class="progress-bar"></div></div></div><div class="time-display">00:00 / 00:00</div><div class="speed-control"><select class="playback-speed"><option value="0.7">0.7x</option><option value="1.0" selected>1.0x</option><option value="1.1">1.1x</option><option value="1.2">1.2x</option><option value="1.5">1.5x</option></select></div><audio class="listening-audio" src="https://qyccvyyigtjhzunumbqf.supabase.co/storage/v1/object/public/audio/190.mp3" preload="metadata"></audio></div>
+            `;
+            const audio = document.querySelector('.listening-audio');
+            if (!audio) return;
+            const playBtn = document.querySelector('.play-pause-btn');
+            const progContainer = document.querySelector('.progress-container');
+            const progressBar = document.querySelector('.progress-bar');
+            const timeSpan = document.querySelector('.time-display');
+            const speedSelect = document.querySelector('.playback-speed');
+            let scrubbing = false;
+            const update = () => {
+                if (!scrubbing && audio.duration) progressBar.style.width = (audio.currentTime / audio.duration) * 100 + '%';
+                timeSpan.innerText = `${Math.floor(audio.currentTime/60)}:${String(Math.floor(audio.currentTime%60)).padStart(2,'0')} / ${Math.floor(audio.duration/60)}:${String(Math.floor(audio.duration%60)).padStart(2,'0')}`;
+            };
+            playBtn.onclick = () => audio.paused ? audio.play() : audio.pause();
+            audio.onplay = () => playBtn.innerHTML = '⏸';
+            audio.onpause = () => playBtn.innerHTML = '▶';
+            audio.ontimeupdate = update;
+            speedSelect.onchange = () => audio.playbackRate = parseFloat(speedSelect.value);
+            progContainer.onmousedown = (e) => {
+                scrubbing = true;
+                const rect = progContainer.getBoundingClientRect();
+                audio.currentTime = (Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width))) * audio.duration;
+                update();
+            };
+            document.onmouseup = () => scrubbing = false;
+            document.onmousemove = (e) => {
+                if (scrubbing && audio.duration) {
+                    const rect = progContainer.getBoundingClientRect();
+                    audio.currentTime = (Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width))) * audio.duration;
+                    update();
+                }
+            };
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => { timerSeconds++; updateTimerUI(); }, 1000);
+        }
+        function updateTimerUI() {
+            const mins = Math.floor(timerSeconds / 60);
+            const secs = timerSeconds % 60;
+            document.getElementById('timer').innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+        }
+
+        function saveAll(showToastMsg = true) {
+            const answers = {};
+            for (let i = 21; i <= 25; i++) answers[`q${i}`] = document.querySelector(`input[name="q${i}"]:checked`)?.value || '';
+            for (let i = 26; i <= 30; i++) answers[`q${i}`] = document.querySelector(`input[name="q${i}"]`)?.value || '';
+            const notesHTML = document.getElementById('notes-list').innerHTML;
+            const testHTML = document.getElementById('test-pages-container').innerHTML;
+            const data = { answers, timer: timerSeconds, notesHTML, testHTML, fontSize: document.documentElement.className, darkMode: document.body.classList.contains('dark-mode') };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            if (showToastMsg) { const toast = document.getElementById('toast'); toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 1500); }
+        }
+
+        function loadFromStorage() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return;
+            try {
+                const data = JSON.parse(raw);
+                if (data.testHTML) document.getElementById('test-pages-container').innerHTML = data.testHTML;
+                if (data.notesHTML) document.getElementById('notes-list').innerHTML = data.notesHTML;
+                if (data.timer !== undefined) timerSeconds = data.timer;
+                updateTimerUI();
+                if (data.fontSize) document.documentElement.className = data.fontSize;
+                if (data.darkMode) document.body.classList.add('dark-mode');
+                if (data.answers) {
+                    for (let key in data.answers) {
+                        const val = data.answers[key];
+                        const el = document.querySelector(`input[name="${key}"]`);
+                        if (el && el.type === 'radio') {
+                            const radioToCheck = document.querySelector(`input[name="${key}"][value="${val}"]`);
+                            if (radioToCheck) radioToCheck.checked = true;
+                        } else if (el && el.type === 'text') el.value = val;
+                    }
+                }
+                updateNavState();
+            } catch(e) {}
+        }
+
+        function clearAll() {
+            if (confirm('⚠️ 清除所有进度，包括答案、高亮和笔记？')) {
+                localStorage.removeItem(STORAGE_KEY);
+                location.reload();
+            }
+        }
+
+        // 高亮 & 笔记
+        function initHighlightAndNotes() {
+            document.addEventListener('mouseup', (e) => {
+                if (e.target.closest('#selbar, #notes, .bottom-bar')) return;
+                const sel = window.getSelection();
+                if (sel && !sel.isCollapsed) {
+                    const bar = document.getElementById('selbar');
+                    bar.targetElem = null;
+                    bar.hidden = false;
+                    const range = sel.getRangeAt(0).getBoundingClientRect();
+                    bar.style.left = `${window.scrollX + range.left + range.width/2 - 70}px`;
+                    bar.style.top = `${window.scrollY + range.top - 40}px`;
+                } else document.getElementById('selbar').hidden = true;
+            });
+            document.getElementById('selbar')?.addEventListener('click', (ev) => {
+                const act = ev.target.closest('button')?.dataset.act;
+                const sel = window.getSelection();
+                if (!act || sel.isCollapsed) return;
+                const range = sel.getRangeAt(0);
+                const span = document.createElement('span');
+                if (act === 'hl') span.className = 'hl-brown';
+                else if (act === 'note') span.className = 'hl-blue';
+                else return;
+                try {
+                    range.surroundContents(span);
+                    if (act === 'note') {
+                        const hid = 'n_' + Date.now();
+                        span.dataset.hid = hid;
+                        const card = document.createElement('div');
+                        card.className = 'note-card';
+                        card.dataset.hid = hid;
+                        card.innerHTML = `<div class="note-quote">${span.innerText.slice(0,80)}</div><textarea placeholder="Write note here..."></textarea><button class="del-note-btn">Delete</button>`;
+                        card.querySelector('.del-note-btn').onclick = () => { span.outerHTML = span.innerText; card.remove(); };
+                        document.getElementById('notes-list').prepend(card);
+                        document.body.classList.add('notes-open');
+                    }
+                } catch(e) {}
+                document.getElementById('selbar').hidden = true;
+                sel.removeAllRanges();
+                saveAll(false);
+            });
+        }
+
+        function bindEvents() {
+            document.getElementById('save-btn').addEventListener('click', () => saveAll(true));
+            document.getElementById('clear-btn').addEventListener('click', clearAll);
+            document.getElementById('finish-btn').addEventListener('click', toggleFinishMode);
+            document.getElementById('toggle-notes-btn').addEventListener('click', () => document.body.classList.toggle('notes-open'));
+            document.getElementById('notes-close').addEventListener('click', () => document.body.classList.remove('notes-open'));
+            document.getElementById('toggle-transcript-btn').addEventListener('click', () => { document.getElementById('main-shell').classList.toggle('split-view'); buildTranscriptPane(); });
+            const settingsBtn = document.getElementById('settings-btn'), settingsPanel = document.getElementById('settings-panel'), overlay = document.querySelector('.overlay');
+            settingsBtn.onclick = (e) => { e.stopPropagation(); const visible = settingsPanel.style.display === 'block'; settingsPanel.style.display = visible ? 'none' : 'block'; overlay.style.display = visible ? 'none' : 'block'; };
+            overlay.onclick = () => { settingsPanel.style.display = 'none'; overlay.style.display = 'none'; };
+            document.querySelectorAll('.settings-option[data-size]').forEach(btn => btn.addEventListener('click', () => { document.documentElement.className = `font-${btn.dataset.size}`; saveAll(false); }));
+            document.querySelectorAll('.settings-option[data-mode]').forEach(btn => btn.addEventListener('click', () => { document.body.classList.toggle('dark-mode', btn.dataset.mode === 'dark'); saveAll(false); }));
+            document.addEventListener('input', () => { if (!isReviewing) updateNavState(); });
+        }
+
+        function initSplitter() {
+            const splitter = document.getElementById('splitter');
+            let dragging = false;
+            splitter.addEventListener('mousedown', () => { dragging = true; document.body.style.cursor = 'col-resize'; });
+            window.addEventListener('mouseup', () => { dragging = false; document.body.style.cursor = ''; });
+            window.addEventListener('mousemove', (e) => {
+                if (!dragging) return;
+                const left = document.getElementById('left-pane'), right = document.getElementById('right-pane');
+                const total = left.parentElement.offsetWidth;
+                let newLeft = e.clientX;
+                if (newLeft > 200 && (total - newLeft - 6) > 200) {
+                    left.style.flexBasis = `${newLeft}px`;
+                    right.style.flexBasis = `${total - newLeft - 6}px`;
+                }
+            });
+        }
+
+        function init() {
+            renderQuestions();
+            buildNav();
+            initAudio();
+            bindEvents();
+            initHighlightAndNotes();
+            initSplitter();
+            loadFromStorage();
+            startTimer();
+            updateNavState();
+        }
+        init();
+    })();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/lib/config.js"></script>
+<script src="/lib/supabase.js"></script>
+<script>window.TEST_ID = 190;</script>
+<script src="/lib/vip-test-bridge.js"></script>
+</body>
+</html>

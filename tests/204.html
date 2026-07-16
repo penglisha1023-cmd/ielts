@@ -1,0 +1,917 @@
+此内容由🍠@Listening 永不虾滑整理，仅作为分享供个人使用；禁止商用、倒卖和引流。有问题请先仔细看🍠这个账号的置顶和分享贴。没有团队，不是机构，纯个人分享。督学/课程咨询 主页另一个号@心情有点虾滑（不回任何机经相关消息）。
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>IELTS Listening · Public Monument Assignment</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #f8fafc;
+      --panel: #ffffff;
+      --text: #0f172a;
+      --border: #e2e8f0;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --answered-bg: #dbeafe;
+      --correct-bg: #dcfce7;
+      --correct-border: #4ade80;
+      --incorrect-bg: #fee2e2;
+      --incorrect-border: #f87171;
+      --shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.02);
+    }
+
+    body.dark {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --text: #e2e8f0;
+      --border: #334155;
+      --answered-bg: #1e3a8a;
+      --correct-bg: #14532d;
+      --incorrect-bg: #7f1d1d;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      font-weight: 500;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    html.font-regular { font-size: 16px; }
+    html.font-large { font-size: 18px; }
+    html.font-xlarge { font-size: 20px; }
+
+    /* layout */
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 28px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .header h1 { font-weight: 600; font-size: 1.3rem; }
+
+    .settings-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 40px;
+      padding: 6px 18px;
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .settings-btn:hover { background: var(--accent); color: white; }
+
+    /* settings panel */
+    #settingsPanel {
+      position: fixed;
+      top: 70px;
+      right: 24px;
+      width: 240px;
+      background: var(--panel);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      z-index: 1000;
+      padding: 14px;
+      display: none;
+    }
+    .settings-group { margin-bottom: 14px; }
+    .settings-group label { font-size: 0.75rem; font-weight: 500; display: block; margin-bottom: 8px; opacity: 0.7; }
+    .options { display: flex; gap: 8px; }
+    .opt-btn {
+      flex: 1;
+      text-align: center;
+      padding: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      border-radius: 40px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .opt-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.2); z-index: 999; display: none; }
+
+    /* split view */
+    .split-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+    .left-pane {
+      flex: 1 1 100%;
+      overflow-y: auto;
+      background: var(--panel);
+      transition: flex 0.2s;
+    }
+    .splitter {
+      width: 6px;
+      background: var(--border);
+      cursor: col-resize;
+      display: none;
+    }
+    .splitter:hover { background: var(--accent); }
+    .right-pane {
+      flex: 0 0 0;
+      overflow-y: auto;
+      background: var(--bg);
+      border-left: 1px solid var(--border);
+      display: none;
+      padding: 20px 28px;
+    }
+    .split-view .left-pane { flex-basis: 55%; }
+    .split-view .splitter { display: block; }
+    .split-view .right-pane { display: block; flex-basis: calc(45% - 6px); }
+
+    /* audio sticky */
+    .sticky-audio {
+      position: sticky;
+      top: 0;
+      background: var(--panel);
+      padding: 18px 28px 12px;
+      border-bottom: 1px solid var(--border);
+      z-index: 10;
+    }
+    .audio-player {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .play-pause {
+      background: var(--accent);
+      border: none;
+      border-radius: 60px;
+      width: 42px;
+      height: 42px;
+      font-size: 1.2rem;
+      color: white;
+      cursor: pointer;
+    }
+    .progress-wrap { flex: 1; min-width: 160px; cursor: pointer; }
+    .progress-track { height: 6px; background: var(--border); border-radius: 10px; overflow: hidden; }
+    .progress-fill { width: 0%; height: 100%; background: var(--accent); }
+    .time { font-family: monospace; font-size: 0.85rem; }
+    .speed-select { padding: 5px 10px; border-radius: 30px; border: 1px solid var(--border); background: var(--bg); }
+
+    /* questions area – exact 109 layout */
+    .questions-container {
+      padding: 24px 28px 100px;
+    }
+    .assignment-card {
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 24px 30px;
+      background: var(--panel);
+      margin-bottom: 32px;
+    }
+    .section-title {
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin: 24px 0 12px 0;
+      border-left: 4px solid var(--accent);
+      padding-left: 14px;
+    }
+    .blank-line {
+      margin: 18px 0;
+      line-height: 1.5;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .blank-input {
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 8px 14px;
+      width: 200px;
+      font-size: 0.95rem;
+      background: var(--bg);
+      color: var(--text);
+      font-weight: 500;
+    }
+    .blank-input:focus { outline: none; border-color: var(--accent); }
+    .inline-text { font-weight: 500; }
+    .subnote { font-size: 0.85rem; color: #64748b; margin-top: 4px; }
+
+    /* bottom bar */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 24px;
+      z-index: 100;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .nav-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      max-width: 480px;
+    }
+    .nav-item {
+      min-width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 40px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .nav-item.answered { background: var(--answered-bg); border-color: #93c5fd; color: #1e40af; }
+    .nav-item.correct { background: var(--correct-bg); border-color: var(--correct-border); color: #166534; }
+    .nav-item.incorrect { background: var(--incorrect-bg); border-color: var(--incorrect-border); color: #991b1b; }
+    .action-buttons { display: flex; gap: 12px; align-items: center; }
+    .timer { font-family: monospace; font-size: 1.3rem; font-weight: 600; background: var(--bg); padding: 4px 12px; border-radius: 60px; }
+    button {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 40px;
+      padding: 6px 16px;
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--text);
+    }
+    button:hover { background: var(--accent); color: white; }
+
+    /* review table */
+    .review-table {
+      margin-top: 24px;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .review-table th, .review-table td {
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      text-align: left;
+    }
+    .correct-tag { color: #16a34a; font-weight: 700; }
+    .incorrect-tag { color: #dc2626; font-weight: 700; }
+
+    /* highlight styles */
+    .hl-brown { background-color: #8B4513 !important; color: white !important; border-radius: 6px; padding: 0 2px; }
+    .hl-rose { background-color: #C2185B !important; color: white !important; border-radius: 6px; padding: 0 2px; }
+    .hl-blue { background-color: #3b82f6 !important; color: white !important; border-radius: 6px; cursor: pointer; padding: 0 2px; }
+
+    /* toolbar */
+    #toolbar {
+      position: absolute;
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      border-radius: 60px;
+      box-shadow: var(--shadow);
+      padding: 6px 12px;
+      display: inline-flex;
+      gap: 8px;
+      z-index: 1002;
+      border: 1px solid var(--border);
+    }
+    #toolbar[hidden] { display: none; }
+
+    /* notes sidebar */
+    body.notes-open .notes-sidebar { right: 0; }
+    .notes-sidebar {
+      position: fixed;
+      top: 0;
+      bottom: 70px;
+      right: -380px;
+      width: 380px;
+      background: var(--panel);
+      border-left: 1px solid var(--border);
+      transition: right 0.25s;
+      z-index: 98;
+      display: flex;
+      flex-direction: column;
+      box-shadow: -4px 0 20px rgba(0,0,0,0.08);
+    }
+    .notes-header { padding: 16px 20px; border-bottom: 1px solid var(--border); font-weight: 600; display: flex; justify-content: space-between; }
+    .notes-list { flex: 1; overflow-y: auto; padding: 16px; }
+    .note-card {
+      background: var(--bg);
+      border-radius: 20px;
+      padding: 14px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+    }
+    .note-quote { font-weight: 700; font-size: 0.85rem; background: #f1f5f9; padding: 8px; border-radius: 12px; margin-bottom: 12px; }
+    body.dark .note-quote { background: #0f172a; }
+    .note-card textarea { width: 100%; min-height: 80px; border-radius: 16px; border: 1px solid var(--border); padding: 8px; background: var(--panel); color: var(--text); margin: 8px 0; }
+    .delete-note { background: transparent; border: 1px solid var(--incorrect-border); color: var(--incorrect-border); border-radius: 30px; padding: 4px 12px; }
+
+    .toast {
+      position: fixed;
+      bottom: 90px;
+      right: 28px;
+      background: #10b981;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 60px;
+      opacity: 0;
+      transition: 0.2s;
+      z-index: 200;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(-6px); }
+
+    /* transcript spacing */
+    .transcript-content { padding-bottom: 80px; }
+    .answer-highlight { background-color: #fde047; color: #0f172a; padding: 0 2px; border-radius: 6px; }
+  </style>
+<style id="vip-header-tidy">
+  .header h1 { display: none !important; }
+  .header .meta, #ownerMeta { display: none !important; }
+  .header { min-height: 0 !important; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="header">
+    <h1>IELTS Listening Practice</h1>
+    <button id="settingsToggle" class="settings-btn">⚙️ Text Size/Color</button>
+  </header>
+  <div id="settingsPanel">
+    <div class="settings-group"><label>Font Size</label><div class="options"><button data-size="regular" class="opt-btn active">Regular</button><button data-size="large" class="opt-btn">Large</button><button data-size="xlarge" class="opt-btn">X-Large</button></div></div>
+    <div class="settings-group"><label>Color Mode</label><div class="options"><button data-mode="light" class="opt-btn active">Light</button><button data-mode="dark" class="opt-btn">Dark</button></div></div>
+  </div>
+  <div class="overlay"></div>
+
+  <div class="split-container" id="splitContainer">
+    <div class="left-pane" id="leftPane">
+      <div class="sticky-audio">
+        <div class="audio-player">
+          <button class="play-pause" id="playBtn">▶</button>
+          <div class="progress-wrap" id="progressWrap">
+            <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+          </div>
+          <span class="time" id="timeDisplay">00:00 / 00:00</span>
+          <select class="speed-select" id="speedSelect">
+            <option value="0.7">0.7x</option><option value="1.0" selected>1.0x</option>
+            <option value="1.1">1.1x</option><option value="1.2">1.2x</option><option value="1.5">1.5x</option>
+          </select>
+          <audio id="audioPlayer" src="https://qyccvyyigtjhzunumbqf.supabase.co/storage/v1/object/public/audio/204.mp3" preload="metadata"></audio>
+        </div>
+      </div>
+      <div class="questions-container" id="questionsArea">
+        <!-- exact 109 assignment layout -->
+        <div class="assignment-card">
+          <h3 style="font-weight: 600; margin-bottom: 12px;">📋 Public Monument Assignment</h3>
+          <p style="background: var(--bg); padding: 8px 14px; border-radius: 16px; margin-bottom: 20px;">Complete the notes below. Write <strong>ONE WORD ONLY</strong> for each answer.</p>
+          
+          <div class="section-title">Section one</div>
+          <div class="blank-line">• Identify the monument and justify your choice</div>
+          <div class="blank-line">• Comment on the <input type="text" class="blank-input" id="q31" data-q="31" placeholder="31"> of the monument</div>
+          <div class="blank-line">• Add information about its:</div>
+          <div class="blank-line" style="margin-left: 24px;">- geographical location</div>
+          <div class="blank-line" style="margin-left: 24px;">- <input type="text" class="blank-input" id="q32" data-q="32" placeholder="32"> significance</div>
+          <div class="blank-line">• historical context</div>
+          <div class="blank-line">• Illustrate assignment with:</div>
+          <div class="blank-line" style="margin-left: 24px;">- <input type="text" class="blank-input" id="q33" data-q="33" placeholder="33"></div>
+          <div class="blank-line" style="margin-left: 24px;">- photos (with captions)</div>
+          <div class="blank-line">• End with: record of architect's achiever</div>
+
+          <div class="section-title">Section two: Design and construction</div>
+          <div class="blank-line">Include information about</div>
+          <div class="blank-line">• The <input type="text" class="blank-input" id="q34" data-q="34" placeholder="34"> of any particular style on the design</div>
+          <div class="blank-line">• The <input type="text" class="blank-input" id="q35" data-q="35" placeholder="35"> used in construction</div>
+          <div class="blank-line">• Specialist <input type="text" class="blank-input" id="q36" data-q="36" placeholder="36"> required</div>
+
+          <div class="section-title">Section three: Assessment of design.</div>
+          <div class="blank-line">Content should include:</div>
+          <div class="blank-line">• personal assessment</div>
+          <div class="blank-line">• results of your survey</div>
+          <div class="blank-line">Use personal assessment and survey to consider</div>
+          <div class="blank-line">• the <input type="text" class="blank-input" id="q37" data-q="37" placeholder="37"> for building the monument</div>
+          <div class="blank-line">• the monument's <input type="text" class="blank-input" id="q38" data-q="38" placeholder="38"> effect on members of the public</div>
+          <div class="blank-line">• how well the monument suits its <input type="text" class="blank-input" id="q39" data-q="39" placeholder="39"></div>
+          <div class="blank-line"><strong>Remember!</strong></div>
+          <div class="blank-line">• Credit given for good <input type="text" class="blank-input" id="q40" data-q="40" placeholder="40"></div>
+        </div>
+        <div id="reviewAnchor"></div>
+      </div>
+    </div>
+    <div class="splitter" id="splitter"></div>
+    <div class="right-pane" id="rightPane">
+      <div id="transcriptContainer" class="transcript-content"></div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="nav-buttons" id="navContainer"></div>
+    <div class="action-buttons">
+      <span class="timer" id="timer">00:00</span>
+      <button id="finishBtn">Finish</button>
+      <button id="saveBtn">Save</button>
+      <button id="clearBtn">Clear</button>
+      <button id="notesBtn">📝 Notes</button>
+      <button id="transcriptBtn">📄 Transcript</button>
+    </div>
+  </div>
+
+  <div id="toolbar" hidden>
+    <button data-action="highlight">Highlight</button>
+    <button data-action="note">Note</button>
+    <button data-action="clear">Clear</button>
+  </div>
+
+  <div class="notes-sidebar" id="notesSidebar">
+    <div class="notes-header"><span>📘 My Notes</span><button id="closeNotes">✕</button></div>
+    <div class="notes-list" id="notesList"></div>
+  </div>
+  <div class="toast" id="toastMsg">Progress saved!</div>
+</div>
+
+<script>
+  (function(){
+    // ---------- ANSWER KEY (from 109 doc) ----------
+    const ANSWER_KEY = {
+      31: "success", 32: "social", 33: "plans", 34: "influence", 35: "materials",
+      36: "skills", 37: "reason", 38: "emotional", 39: "environment", 40: "analysis"
+    };
+
+    // FULL TRANSCRIPT (exact text, answers highlighted)
+    const FULL_TRANSCRIPT = `<h4>📖 Listening Transcript (Answers Highlighted)</h4>
+    <p>Now turn to Section 4 on page 7.</p>
+    <p>Section 4</p>
+    <p>You will hear a university lecturer talking to his students about an architectural studies assignment.</p>
+    <p>First you have some time to look at questions 31 to 40 on pages 7 and 8.</p>
+    <p>Now listen carefully and answer questions 31 to 40.</p>
+    <p>Okay, before this morning's lecture on successful design of public buildings, I want to draw your attention to your next assignment.</p>
+    <p>So your assignment is on public monuments and by that I mean any structure or statue that is built to remind us of important events or of historic figures.</p>
+    <p>The assignment should be divided into three sections.</p>
+    <p>At the beginning of Section 1 you should identify the monument you're examining and say why you've chosen it.</p>
+    <p>Include a comment on whether you think the monument works. By that I mean its <span class="answer-highlight">success</span>.</p>
+    <p>You may think it's wonderful. You may think it's a public eyesore, something that people hate looking at.</p>
+    <p>Next, you should also include in this first section information about where the monument was built, its geographical site, and also a discussion of its <span class="answer-highlight">social</span> importance, how relevant it was for the people of the time.</p>
+    <p>You should also include information on when it was built, its historical background, and make sure you illustrate the assignment appropriately too. I shall expect that.</p>
+    <p>Insert any <span class="answer-highlight">plans</span> you can find and make sure any photographs you use have captions and are clearly referred to in the text or they will be meaningless.</p>
+    <p>To end this section you should include something about the record of the person who designed the monument, showing how the monument relates to his or her other work.</p>
+    <p>Right. In section two of the assignment you'll need to give a detailed account of the design and construction of the monument.</p>
+    <p>Firstly, I'll want to read about any particular <span class="answer-highlight">influence</span> you think is apparent in the design.</p>
+    <p>More often than not there will be something in it that links it to an established style, classical Greek for example. Or it may reflect a movement like Bauhaus or Art Nouveau, you design.</p>
+    <p>Secondly, I want information about the choice of <span class="answer-highlight">materials</span>, not only those which were used, but reasons why they may have been selected from others that were available at the time and in the area where the designer worked.</p>
+    <p>Next, I'll want to mention of any particular <span class="answer-highlight">skills</span> that were necessary in the construction too.</p>
+    <p>The third section is the most important one. Here you'll go into much more critical detail. To add to your own comments you'll need to carry out a survey for this section to be as comprehensive and rounded as possible. Ask yourself and others the following questions.</p>
+    <p>Firstly, was the <span class="answer-highlight">reason</span> for erecting the monument a valid one. For example, was it one that ordinary members of the public, the man or woman on the street, can readily relate to and did it justify how much public money it cost? Was it a waste or does it represent a sound cultural investment?</p>
+    <p>Then think about its <span class="answer-highlight">emotional</span> impact. When someone looks at it, how do they feel? Angry, sad, indifferent?</p>
+    <p>And don't forget to consider how well the monument sits in its <span class="answer-highlight">environment</span>. Does it harmonize with it or does it clash with it? And is that important? Does it add to the effect or take away from it?</p>
+    <p>Right, those guidelines should help. Oh, and remember, it is important to weigh up carefully how to make the maximum impact in this kind of critique within the number of words allowable. You don't get extra marks for lots of factual information. You get those for a well-constructed <span class="answer-highlight">analysis</span>.</p>
+    <p>That's what counts, and that needs to be based on your personal opinion.</p>
+    <p>That is the end of section 4. You now have half a minute to check your answers.</p>
+    <p>That is the end of the listening test. You now have 10 minutes to transfer your answers to the listening answer sheet.</p>
+    <div style="height: 60px;"></div>`;
+
+    // DOM elements
+    const leftPane = document.getElementById('leftPane');
+    const rightPane = document.getElementById('rightPane');
+    const splitContainer = document.getElementById('splitContainer');
+    const splitter = document.getElementById('splitter');
+    const finishBtn = document.getElementById('finishBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const notesBtn = document.getElementById('notesBtn');
+    const transcriptBtn = document.getElementById('transcriptBtn');
+    const settingsToggle = document.getElementById('settingsToggle');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const overlay = document.querySelector('.overlay');
+    const toast = document.getElementById('toastMsg');
+    const navContainer = document.getElementById('navContainer');
+    const timerSpan = document.getElementById('timer');
+    const questionsArea = document.getElementById('questionsArea');
+    const notesSidebar = document.getElementById('notesSidebar');
+    const notesList = document.getElementById('notesList');
+    const closeNotes = document.getElementById('closeNotes');
+    const toolbar = document.getElementById('toolbar');
+
+    let timerSeconds = 0;
+    let timerInterval = null;
+    let isReviewMode = false;
+    let settingsVisible = false;
+    let currentSelectionRange = null;
+
+    // helper: get answers
+    function getAnswers() {
+      let ans = {};
+      for (let i = 31; i <= 40; i++) {
+        let inp = document.getElementById(`q${i}`);
+        if (inp) ans[i] = inp.value.trim().toLowerCase();
+      }
+      return ans;
+    }
+
+    function updateNavState() {
+      const answers = getAnswers();
+      for (let i = 31; i <= 40; i++) {
+        const nav = document.querySelector(`.nav-item[data-q='${i}']`);
+        if (!nav) continue;
+        const hasAnswer = answers[i] && answers[i].length > 0;
+        if (!isReviewMode) {
+          nav.classList.toggle('answered', hasAnswer);
+          nav.classList.remove('correct', 'incorrect');
+        } else {
+          const isCorrect = (answers[i] === ANSWER_KEY[i]);
+          nav.classList.remove('answered');
+          nav.classList.add(isCorrect ? 'correct' : 'incorrect');
+        }
+      }
+    }
+
+    function buildNavigation() {
+      navContainer.innerHTML = '';
+      for (let i = 31; i <= 40; i++) {
+        const btn = document.createElement('div');
+        btn.className = 'nav-item';
+        btn.textContent = i;
+        btn.dataset.q = i;
+        btn.onclick = () => document.getElementById(`q${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        navContainer.appendChild(btn);
+      }
+      updateNavState();
+    }
+
+    function generateReviewTable() {
+      const existing = document.getElementById('reviewTableBlock');
+      if (existing) existing.remove();
+      const answers = getAnswers();
+      let html = `<div id="reviewTableBlock" class="assignment-card"><h3>📊 Answer Review</h3><table class="review-table"><thead><tr><th>Question</th><th>Your Answer</th><th>Correct Answer</th><th>Result</th></tr></thead><tbody>`;
+      for (let i = 31; i <= 40; i++) {
+        const user = answers[i] || '(empty)';
+        const correct = ANSWER_KEY[i];
+        const isCorrect = answers[i] === correct;
+        html += `<tr><td>${i}</td><td>${user}</td><td>${correct}</td><td class="${isCorrect ? 'correct-tag' : 'incorrect-tag'}">${isCorrect ? '✔ Correct' : '✖ Incorrect'}</td></tr>`;
+      }
+      html += `</tbody></table></div>`;
+      const anchor = document.getElementById('reviewAnchor');
+      if (anchor) anchor.insertAdjacentHTML('beforebegin', html);
+    }
+
+    function loadTranscriptIntoSplit() {
+      document.getElementById('transcriptContainer').innerHTML = FULL_TRANSCRIPT;
+    }
+
+    function enterReview() {
+      if (isReviewMode) return;
+      isReviewMode = true;
+      finishBtn.textContent = 'Return to Test';
+      splitContainer.classList.add('split-view');
+      loadTranscriptIntoSplit();
+      generateReviewTable();
+      document.querySelectorAll('.blank-input').forEach(inp => inp.disabled = true);
+      updateNavState();
+      if (timerInterval) clearInterval(timerInterval);
+    }
+
+    function exitReview() {
+      if (!isReviewMode) return;
+      isReviewMode = false;
+      finishBtn.textContent = 'Finish';
+      splitContainer.classList.remove('split-view');
+      const reviewBlock = document.getElementById('reviewTableBlock');
+      if (reviewBlock) reviewBlock.remove();
+      document.querySelectorAll('.blank-input').forEach(inp => inp.disabled = false);
+      updateNavState();
+      startTimer();
+    }
+
+    function toggleFinishMode() {
+      if (isReviewMode) exitReview();
+      else enterReview();
+    }
+
+    // Save / Load / Clear
+    function saveProgress(showMsg = true) {
+      const answers = {};
+      for (let i = 31; i <= 40; i++) {
+        const inp = document.getElementById(`q${i}`);
+        if (inp) answers[i] = inp.value;
+      }
+      const data = {
+        answers,
+        timer: timerSeconds,
+        settings: { fontSize: document.documentElement.className, darkMode: document.body.classList.contains('dark') },
+        leftHTML: questionsArea.innerHTML,
+        notesHTML: notesList.innerHTML
+      };
+      localStorage.setItem('ielts_monument_109', JSON.stringify(data));
+      if (showMsg) { toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 1500); }
+    }
+
+    function loadProgress() {
+      const raw = localStorage.getItem('ielts_monument_109');
+      if (!raw) return;
+      try {
+        const data = JSON.parse(raw);
+        if (data.leftHTML) questionsArea.innerHTML = data.leftHTML;
+        if (data.notesHTML) notesList.innerHTML = data.notesHTML;
+        if (data.answers) {
+          for (let i = 31; i <= 40; i++) {
+            const inp = document.getElementById(`q${i}`);
+            if (inp && data.answers[i] !== undefined) inp.value = data.answers[i];
+          }
+        }
+        if (data.timer) timerSeconds = data.timer;
+        updateTimerUI();
+        if (data.settings) {
+          document.documentElement.className = data.settings.fontSize || 'font-regular';
+          if (data.settings.darkMode) document.body.classList.add('dark'); else document.body.classList.remove('dark');
+          updateActiveSettingsUI();
+        }
+        updateNavState();
+        attachHighlightEvents(); // reattach highlight listeners after DOM restore
+      } catch(e) {}
+    }
+
+    function clearAll() {
+      if (confirm('Clear all progress? This will reset answers, highlights and notes.')) {
+        localStorage.removeItem('ielts_monument_109');
+        location.reload();
+      }
+    }
+
+    // Timer
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => { timerSeconds++; updateTimerUI(); saveProgress(false); }, 1000);
+    }
+    function updateTimerUI() {
+      let m = Math.floor(timerSeconds / 60);
+      let s = timerSeconds % 60;
+      timerSpan.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    }
+
+    // ---------- HIGHLIGHT & NOTE SYSTEM ----------
+    function wrapRangeWithClass(className) {
+      const sel = window.getSelection();
+      if (sel.isCollapsed) return;
+      const range = sel.getRangeAt(0);
+      const span = document.createElement('span');
+      span.className = className;
+      try { range.surroundContents(span); } catch(e) { const contents = range.extractContents(); span.appendChild(contents); range.insertNode(span); }
+      sel.removeAllRanges();
+      saveProgress(false);
+    }
+
+    function upgradeToRoseIfBrown(selectedNode) {
+      let parentSpan = selectedNode.nodeType === 3 ? selectedNode.parentElement : selectedNode;
+      if (parentSpan && parentSpan.classList && parentSpan.classList.contains('hl-brown')) {
+        parentSpan.classList.remove('hl-brown');
+        parentSpan.classList.add('hl-rose');
+        saveProgress(false);
+        return true;
+      }
+      return false;
+    }
+
+    function createNoteFromSelected(text) {
+      const card = document.createElement('div');
+      card.className = 'note-card';
+      card.innerHTML = `<div class="note-quote">${text.slice(0, 120)}</div><textarea placeholder="Write note here..."></textarea><button class="delete-note">Delete</button>`;
+      card.querySelector('.delete-note').onclick = () => card.remove();
+      notesList.prepend(card);
+      document.body.classList.add('notes-open');
+      saveProgress(false);
+    }
+
+    function handleHighlightAction() {
+      const sel = window.getSelection();
+      if (sel.isCollapsed) return;
+      const range = sel.getRangeAt(0);
+      let commonAncestor = range.commonAncestorContainer;
+      let containerSpan = commonAncestor.nodeType === 3 ? commonAncestor.parentElement : commonAncestor;
+      if (containerSpan && containerSpan.classList && (containerSpan.classList.contains('hl-brown') || containerSpan.classList.contains('hl-rose'))) {
+        if (containerSpan.classList.contains('hl-brown')) {
+          containerSpan.classList.remove('hl-brown');
+          containerSpan.classList.add('hl-rose');
+          saveProgress(false);
+        }
+        sel.removeAllRanges();
+        return;
+      }
+      wrapRangeWithClass('hl-brown');
+    }
+
+    function handleNoteAction() {
+      const sel = window.getSelection();
+      if (sel.isCollapsed) return;
+      const text = sel.toString();
+      wrapRangeWithClass('hl-blue');
+      createNoteFromSelected(text);
+    }
+
+    function handleClearAction(targetSpan) {
+      if (targetSpan && targetSpan.parentNode) {
+        const parent = targetSpan.parentNode;
+        while (targetSpan.firstChild) parent.insertBefore(targetSpan.firstChild, targetSpan);
+        parent.removeChild(targetSpan);
+        parent.normalize();
+        saveProgress(false);
+      }
+    }
+
+    function attachHighlightEvents() {
+      document.querySelectorAll('.hl-brown, .hl-rose, .hl-blue').forEach(el => {
+        el.removeEventListener('click', highlightClickHandler);
+        el.addEventListener('click', highlightClickHandler);
+      });
+    }
+    function highlightClickHandler(e) {
+      e.stopPropagation();
+      const span = e.target.closest('.hl-brown, .hl-rose, .hl-blue');
+      if (!span) return;
+      currentSelectionRange = null;
+      const rect = span.getBoundingClientRect();
+      toolbar.style.left = `${window.scrollX + rect.left + rect.width/2 - 70}px`;
+      toolbar.style.top = `${window.scrollY + rect.top - 40}px`;
+      toolbar.hidden = false;
+      toolbar.dataset.targetId = span.id || '';
+      toolbar._targetSpan = span;
+      window.getSelection().removeAllRanges();
+    }
+
+    document.addEventListener('mouseup', (e) => {
+      if (e.target.closest('#toolbar')) return;
+      const sel = window.getSelection();
+      if (!sel.isCollapsed && !isReviewMode) {
+        const range = sel.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        toolbar.style.left = `${window.scrollX + rect.left + rect.width/2 - 70}px`;
+        toolbar.style.top = `${window.scrollY + rect.top - 40}px`;
+        toolbar.hidden = false;
+        toolbar._targetSpan = null;
+        currentSelectionRange = range;
+      } else {
+        if (!e.target.closest('.hl-brown, .hl-rose, .hl-blue')) toolbar.hidden = true;
+      }
+    });
+
+    toolbar.addEventListener('click', (e) => {
+      const action = e.target.dataset.action;
+      if (!action) return;
+      if (action === 'highlight') {
+        if (toolbar._targetSpan && toolbar._targetSpan.classList.contains('hl-brown')) {
+          toolbar._targetSpan.classList.remove('hl-brown');
+          toolbar._targetSpan.classList.add('hl-rose');
+          saveProgress(false);
+        } else if (toolbar._targetSpan && toolbar._targetSpan.classList.contains('hl-rose')) {
+          // already rose, do nothing
+        } else if (currentSelectionRange) {
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(currentSelectionRange);
+          handleHighlightAction();
+        } else if (toolbar._targetSpan) {
+          // fallback
+        }
+      } else if (action === 'note') {
+        if (currentSelectionRange) {
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(currentSelectionRange);
+          handleNoteAction();
+        }
+      } else if (action === 'clear') {
+        if (toolbar._targetSpan) handleClearAction(toolbar._targetSpan);
+        else if (currentSelectionRange) {
+          const span = currentSelectionRange.commonAncestorContainer?.parentElement?.closest?.('.hl-brown, .hl-rose, .hl-blue');
+          if (span) handleClearAction(span);
+        }
+      }
+      toolbar.hidden = true;
+      currentSelectionRange = null;
+      toolbar._targetSpan = null;
+    });
+
+    // audio & splitter
+    const audio = document.getElementById('audioPlayer');
+    const playBtn = document.getElementById('playBtn');
+    const progressFill = document.getElementById('progressFill');
+    const progressWrap = document.getElementById('progressWrap');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const speedSelect = document.getElementById('speedSelect');
+    function initAudio() {
+      audio.addEventListener('loadedmetadata', () => {
+        timeDisplay.textContent = `00:00 / ${Math.floor(audio.duration/60)}:${String(Math.floor(audio.duration%60)).padStart(2,'0')}`;
+      });
+      audio.addEventListener('timeupdate', () => {
+        if (audio.duration) {
+          let percent = (audio.currentTime / audio.duration) * 100;
+          progressFill.style.width = percent + '%';
+          let curM = Math.floor(audio.currentTime/60), curS = Math.floor(audio.currentTime%60);
+          let durM = Math.floor(audio.duration/60), durS = Math.floor(audio.duration%60);
+          timeDisplay.textContent = `${curM}:${String(curS).padStart(2,'0')} / ${durM}:${String(durS).padStart(2,'0')}`;
+        }
+      });
+      playBtn.onclick = () => audio.paused ? audio.play() : audio.pause();
+      audio.onplay = () => playBtn.textContent = '⏸';
+      audio.onpause = () => playBtn.textContent = '▶';
+      speedSelect.onchange = () => audio.playbackRate = parseFloat(speedSelect.value);
+      let dragging = false;
+      progressWrap.onmousedown = (e) => { dragging = true; updateSeek(e); };
+      window.onmousemove = (e) => { if (dragging) updateSeek(e); };
+      window.onmouseup = () => dragging = false;
+      function updateSeek(e) { if (audio.duration) { const rect = progressWrap.getBoundingClientRect(); let percent = (e.clientX - rect.left) / rect.width; audio.currentTime = percent * audio.duration; } }
+    }
+    function initSplitterDrag() {
+      let startX, startLeftWidth;
+      splitter.addEventListener('mousedown', (e) => {
+        startX = e.clientX;
+        startLeftWidth = leftPane.offsetWidth;
+        document.body.style.cursor = 'col-resize';
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+      });
+      function onMove(e) {
+        let delta = e.clientX - startX;
+        let newLeft = startLeftWidth + delta;
+        let total = splitContainer.offsetWidth;
+        if (newLeft > 300 && (total - newLeft - 6) > 300) {
+          leftPane.style.flexBasis = newLeft + 'px';
+          rightPane.style.flexBasis = (total - newLeft - 6) + 'px';
+        }
+      }
+      function onUp() { document.body.style.cursor = ''; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); }
+    }
+
+    // settings UI
+    function updateActiveSettingsUI() {
+      document.querySelectorAll('[data-size]').forEach(btn => btn.classList.remove('active'));
+      const cur = document.documentElement.className.replace('font-','');
+      document.querySelector(`[data-size="${cur}"]`)?.classList.add('active');
+      const isDark = document.body.classList.contains('dark');
+      document.querySelector('[data-mode="light"]')?.classList.toggle('active', !isDark);
+      document.querySelector('[data-mode="dark"]')?.classList.toggle('active', isDark);
+    }
+    function toggleSettings(show) {
+      settingsVisible = show !== undefined ? show : !settingsVisible;
+      settingsPanel.style.display = settingsVisible ? 'block' : 'none';
+      overlay.style.display = settingsVisible ? 'block' : 'none';
+    }
+    document.querySelectorAll('[data-size]').forEach(btn => btn.addEventListener('click', () => {
+      document.documentElement.className = `font-${btn.dataset.size}`;
+      updateActiveSettingsUI(); saveProgress(false);
+    }));
+    document.querySelectorAll('[data-mode]').forEach(btn => btn.addEventListener('click', () => {
+      document.body.classList.toggle('dark', btn.dataset.mode === 'dark');
+      updateActiveSettingsUI(); saveProgress(false);
+    }));
+    settingsToggle.onclick = (e) => { e.stopPropagation(); toggleSettings(); };
+    overlay.onclick = () => toggleSettings(false);
+    notesBtn.onclick = () => document.body.classList.toggle('notes-open');
+    closeNotes.onclick = () => document.body.classList.remove('notes-open');
+    transcriptBtn.onclick = () => { splitContainer.classList.add('split-view'); loadTranscriptIntoSplit(); };
+    saveBtn.onclick = () => saveProgress(true);
+    clearBtn.onclick = () => clearAll();
+    finishBtn.onclick = toggleFinishMode;
+
+    function init() {
+      buildNavigation();
+      initAudio();
+      initSplitterDrag();
+      loadProgress();
+      startTimer();
+      updateActiveSettingsUI();
+      document.querySelectorAll('.blank-input').forEach(inp => inp.addEventListener('input', () => { updateNavState(); saveProgress(false); }));
+      setInterval(() => { attachHighlightEvents(); }, 500);
+      attachHighlightEvents();
+    }
+    init();
+  })();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/lib/config.js"></script>
+<script src="/lib/supabase.js"></script>
+<script>window.TEST_ID = 204;</script>
+<script src="/lib/vip-test-bridge.js"></script>
+</body>
+</html>
+```

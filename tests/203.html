@@ -1,0 +1,451 @@
+此内容由🍠@Listening 永不虾滑整理，仅作为分享供个人使用；禁止商用、倒卖和引流。有问题请先仔细看🍠这个账号的置顶和分享贴。没有团队，不是机构，纯个人分享。督学和其他相关课程请咨询主页另一个号@心情有点虾滑（不回任何机经相关消息）。
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>雅思听力机考模拟器 · 极限运动史 | IELTS Listening P4</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  /* ----- 全局变量 & 重置 (字重严格 ≤500) ----- */
+  :root { 
+    --splitter-width: 6px; 
+    --splitter-color: #e2e8f0; 
+    --bg-color: #f8fafc;
+    --panel-color: #ffffff;
+    --text-color: #0f172a;
+    --border-color: #e2e8f0;
+    --accent-color: #3b82f6;
+    --answered-bg: #dbeafe;
+    --answered-border: #93c5fd;
+    --answered-text: #1e40af;
+    --correct-bg: #dcfce7;
+    --correct-border: #4ade80;
+    --correct-text: #166534;
+    --incorrect-bg: #fee2e2;
+    --incorrect-border: #f87171;
+    --incorrect-text: #991b1b;
+    --shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+  }
+  html.font-regular { font-size: 16px; }
+  html.font-large { font-size: 18px; }
+  html.font-xlarge { font-size: 20px; }
+
+  body.dark-mode {
+    --bg-color: #0f172a;
+    --panel-color: #1e293b;
+    --text-color: #e2e8f0;
+    --border-color: #334155;
+    --splitter-color: #334155;
+    --accent-color: #60a5fa;
+    --answered-bg: #1e3a8a;
+    --answered-border: #3b82f6;
+    --answered-text: #bfdbfe;
+    --correct-bg: #14532d;
+    --correct-border: #22c55e;
+    --correct-text: #bbf7d0;
+    --incorrect-bg: #7f1d1d;
+    --incorrect-border: #ef4444;
+    --incorrect-text: #fecaca;
+  }
+
+  * { box-sizing: border-box; font-weight: 500; }  /* 全局字重不超过500 */
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body, .shell { background: var(--bg-color); font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: var(--text-color); }
+  .shell { display: flex; flex-direction: column; height: 100vh; }
+  
+  /* 头部 */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 28px;
+    background: var(--panel-color);
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+  }
+  .header h1 { font-size: 1.3rem; font-weight: 600; margin: 0; }
+  .header-btn {
+    background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 40px;
+    padding: 6px 18px; cursor: pointer; color: var(--text-color); font-weight: 500;
+    transition: all 0.2s;
+  }
+  .header-btn:hover { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+  
+  /* 设置面板 */
+  #settings-panel {
+    position: fixed; top: 68px; right: 24px; width: 240px; background: var(--panel-color);
+    border-radius: 20px; box-shadow: var(--shadow); border: 1px solid var(--border-color);
+    z-index: 1001; padding: 12px; display: none; backdrop-filter: blur(8px);
+  }
+  .settings-group { margin-bottom: 12px; }
+  .settings-title { font-size: 0.75rem; color: #64748b; margin-bottom: 8px; font-weight: 500; }
+  .settings-options { display: flex; gap: 8px; }
+  .settings-option { flex: 1; text-align: center; padding: 6px; border: 1px solid var(--border-color); background: var(--bg-color); cursor: pointer; font-size: 0.85rem; border-radius: 40px; font-weight: 500;}
+  .settings-option.active { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+  .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.2); z-index: 1000; display: none; }
+
+  /* 分栏布局 & 拖拽条 */
+  #main-shell { display: flex; flex-grow: 1; overflow: hidden; position: relative; }
+  #left-pane { flex: 1 1 100%; overflow-y: auto; background: var(--panel-color); transition: flex-basis 0.2s ease; }
+  #splitter { width: var(--splitter-width); background: var(--splitter-color); cursor: col-resize; display: none; }
+  #splitter:hover { background: var(--accent-color); }
+  #right-pane { flex: 0 0 0; overflow-y: auto; background: var(--bg-color); display: none; border-left: 1px solid var(--border-color); }
+  #main-shell.split-view #left-pane { flex-basis: 55%; }
+  #main-shell.split-view #splitter { display: block; }
+  #main-shell.split-view #right-pane { display: block; flex-basis: calc(45% - var(--splitter-width)); }
+
+  /* 音频置顶 */
+  #sticky-header { position: sticky; top: 0; z-index: 12; background: var(--panel-color); padding: 20px 28px 8px; border-bottom: 1px solid var(--border-color); }
+  .audio-player { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .play-pause-btn { background: var(--accent-color); color: white; border: none; border-radius: 60px; width: 42px; height: 42px; font-size: 1.3rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .progress-container { flex-grow: 1; min-width: 160px; cursor: pointer; }
+  .progress-bar-wrapper { width: 100%; height: 6px; background-color: #e2e8f0; border-radius: 10px; overflow: hidden; }
+  body.dark-mode .progress-bar-wrapper { background-color: #334155; }
+  .progress-bar { width: 0%; height: 100%; background-color: var(--accent-color); border-radius: 10px; }
+  .time-display { font-size: 0.85rem; font-family: monospace; min-width: 100px; }
+  .speed-control select { padding: 5px 8px; border-radius: 30px; border: 1px solid var(--border-color); background: var(--bg-color); font-weight: 500;}
+
+  /* 题目区域 ———— 完全按照108文档段落layout */
+  #test-pages-container { padding: 20px 28px 80px; }
+  .group { border: 1px solid var(--border-color); border-radius: 24px; padding: 20px 28px; margin: 28px 0; background: var(--panel-color); }
+  .group h4 { margin-top: 0; margin-bottom: 12px; font-size: 1.3rem; font-weight: 600; border-left: 5px solid var(--accent-color); padding-left: 16px; }
+  /* 新增全局提示行样式 */
+  .global-instruction {
+    background: #fef9e3; 
+    border-left: 4px solid #eab308; 
+    padding: 10px 16px; 
+    border-radius: 16px; 
+    margin: 12px 0 20px 0; 
+    font-size: 0.9rem; 
+    color: #854d0e;
+    font-weight: 500;
+  }
+  body.dark-mode .global-instruction {
+    background: #33280b;
+    border-left-color: #facc15;
+    color: #fde047;
+  }
+  .section { margin-bottom: 28px; }
+  .section h5 { font-size: 1rem; font-weight: 600; margin: 0 0 12px 0; color: var(--accent-color); text-transform: uppercase; letter-spacing: 0.5px; }
+  .q-item { margin-bottom: 18px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; background: var(--bg-color); padding: 8px 14px; border-radius: 18px; }
+  .q-num { font-weight: 700; background: var(--panel-color); padding: 2px 8px; border-radius: 30px; margin-right: 4px; font-size: 0.85rem; border: 1px solid var(--border-color);}
+  input.blank { border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 6px 12px; width: 160px; font-size: 0.9rem; background: var(--bg-color); color: var(--text-color); font-weight: 500; margin: 0 6px; transition: 0.1s;}
+  input.blank:focus { border-color: var(--accent-color); outline: none; box-shadow: 0 0 0 2px var(--accent-color)/30; }
+  .inline-text { font-weight: 500; }
+
+  /* 底部栏 */
+  .bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; height: 70px; background: var(--panel-color); border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; z-index: 100; }
+  .bb-left, .bb-center { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .q-nav-container { display: flex; gap: 10px; flex-wrap: wrap; max-width: 460px; }
+  .q-nav-item { display: flex; align-items: center; justify-content: center; min-width: 38px; height: 38px; border-radius: 40px; background: var(--bg-color); border: 1px solid var(--border-color); font-weight: 600; cursor: pointer; }
+  .q-nav-item.answered { background: var(--answered-bg); border-color: var(--answered-border); color: var(--answered-text); }
+  .q-nav-item.correct { background: var(--correct-bg); border-color: var(--correct-border); color: var(--correct-text); }
+  .q-nav-item.incorrect { background: var(--incorrect-bg); border-color: var(--incorrect-border); color: var(--incorrect-text); }
+  button { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 40px; padding: 8px 16px; cursor: pointer; font-weight: 500; color: var(--text-color); transition: all 0.1s;}
+  button:hover { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+  #timer { font-family: monospace; font-size: 1.3rem; font-weight: 600; background: #0f172a10; padding: 4px 12px; border-radius: 60px; }
+
+  /* 高亮样式 */
+  .hl-brown { background-color: #8B4513 !important; color: #ffffff !important; border-radius: 6px; padding: 0 2px; }
+  .hl-rose { background-color: #C2185B !important; color: #ffffff !important; border-radius: 6px; padding: 0 2px; }
+  .hl-blue { background-color: #3b82f6 !important; color: #ffffff !important; border-radius: 6px; cursor: pointer; padding: 0 2px; }
+  #selbar { position: absolute; background: var(--panel-color); backdrop-filter: blur(12px); border-radius: 60px; box-shadow: var(--shadow); padding: 6px 12px; gap: 8px; display: inline-flex; z-index: 1000; border: 1px solid var(--border-color); }
+  #selbar[hidden] { display: none; }
+  #selbar button { border: none; background: #f1f5f9; padding: 6px 14px; border-radius: 40px; font-size: 0.8rem; cursor: pointer; font-weight: 500;}
+  
+  /* 笔记侧边栏 */
+  body.notes-open { padding-right: 420px; }
+  #notes { position: fixed; right: -420px; top: 0; bottom: 70px; width: 420px; background: var(--panel-color); border-left: 1px solid var(--border-color); transition: right 0.25s ease; z-index: 99; display: flex; flex-direction: column; box-shadow: -5px 0 20px rgba(0,0,0,0.05); }
+  body.notes-open #notes { right: 0; }
+  .side-panel-header { display: flex; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-color); font-weight: 600; }
+  #notes-list { overflow-y: auto; padding: 16px; flex-grow: 1; }
+  .note-card { background: var(--bg-color); border-radius: 20px; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border-color); }
+  .note-quote { font-weight: 700; font-size: 0.95rem; margin-bottom: 12px; background: #f1f5f9; padding: 8px; border-radius: 12px; }
+  .note-card textarea { width: 100%; min-height: 80px; border-radius: 16px; border: 1px solid var(--border-color); padding: 10px; background: var(--panel-color); color: var(--text-color); margin: 8px 0; font-weight: 500;}
+  .note-actions button { background: transparent; border: 1px solid var(--incorrect-border); color: var(--incorrect-text); border-radius: 30px; padding: 6px 12px; }
+
+  /* 答案回顾表格 */
+  .group-results { margin-top: 28px; border-top: 2px dashed var(--border-color); padding-top: 20px; }
+  .results-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .results-table th, .results-table td { border: 1px solid var(--border-color); padding: 10px 12px; text-align: left; font-weight: 500;}
+  .result-correct { color: #16a34a; font-weight: 700; }
+  .result-incorrect { color: #dc2626; font-weight: 700; }
+  
+  /* 听力原文区域 ———— 底部增加大量空间 */
+  #right-pane { padding: 20px 28px 80px; }   /* 底部80px充裕空间 */
+  #transcript-content p { line-height: 1.7; margin-bottom: 16px; white-space: pre-wrap; }
+  .answer-highlight { background-color: #fde047; color: #0f172a; padding: 2px 6px; border-radius: 12px; font-weight: 600; }
+  body.dark-mode .answer-highlight { background-color: #facc15; color: #0f172a; }
+  #close-transcript-btn { position: sticky; top: 8px; float: right; background: var(--panel-color); border-radius: 60px; width: 32px; height: 32px; cursor: pointer; border: 1px solid var(--border-color); z-index: 5; }
+  #toast { position: fixed; bottom: 90px; right: 28px; background: #10b981; color: white; padding: 10px 20px; border-radius: 60px; opacity: 0; transition: 0.2s; pointer-events: none; z-index: 200; font-weight: 500; }
+  #toast.show { opacity: 1; transform: translateY(-6px); }
+</style>
+<style id="vip-header-tidy">
+  .header h1 { display: none !important; }
+  .header .meta, #ownerMeta { display: none !important; }
+  .header { min-height: 0 !important; }
+</style>
+</head>
+<body class="font-regular">
+<div class="shell">
+  <header class="header"><h1>IELTS Listening Practice · History of Extreme Sports</h1><button id="settings-btn" class="header-btn">⚙️ Text Size/Color</button></header>
+  <div id="settings-panel"><div class="settings-group"><div class="settings-title">Font Size</div><div class="settings-options"><button class="settings-option active" data-size="regular">Regular</button><button class="settings-option" data-size="large">Large</button><button class="settings-option" data-size="xlarge">X-Large</button></div></div><div class="settings-group"><div class="settings-title">Color Mode</div><div class="settings-options"><button class="settings-option active" data-mode="light">Light</button><button class="settings-option" data-mode="dark">Dark</button></div></div></div>
+  <div class="overlay"></div>
+  <div id="main-shell"><div id="left-pane"><div id="sticky-header"><div class="audio-player-wrapper"></div></div><div id="test-pages-container"></div></div><div id="splitter"></div><div id="right-pane"><div id="transcript-content"><h4>🎧 听力原文 (答案已高亮) <button id="close-transcript-btn" style="float:right;">✕</button></h4><div style="clear:both"></div><p>加载中…</p></div></div></div>
+  <div class="bottom-bar"><div class="bb-left"><div id="q-nav-container" class="q-nav-container"></div></div><div class="bb-center"><span id="timer">00:00</span><button id="finish-btn">Finish</button><button id="save-btn">Save</button><button id="clear-btn">Clear</button><button id="toggle-notes-btn">📝 Notes</button><button id="toggle-transcript-btn">📄 Transcript</button></div></div>
+  <div id="notes"><div class="side-panel-header"><span>📘 My Notes</span><button id="notes-close" class="side-panel-close">✕</button></div><div id="notes-list"></div></div>
+  <div id="selbar" hidden><button data-act="hl">Highlight</button><button data-act="note">Note</button><button data-act="del">Clear</button></div>
+  <div id="toast">Progress saved!</div>
+
+<script>
+(function(){
+  // ---------- 标准答案 (基于108文档最后一页) ----------
+  const ANSWER_KEY = {
+    31: "lifestyle",
+    32: "equipment",
+    33: "workers",
+    34: "golf",
+    35: "traditional",
+    36: "regulations",
+    37: "training",
+    38: "fear",
+    39: "entertainment",
+    40: "community"
+  };
+
+  // ---------- 完整听力原文 (一字不漏，包含所有时间轴文本) ----------
+  const FULL_TRANSCRIPT = `Section 4. You will hear a part of lecture about history of extreme sport.
+First, you have some time to look at questions 31 to 40.
+Section 4. You have some time to look at questions 31 to 40.
+Section 4. You have some time to look at questions 31 to 40.
+Extreme sports are non-traditional sports and activities that require participants to combine athletic scale with pronounced risk.
+It is difficult to determine exactly when the term extreme sports came to refer to certain modern sports.
+While many extreme sports such as deep diving and surfing have usually been part of human history, so many extreme sports are often called lifestyle sports.
+The often involved speed, height, physical commitment, the practice of extreme sports can involve some risks, injuries and even death if the athlete made a serious mistake.
+Technology who advances have brought more reliable equipment which making various sports are safer activity.
+The worldwide spread of extreme sports is attributed to the media.
+Television and the movies have been responsible for gaining a widespread participation in extreme sports.
+In the 19th century, the acceptance by workforce extended.
+For those men with lower leisure preference, Sundays were generally free from labor.
+One extreme sport was studied by workers from a company in its free time.
+Employers commonly believe this leisure activity increased the productivity and most importantly increased workers' loyalty to the company.
+The 19th century is considered by many to be the period when a truly modern game emerged.
+The change that primarily spawned this modernization were to be the equipment of the game.
+Other sports such as golf was popularized and regularly attended by upper classes and nobility.
+Early golf clubs were made of materials similar to today's club, wood and iron.
+However, the biggest difference between the old golf clubs and modern ones was the use.
+In the 20th century, you may be wondering, what is it that attracts people's extreme sports in comparison to many traditional sports like football or basketball?
+One of the few things that coaches, players and fans of nearly every competitive team sports seem to agree on these days is that there are too many regulations for these games.
+Secondly, most of the people involved in extreme sports do not feel the need for constant training and physical conditioning of their body.
+This leads to the stage where people love extreme sports, do not take part in those games as they grow old.
+Finally, participants described how extreme sports experiencing, controlling and overcome fear made them positively change everyday life.
+A mountain climber described the dealing with fear as empowering and feeling the very at peace afterwards.
+A base jumper described the pursuit as ultimate metaphor for jumping into the life rather than standing on the edge quivering.
+In assessing the use of taxpayers of fans in, bidding for major event or building a new stadium or even trying to skewer a new license for sports team,
+young sports participants clearly want government to put their emphasis on entertainment sports.
+Everyone can participate, everyone will have fun and everyone can be involved.
+Individual competition, limitations, requirements and other concerns simply aren't part of the equation.
+Young people dealt with self-existence to find authorities which are responsible for sport.
+Combating racism in sport forced to everyone, including public authorities, young people's responses to the changing world and their unique way is building their own community.
+Extreme sports are huge craze today, the psychology behind this popularity seems to be human nature to take risk of thrill.
+And the adventure continues to attract masses.`;
+
+  // 生成高亮 transcript: 将答案关键词进行标记
+  function buildHighlightedTranscript() {
+    let text = FULL_TRANSCRIPT;
+    const entries = Object.entries(ANSWER_KEY);
+    for (let [_, word] of entries) {
+      const regex = new RegExp(`\\b(${word})\\b`, 'gi');
+      text = text.replace(regex, `<span class="answer-highlight">$1</span>`);
+    }
+    // 额外高亮复合词/短语
+    text = text.replace(/lifestyle sports/gi, `<span class="answer-highlight">lifestyle sports</span>`);
+    text = text.replace(/entertainment sports/gi, `<span class="answer-highlight">entertainment sports</span>`);
+    const paragraphs = text.split(/\n/);
+    let html = `<div style="margin-bottom: 30px;"><h4>🎧 完整听力原文 (答案高亮)</h4><button id="close-transcript-btn" style="float:right;">✕</button><div style="clear:both"></div></div>`;
+    paragraphs.forEach(para => {
+      if(para.trim()) html += `<p>${para}</p>`;
+    });
+    // 底部加空白行确保滚动到底部足够空间
+    html += `<div style="height: 70px;"></div>`;
+    return html;
+  }
+
+  // ----- 完全按照108文档布局构建题目 (填空题 31-40，分段标题与原文一致，并在主标题下方增加提示) -----
+  function buildQuestionsHTML() {
+    return `
+      <div class="group">
+        <h4>History of Extreme Sports</h4>
+        <!-- 在标题下面加一行字：Write ONE WORD AND/OR A NUMBER -->
+        <div class="global-instruction">
+          ✍️ <strong>Write ONE WORD AND/OR A NUMBER</strong> for each answer.
+        </div>
+        
+        <div class="section">
+          <h5>📜 in ancient history</h5>
+          <div class="q-item"><span class="q-num">31.</span> Extreme sport is also known as <input type="text" name="q31" class="blank" autocomplete="off"> sports.</div>
+          <div class="q-item"><span class="q-num">32.</span> Better <input type="text" name="q32" class="blank"> makes it safer.</div>
+        </div>
+
+        <div class="section">
+          <h5>🏭 in the 19th century</h5>
+          <div class="q-item"><span class="q-num">33.</span> An extreme sport was created by company <input type="text" name="q33" class="blank"> in 19th century boots loyalty.</div>
+          <div class="q-item"><span class="q-num">34.</span> At the end of the 19th century, other sports had been created like <input type="text" name="q34" class="blank"> in higher social class.</div>
+        </div>
+
+        <div class="section">
+          <h5>⚡ In the 20th century</h5>
+          <div class="q-item"><span class="q-num">35.</span> Why people don't like <input type="text" name="q35" class="blank"> sports (like team sports. E.g. basketball)</div>
+          <div class="q-item"><span class="q-num">36.</span> There are too many restricted <input type="text" name="q36" class="blank"></div>
+          <div class="q-item"><span class="q-num">37.</span> It needs regular <input type="text" name="q37" class="blank"></div>
+          <div class="q-item"><span class="q-num">38.</span> Help them confront <input type="text" name="q38" class="blank"></div>
+        </div>
+
+        <div class="section">
+          <h5>🔮 In the future</h5>
+          <div class="q-item"><span class="q-num">39.</span> Young people think that government should provide them with more <input type="text" name="q39" class="blank"> sports instead of individual competition.</div>
+          <div class="q-item"><span class="q-num">40.</span> Young people tend to think that extreme sports is their attitude to the new world and forming their <input type="text" name="q40" class="blank"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ---------- App 主控制器 (保留完整交互，已适配所有要求) ----------
+  const App = {
+    state: { timerSecs: 0, timerInterval: null, isReviewing: false, settingsOpen: false },
+    init() {
+      this.renderBase();
+      this.cacheDom();
+      this.bindEvents();
+      this.loadFromStorage();
+      this.initAudio();
+      this.initSplitter();
+      this.startTimer();
+      this.buildNav();
+      this.updateNavState();
+      // 实时监听输入更新导航状态
+      document.querySelectorAll('input.blank').forEach(inp => inp.addEventListener('input', () => this.updateNavState()));
+    },
+    renderBase() {
+      document.querySelector('.audio-player-wrapper').innerHTML = `
+        <div class="audio-player"><button class="play-pause-btn">▶</button><div class="progress-container"><div class="progress-bar-wrapper"><div class="progress-bar"></div></div></div><div class="time-display">00:00 / 00:00</div><div class="speed-control"><select class="playback-speed"><option value="0.7">0.7x</option><option value="1.0" selected>1.0x</option><option value="1.1">1.1x</option><option value="1.2">1.2x</option><option value="1.5">1.5x</option></select></div><audio class="listening-audio" src="https://qyccvyyigtjhzunumbqf.supabase.co/storage/v1/object/public/audio/203.mp3" preload="metadata"></audio></div>
+      `;
+      document.getElementById('test-pages-container').innerHTML = buildQuestionsHTML();
+    },
+    cacheDom() {
+      this.el = {
+        mainShell: document.getElementById('main-shell'),
+        finishBtn: document.getElementById('finish-btn'),
+        saveBtn: document.getElementById('save-btn'),
+        clearBtn: document.getElementById('clear-btn'),
+        toggleNotes: document.getElementById('toggle-notes-btn'),
+        toggleTranscript: document.getElementById('toggle-transcript-btn'),
+        notes: document.getElementById('notes'),
+        notesList: document.getElementById('notes-list'),
+        notesClose: document.getElementById('notes-close'),
+        timerSpan: document.getElementById('timer'),
+        qNav: document.getElementById('q-nav-container'),
+        transcriptPane: document.getElementById('right-pane'),
+        settingsBtn: document.getElementById('settings-btn'),
+        settingsPanel: document.getElementById('settings-panel'),
+        overlay: document.querySelector('.overlay'),
+        toast: document.getElementById('toast')
+      };
+    },
+    bindEvents() {
+      this.el.finishBtn.addEventListener('click', () => this.toggleFinishMode());
+      this.el.saveBtn.addEventListener('click', () => this.saveAll(true));
+      this.el.clearBtn.addEventListener('click', () => { if(confirm('⚠️ 清除所有答案、高亮和笔记？无法撤销。')){ localStorage.removeItem('ielts_listening_p4_layout'); location.reload(); } });
+      this.el.toggleNotes.addEventListener('click', () => document.body.classList.toggle('notes-open'));
+      this.el.notesClose.addEventListener('click', () => document.body.classList.remove('notes-open'));
+      this.el.toggleTranscript.addEventListener('click', () => { this.el.mainShell.classList.toggle('split-view'); this.ensureTranscriptReady(); });
+      document.addEventListener('mouseup', e => this.handleSelection(e));
+      document.getElementById('selbar')?.addEventListener('click', e => this.handleToolbar(e));
+      this.el.settingsBtn.addEventListener('click', (e) => { e.stopPropagation(); this.toggleSettings(); });
+      this.el.overlay.addEventListener('click', () => this.toggleSettings(false));
+      document.addEventListener('click', (e) => { if(this.state.settingsOpen && !this.el.settingsPanel.contains(e.target) && e.target !== this.el.settingsBtn) this.toggleSettings(false); });
+      document.querySelectorAll('.settings-option[data-size]').forEach(btn => btn.addEventListener('click',()=>{ document.documentElement.className=`font-${btn.dataset.size}`; this.saveAll(false); }));
+      document.querySelectorAll('.settings-option[data-mode]').forEach(btn => btn.addEventListener('click',()=>{ document.body.classList.toggle('dark-mode', btn.dataset.mode==='dark'); this.saveAll(false); }));
+    },
+    ensureTranscriptReady() {
+      const container = document.getElementById('transcript-content');
+      if(!container.innerHTML.includes('完整听力原文') && !container.querySelector('.answer-highlight')) {
+        container.innerHTML = buildHighlightedTranscript();
+        const closeBtn = document.getElementById('close-transcript-btn');
+        if(closeBtn) closeBtn.addEventListener('click', () => this.el.mainShell.classList.remove('split-view'));
+      }
+    },
+    handleSelection(e) {
+      if(e.target.closest('#selbar, #notes, .bottom-bar')) return;
+      const sel = window.getSelection();
+      const clickedHL = e.target.closest('.hl-brown, .hl-rose, .hl-blue');
+      const bar = document.getElementById('selbar');
+      if(clickedHL && sel.isCollapsed){
+        bar.targetElem = clickedHL; bar.hidden=false;
+        const rect=clickedHL.getBoundingClientRect(); bar.style.left=`${window.scrollX+rect.left+rect.width/2-70}px`; bar.style.top=`${window.scrollY+rect.top-40}px`;
+      } else if(sel && !sel.isCollapsed){
+        const rect=sel.getRangeAt(0).getBoundingClientRect(); bar.targetElem=null; bar.hidden=false;
+        bar.style.left=`${window.scrollX+rect.left+rect.width/2-70}px`; bar.style.top=`${window.scrollY+rect.top-40}px`;
+      } else bar.hidden=true;
+    },
+    handleToolbar(e) {
+      const act = e.target.closest('button')?.dataset.act; const bar=document.getElementById('selbar'); 
+      let targetSpan = bar.targetElem; const sel = window.getSelection();
+      if (!targetSpan && !sel.isCollapsed) {
+        const range = sel.getRangeAt(0); let node = range.commonAncestorContainer;
+        if (node.nodeType === 3) node = node.parentElement;
+        const parentSpan = node.closest?.('.hl-brown, .hl-rose, .hl-blue');
+        if (parentSpan && range.toString() === parentSpan.innerText) targetSpan = parentSpan;
+      }
+      if(act === 'hl'){
+        if(targetSpan){
+          if(targetSpan.classList.contains('hl-brown')) targetSpan.className = 'hl-rose';
+          else if(targetSpan.classList.contains('hl-rose')) {}
+          else if(targetSpan.classList.contains('hl-blue')) targetSpan.className = 'hl-brown';
+          else targetSpan.className = 'hl-brown';
+        } else if(!sel.isCollapsed) this.wrapSelection('hl-brown');
+      } else if(act === 'note'){
+        if(targetSpan){ targetSpan.className = 'hl-blue'; if(!targetSpan.dataset.hid) targetSpan.dataset.hid = `n_${Date.now()}`; this.createNoteCard(targetSpan); }
+        else { const newSpan = this.wrapSelection('hl-blue'); if(newSpan){ newSpan.dataset.hid = `n_${Date.now()}`; this.createNoteCard(newSpan); } }
+      } else if(act === 'del' && targetSpan) this.unwrapHighlight(targetSpan);
+      bar.hidden=true; window.getSelection().removeAllRanges();
+      this.saveAll(false);
+    },
+    wrapSelection(className){ const s=window.getSelection(); if(s.isCollapsed) return null; const r=s.getRangeAt(0); const span=document.createElement('span'); span.className=className; try{ r.surroundContents(span); } catch(e){ span.appendChild(r.extractContents()); r.insertNode(span); } return span; },
+    unwrapHighlight(el){ if(el && el.parentNode){ const parent=el.parentNode; while(el.firstChild) parent.insertBefore(el.firstChild, el); parent.removeChild(el); parent.normalize(); } this.saveAll(false); },
+    createNoteCard(span){ const hid=span.dataset.hid; if(document.querySelector(`.note-card[data-hid="${hid}"]`)) return;
+      const card=document.createElement('div'); card.className='note-card'; card.dataset.hid=hid;
+      card.innerHTML=`<div class="note-quote">${span.innerText.slice(0,100)}</div><textarea placeholder="Write note here..."></textarea><div class="note-actions"><button class="del-note-btn">Delete</button></div>`;
+      card.querySelector('.del-note-btn').onclick=()=>{ this.unwrapHighlight(span); card.remove(); this.saveAll(false); };
+      this.el.notesList.prepend(card); document.body.classList.add('notes-open'); this.saveAll(false);
+    },
+    buildNav(){ for(let i=31;i<=40;i++){ const btn=document.createElement('div'); btn.className='q-nav-item'; btn.innerText=i; btn.dataset.q=i; btn.onclick=()=>{ const inp=document.querySelector(`input[name="q${i}"]`); if(inp) inp.closest('.group')?.scrollIntoView({behavior:'smooth',block:'center'}); }; this.el.qNav.appendChild(btn); } },
+    updateNavState(){ for(let i=31;i<=40;i++){ const nav=this.el.qNav.querySelector(`[data-q="${i}"]`); if(nav){ const val=document.querySelector(`input[name="q${i}"]`)?.value.trim(); nav.classList.toggle('answered',!!val); } } },
+    saveAll(showToast=true){ const data={ answers:{}, timer:this.state.timerSecs, settings:{ fontSize:document.documentElement.className, darkMode:document.body.classList.contains('dark-mode') }, notesHTML:this.el.notesList.innerHTML, testHTML:document.getElementById('test-pages-container').innerHTML }; for(let i=31;i<=40;i++) data.answers[i]=document.querySelector(`input[name="q${i}"]`)?.value||''; localStorage.setItem('ielts_listening_p4_layout',JSON.stringify(data)); if(showToast) this.showToast('Progress saved!'); },
+    loadFromStorage(){ const raw=localStorage.getItem('ielts_listening_p4_layout'); if(!raw) return; try{ const d=JSON.parse(raw); if(d.testHTML) document.getElementById('test-pages-container').innerHTML=d.testHTML; if(d.answers) for(let i=31;i<=40;i++){ const inp=document.querySelector(`input[name="q${i}"]`); if(inp && d.answers[i]) inp.value=d.answers[i]; } if(d.notesHTML) this.el.notesList.innerHTML=d.notesHTML; if(d.timer) this.state.timerSecs=d.timer; this.updateTimerUI(); if(d.settings){ document.documentElement.className=d.settings.fontSize||'font-regular'; document.body.classList.toggle('dark-mode',d.settings.darkMode); } this.updateNavState(); }catch(e){} },
+    toggleFinishMode(){ if(this.state.isReviewing) this.returnToTestMode(); else if(confirm('提交答案并进入复习模式？')) this.enterReviewMode(); },
+    enterReviewMode(){ this.state.isReviewing=true; this.el.finishBtn.innerText='Return to Test'; this.el.mainShell.classList.add('split-view'); this.ensureTranscriptReady(); this.disableAllInputs(true); this.generateResultTables(); this.gradeAndMarkNav(); if(this.state.timerInterval) clearInterval(this.state.timerInterval); },
+    returnToTestMode(){ this.state.isReviewing=false; this.el.finishBtn.innerText='Finish'; this.el.mainShell.classList.remove('split-view'); this.disableAllInputs(false); document.querySelectorAll('.group-results').forEach(el=>el.remove()); this.startTimer(); this.updateNavState(); this.el.qNav.querySelectorAll('.q-nav-item').forEach(i=>i.classList.remove('correct','incorrect')); },
+    disableAllInputs(disabled){ document.querySelectorAll('input.blank').forEach(i=>i.disabled=disabled); },
+    generateResultTables(){ document.querySelectorAll('.group-results').forEach(el=>el.remove()); const group=document.querySelector('.group'); if(!group) return; let tableHTML=`<div class="group-results"><h5>📊 答案回顾 (Q31-40)</h5><table class="results-table"><thead><th>题号</th><th>你的答案</th><th>正确答案</th><th>结果</th></thead><tbody>`;
+      for(let i=31;i<=40;i++){ const user=document.querySelector(`input[name="q${i}"]`)?.value.trim().toLowerCase()||''; const correct=ANSWER_KEY[i]; const isCorrect=user===correct; tableHTML+=`<tr><td><b>${i}</b></td><td>${user||'—'}</td><td>${correct}</td><td class="${isCorrect?'result-correct':'result-incorrect'}">${isCorrect?'✔ 正确':'✖ 错误'}</td></tr>`; }
+      tableHTML+=`</tbody></table></div>`; group.insertAdjacentHTML('beforeend',tableHTML);
+    },
+    gradeAndMarkNav(){ for(let i=31;i<=40;i++){ const user=document.querySelector(`input[name="q${i}"]`)?.value.trim().toLowerCase()||''; const correct=ANSWER_KEY[i]; const isCorrect=user===correct; const nav=this.el.qNav.querySelector(`[data-q="${i}"]`); if(nav){ nav.classList.remove('answered'); nav.classList.add(isCorrect?'correct':'incorrect'); } } },
+    initAudio(){ const audio=document.querySelector('.listening-audio'); if(!audio) return; const playBtn=document.querySelector('.play-pause-btn'), prog=document.querySelector('.progress-container'), bar=document.querySelector('.progress-bar'), timeSpan=document.querySelector('.time-display'), speed=document.querySelector('.playback-speed'); audio.src='https://qyccvyyigtjhzunumbqf.supabase.co/storage/v1/object/public/audio/203.mp3'; let scrubbing=false; const update=()=>{ if(!scrubbing&&audio.duration) bar.style.width=(audio.currentTime/audio.duration)*100+'%'; timeSpan.innerText=`${Math.floor(audio.currentTime/60)}:${String(Math.floor(audio.currentTime%60)).padStart(2,'0')} / ${Math.floor(audio.duration/60)}:${String(Math.floor(audio.duration%60)).padStart(2,'0')}`; }; playBtn.onclick=()=>audio.paused?audio.play():audio.pause(); audio.onplay=()=>playBtn.innerHTML='⏸'; audio.onpause=()=>playBtn.innerHTML='▶'; audio.ontimeupdate=update; speed.onchange=()=>audio.playbackRate=+speed.value; prog.onmousedown=e=>{ scrubbing=true; const rect=prog.getBoundingClientRect(); audio.currentTime=(Math.min(1,Math.max(0,(e.clientX-rect.left)/rect.width)))*audio.duration; update(); }; document.onmouseup=()=>scrubbing=false; document.onmousemove=e=>{ if(scrubbing&&audio.duration){ const rect=prog.getBoundingClientRect(); audio.currentTime=(Math.min(1,Math.max(0,(e.clientX-rect.left)/rect.width)))*audio.duration; update(); } }; },
+    initSplitter(){ const splitter=document.getElementById('splitter'); let drag=false; splitter.addEventListener('mousedown',()=>{ drag=true; document.body.style.cursor='col-resize'; }); window.addEventListener('mouseup',()=>{ drag=false; document.body.style.cursor=''; }); window.addEventListener('mousemove',e=>{ if(!drag) return; const left=document.getElementById('left-pane'), total=left.parentElement.offsetWidth, newLeft=e.clientX, newRight=total-newLeft-splitter.offsetWidth; if(newLeft>200&&newRight>200){ left.style.flexBasis=`${newLeft}px`; document.getElementById('right-pane').style.flexBasis=`${newRight}px`; } }); },
+    startTimer(){ if(this.state.timerInterval) clearInterval(this.state.timerInterval); this.state.timerInterval=setInterval(()=>{ this.state.timerSecs++; this.updateTimerUI(); },1000); },
+    updateTimerUI(){ let m=Math.floor(this.state.timerSecs/60), s=this.state.timerSecs%60; this.el.timerSpan.innerText=`${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; },
+    toggleSettings(force){ const open=force===undefined?!this.state.settingsOpen:force; this.state.settingsOpen=open; this.el.settingsPanel.style.display=open?'block':'none'; this.el.overlay.style.display=open?'block':'none'; },
+    showToast(msg){ this.el.toast.innerText=msg; this.el.toast.classList.add('show'); setTimeout(()=>this.el.toast.classList.remove('show'),1500); }
+  };
+  document.addEventListener('DOMContentLoaded',()=>App.init());
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/lib/config.js"></script>
+<script src="/lib/supabase.js"></script>
+<script>window.TEST_ID = 203;</script>
+<script src="/lib/vip-test-bridge.js"></script>
+</body>
+</html>
