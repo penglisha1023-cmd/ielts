@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>P2 – The return of the black-footed ferret</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  html,body { height:100%; }
+  body { font-family: Arial, sans-serif; background:#f5f5f5; }
+  #timer { position:fixed; top:12px; right:12px; background:#fff; border:1px solid #ddd; border-radius:6px; padding:8px 12px; font-size:16px; font-weight:600; color:#0066cc; z-index:1000; }
+  .shell { display:flex; height:100vh; width:100%; }
+  .pane { background:#fff; overflow:auto; padding:24px; }
+  #left { flex: 0 0 50%; border-right:1px solid #ddd; }
+  #right { flex: 1 1 auto; background:#fafafa; }
+  #divider { flex: 0 0 5px; background:#ddd; cursor: ew-resize; }
+  #divider:hover { background:#999; }
+  h2,h3,h4 { margin:0 0 12px; color:#333; }
+  h2 { font-size:20px; }
+  h3 { font-size:18px; color:#0066cc; }
+  h4 { font-size:15px; font-weight:600; margin-top:20px; }
+  h5 { font-size:14px; font-weight:600; margin:12px 0 8px; }
+  #left p { margin: 0 0 14px; line-height: 1.7; text-align:justify; }
+  .group { background:#fff; border:1px solid #ddd; border-radius:6px; padding:16px; margin-bottom:16px; }
+  .group h4 { margin-top:0; color:#0066cc; }
+  .group p { margin:8px 0; font-size:14px; line-height:1.6; }
+  .group ol { margin-left:20px; }
+  .group ol li { margin:12px 0; font-size:14px; line-height:1.6; position:relative; }
+  .group ol li label { display:inline-block; margin-right:8px; cursor: pointer; }
+  .group ul { margin-left:20px; }
+  .group ul li { margin:8px 0; font-size:14px; line-height:1.8; }
+  .question-item, .match-question-item, .q-block { margin:12px 0; font-size:14px; line-height:1.6; }
+  .radio-options label, .options label { display:inline-block; margin-right:12px; cursor:pointer; }
+  .headings { background:#f9f9f9; padding:12px; margin:12px 0; border-radius:4px; }
+  .headings ol { margin-left:20px; }
+  .headings li { margin:4px 0; font-size:13px; }
+  table { border-collapse: collapse; width:100%; margin:12px 0; }
+  th, td { border:1px solid #ddd; padding:6px; text-align:left; font-size:13px; position:relative; }
+  th { background:#f5f5f5; font-weight:600; }
+  .flag-btn { position:absolute; left:2px; top:50%; transform:translateY(-50%); width:8px; height:8px; border-radius:50%; background:#ddd; cursor:pointer; z-index:10; }
+  .flag-btn:hover { background:#999; }
+  .flag-btn.active { background:#ff5722; }
+  input.blank, input.gap-input, input[type="text"] { border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; font-size: 14px; width: 160px; margin: 0 5px; font-family: inherit; }
+  select { border:1px solid #ccc; border-radius:4px; padding:4px 8px; font-size:14px; font-family:inherit; margin:0 5px; }
+  .note-box { border: 1px solid #333; padding: 15px; margin-top: 10px; }
+  .note-title { text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 15px; }
+  .note-text { line-height: 2; }
+  .bottom-bar { display:flex; gap:10px; margin-top:16px; }
+  button { padding:10px 20px; border:1px solid #999; border-radius:6px; background:#fff; cursor:pointer; font-size:14px; }
+  button:hover { background:#f0f0f0; }
+  .btn-primary { background:#0066cc; color:#fff; border-color:#0066cc; }
+  .btn-primary:hover { background:#0052a3; }
+  .btn-danger { background:#dc3545; color:#fff; border-color:#dc3545; }
+  .btn-danger:hover { background:#c82333; }
+  .hl { background:#fff59d; cursor:pointer; }
+  .hl:hover { background:#ffeb3b; }
+  .note { background:#b3d9ff; cursor:pointer; }
+  .note:hover { background:#99ccff; }
+  #selbar { position:fixed; display:none; z-index:2000; background:#fff; border:1px solid #ddd; border-radius:8px; padding:8px; gap:0; box-shadow:0 2px 8px rgba(0,0,0,0.15); flex-direction:column; min-width:120px; }
+  #selbar button { background:#fff; color:#666; border:none; padding:3px 0px; cursor:pointer; font-size:14px; text-align:center; border-radius:4px; }
+  #selbar button:hover { background:#f5f5f5; color:#333; }
+  .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; align-items:center; justify-content:center; }
+  .modal.active { display:flex; }
+  .modal-content { background:#fff; border-radius:8px; padding:24px; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .modal-header h2 { font-size: 28px; color: #333; margin: 0; }
+  .modal-close { font-size: 32px; cursor: pointer; color: #999; line-height: 1; }
+  .modal-close:hover { color: #333; }
+  .result-summary { text-align:center; padding:20px; background:#f0f0f0; margin-bottom:16px; border-radius:6px; }
+  .result-score { font-size:36px; font-weight:600; color:#0066cc; }
+  .result-item { padding:10px; margin:8px 0; border-left:3px solid #ddd; background:#f9f9f9; font-size:13px; }
+  .result-item.correct { border-left-color:#28a745; background:#e8f5e9; }
+  .result-item.incorrect { border-left-color:#dc3545; background:#ffebee; }
+  .wrong-item { background:#fff3e0; padding:16px; margin:8px 0; border-radius:8px; border-left:4px solid #ff9800; display:flex; justify-content:space-between; align-items:start; }
+  .wrong-item-content { flex:1; }
+  .btn-delete { background:#dc3545; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:13px; margin-left:12px; }
+  .btn-delete:hover { background:#c82333; }
+  .modal-actions { display:flex; gap:10px; margin-bottom:20px; }
+</style>
+<style id="morandi-reading-theme">
+  body { background:#ebe4d9 !important; }
+  #left, #right, .pane { background:#f7f1e7 !important; }
+  #right { background:#ebe4d9 !important; }
+  #divider { background:#d7cdbe !important; }
+  h2, h3, h4, .group h4 { color:#3d362e !important; }
+  h3 { color:#748a7a !important; }
+  .group { background:#f7f1e7 !important; border-color:#d7cdbe !important; }
+  .group ol li, .group p { color:#3d362e !important; }
+  .headings { background:#ebe4d9 !important; }
+  button { background:#f7f1e7 !important; border-color:#d7cdbe !important; color:#3d362e !important; }
+  button:hover { background:#ebe4d9 !important; }
+  .btn-primary { background:#8fa394 !important; color:#fff !important; border-color:#8fa394 !important; }
+  .btn-primary:hover { background:#748a7a !important; }
+  .btn-danger { background:#b58575 !important; color:#fff !important; border-color:#b58575 !important; }
+  .hl { background:#d8c1ac !important; }
+  .note { background:#c8d2dc !important; }
+  #timer { background:#f7f1e7 !important; border-color:#d7cdbe !important; color:#748a7a !important; }
+  th { background:#ebe4d9 !important; color:#3d362e !important; }
+  th, td { border-color:#d7cdbe !important; }
+</style>
+</head>
+<body>
+<div id="timer">00:00</div>
+
+<div class="shell">
+  <section class="pane" id="left">
+
+<h2>READING PASSAGE 2</h2>
+<p>You should spend about 20 minutes on Questions 14–26, which are based on Reading Passage 2 below.</p>
+<h3>The return of the black-footed ferret</h3>
+<p><em>The rise, fall, and rise of one of North America’s rarest mammals</em></p>
+<p><strong>A</strong> The black-footed ferret (Mustela nigripes) is a small carnivorous mammal, similar in length to a domestic cat, and is the only ferret species native to North America. For at least 100,000 years they lived in an area that extended almost uninterrupted from southern Canada to northern Mexico. But numbers fell dramatically throughout the 19th and 20th centuries, to such an extent that the black-footed ferret was declared ‘possibly extinct’. Then, almost miraculously, it returned from the dead.</p>
+<p><strong>B</strong> Within the genus Mustela, the ferret belongs to the subgenus Putorius, of which there are only three extant species: the European polecat; the Siberian polecat; and the black-footed ferret. The European polecat lives in open forests and meadows, and is thought to be the ancestor of the domestic ferret. The Siberian polecat looks more similar to the black-footed ferret, and leads a similar life on open grasslands and semi-desert regions across Russia, China and Siberia.</p>
+<p><strong>C</strong> Ferrets probably evolved in Europe between three and four million years ago, and dispersed into North America across an ice-age land bridge at least two million years ago. They then advanced south-eastward to the Great Plains through ice-free passageways. The black-footed ferret’s history in North America is inextricably linked to the creature which became almost its sole prey — the prairie dog. These small rodents are a type of ground squirrel which live in networks of underground tunnels, known as burrows. The black-footed ferret’s short legs and long, slim body make it superbly adapted for life in the burrow systems of its prey.</p>
+<p><strong>D</strong> Spending virtually all their time underground, black-footed ferrets have always been elusive. Ferrets are never mentioned in accounts of the early explorers or pioneers who crossed the Great Plains by wagon train during the early to mid-1800s. They were, however, occasionally listed in records kept by fur companies in the upper Missouri River basin during that period. Black-footed ferrets were not officially recognized by scientists until 1851, when a description and drawing of one featured in a book by the renowned naturalist John James Audubon and Reverend John Bachman. For over two decades, no other specimens were seen, and scientists even began to question their existence. Then, in 1874, a Dr Elliott Coues issued a request for specimens through the popular magazine The American Sportsman, and was soon rewarded. With these he was able to add to Audubon’s description, and confirm the existence of the black-footed ferret.</p>
+<p><strong>E</strong> In the decades that followed, European settlement across North America changed the landscape dramatically, with vast areas being transformed into crop and grazing land. As agriculture and ranching expanded, the black-footed ferret’s main prey, the prairie dog, became a target for extermination, and was eventually eradicated from 98% of its original range. The result was devastating for black-footed ferret populations throughout the continent. Even today, the prairie dog is still trapped and poisoned, because ranchers believe that it competes with livestock for grass — a notion that belies recent research showing that prairie dogs and cattle feed on different plants.</p>
+<p><strong>F</strong> As late as the 1950s, black-footed ferrets were still thought to occur in low densities throughout most of their historic range. However, by the 1960s, the only known population was a small colony in south-western South Dakota. In 1967, the US Fish and Wildlife Service classified the black-footed ferret as an endangered species, and in 1974 the South Dakota colony disappeared. Finally, in January 1979, the last ferret in a captive-breeding programme died — making the black-footed ferret the first mammal to be declared extinct in the Northern Hemisphere in the 20th century.</p>
+<p><strong>G</strong> But that was not the end of the story. In 1981, a farm dog called Shep carried an odd-looking creature to its owner’s ranch house in Meeteetse, Wyoming. The rancher put the carcass in his fridge and alerted state officials. The dog had found a black-footed ferret — which led to efforts again being made to save the species. An intensive search in the region led to the discovery of a 130-strong population. This wild colony thrived for a while, but disaster struck again and the number of animals was drastically reduced by the disease distemper — probably contracted from domestic dogs. In 1985, in a final bid to save the species, the remaining 18 individuals in the colony were trapped for a new captive-breeding programme. This project was successful, and there are now more than 2,000 black-footed ferrets in captivity across the US and Canada.</p>
+<p><strong>H</strong> A reintroduction programme began in 1991. Before they can be reintroduced into their natural habitat, captive ferrets have to learn to hunt and escape from predators. They are first held in pens on the prairie, where they are fed prairie dog meat. Once the ferrets associate these animals with food, keepers unleash live prey into the pens, and they soon realise that they must hunt or go hungry. Then, to get the ferrets used to living underground, they have to be tempted into the holes with food.</p>
+<p><strong>I</strong> Reintroduction programmes are now underway across central USA, but there is one location that is key. The Janos area on the US-Mexico border is the obvious place to reactivate the continent’s wild black-footed ferret population, being one of the most important remaining grassland ecosystems in the Americas, and home to an abundance of prairie dogs. At the last report, the future of the black-footed ferret finally looks promising.</p>
+
+  </section>
+
+  <div id="divider" title="Drag to resize"></div>
+
+  <section class="pane" id="right">
+<h3>Questions</h3>
+
+<div class="group" id="q1-q2-q3-anchor"><h4>Questions 14-16</h4><p>Complete the sentences below.</p><p>Choose NO MORE THAN TWO WORDS from the passage for each answer.</p><p>Write your answers in boxes 14-16 on your answer sheet.</p><p><strong>14</strong> The black-footed ferret shares most characteristics with its relative, the <input class="blank" name="q1" type="text">.</p><p><strong>15</strong> North American ferrets are thought to have originally come from <input class="blank" name="q2" type="text">.</p><p><strong>16</strong> The <input class="blank" name="q3" type="text"> is the black-footed ferret’s primary source of food.</p></div>
+
+<div class="group" id="q4-q5-q6-q7-q8-q9-anchor"><h4>Questions 17-22</h4><div class="headings"><p><strong>List of Options</strong></p><div>A 1851</div><div>B 1874</div><div>C 1967</div><div>D 1974</div><div>E 1979</div><div>F 1981</div><div>G 1985</div><div>H 1991</div></div><p>Look at the following events (Questions 17-22) and the list of dates below.</p><p>Match each event with the correct date, A-H.</p><p>Write the correct letter, A-H, in boxes 17-22 on your answer sheet.</p><div class="match-question-item" id="q4-anchor"><p><strong>17</strong> An appeal for evidence of black-footed ferrets was published.</p><div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q4" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q4" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q4" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q4" value="D"> D</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q4" value="E"> E</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q4" value="F"> F</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q4" value="G"> G</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q4" value="H"> H</label></div></div><div class="match-question-item" id="q5-anchor"><p><strong>18</strong> A scheme for releasing captive-born black-footed ferrets into the wild was launched.</p><div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q5" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q5" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q5" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q5" value="D"> D</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q5" value="E"> E</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q5" value="F"> F</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q5" value="G"> G</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q5" value="H"> H</label></div></div><div class="match-question-item" id="q6-anchor"><p><strong>19</strong> The black-footed ferret first appeared in a scientific work.</p><div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q6" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q6" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q6" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q6" value="D"> D</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q6" value="E"> E</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q6" value="F"> F</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q6" value="G"> G</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q6" value="H"> H</label></div></div><div class="match-question-item" id="q7-anchor"><p><strong>20</strong> The discovery of a single black-footed ferret led to renewed hope for the species.</p><div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q7" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q7" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q7" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q7" value="D"> D</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q7" value="E"> E</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q7" value="F"> F</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q7" value="G"> G</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q7" value="H"> H</label></div></div><div class="match-question-item" id="q8-anchor"><p><strong>21</strong> North America’s last wild-born black-footed ferrets were taken into captivity.</p><div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q8" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q8" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q8" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q8" value="D"> D</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q8" value="E"> E</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q8" value="F"> F</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q8" value="G"> G</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q8" value="H"> H</label></div></div><div class="match-question-item" id="q9-anchor"><p><strong>22</strong> Efforts to save the black-footed ferret were officially announced as having failed.</p><div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q9" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q9" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q9" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q9" value="D"> D</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q9" value="E"> E</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q9" value="F"> F</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q9" value="G"> G</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q9" value="H"> H</label></div></div></div></div></div>
+
+<div class="group" id="q10-q11-q12-q13-anchor"><h4>Questions 23-26</h4><p>Reading Passage 2 has nine paragraphs, A-I.</p><p>Which paragraph contains the following information?</p><p>Write the correct letter, A-I, in boxes 23-26 on your answer sheet.</p><div class="match-question-item" id="q10-anchor"><p><strong>23</strong> reasons for the sharp decrease in black-footed ferret populations</p><div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q10" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q10" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q10" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q10" value="D"> D</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q10" value="E"> E</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q10" value="F"> F</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q10" value="G"> G</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q10" value="H"> H</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q10" value="I"> I</label></div></div><div class="match-question-item" id="q11-anchor"><p><strong>24</strong> the procedure by which black-footed ferrets are taught to survive in the wild</p><div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q11" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q11" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q11" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q11" value="D"> D</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q11" value="E"> E</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q11" value="F"> F</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q11" value="G"> G</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q11" value="H"> H</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q11" value="I"> I</label></div></div><div class="match-question-item" id="q12-anchor"><p><strong>25</strong> mention of doubts about whether there was such an animal as a black-footed ferret</p><div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q12" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q12" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q12" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q12" value="D"> D</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q12" value="E"> E</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q12" value="F"> F</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q12" value="G"> G</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q12" value="H"> H</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q12" value="I"> I</label></div></div><div class="match-question-item" id="q13-anchor"><p><strong>26</strong> reference to a site which is ideal for the release of black-footed ferrets into the wild</p><div class="match-options" style="margin:6px 0;"><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q13" value="A"> A</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q13" value="B"> B</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q13" value="C"> C</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q13" value="D"> D</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q13" value="E"> E</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q13" value="F"> F</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q13" value="G"> G</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q13" value="H"> H</label><label style="margin-right:10px; white-space:nowrap;"><input type="radio" name="q13" value="I"> I</label></div></div></div></div></div>
+
+    <div class="bottom-bar">
+      <button class="btn-primary" onclick="submitAnswers()">提交</button>
+      <button onclick="resetForm()">重置</button>
+      <button onclick="openWrongBook()">本篇错题</button>
+    </div>
+  </section>
+</div>
+
+<div id="selbar">
+  <button id="btnNote">Note</button>
+  <button id="btnHL">Highlight</button>
+  <button id="btnUH" style="display:none;">Clear Highlight</button>
+</div>
+
+<div class="modal" id="resultModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>成绩</h2><span class="modal-close" onclick="closeModal('resultModal')">×</span></div>
+    <div id="resultContent"></div>
+    <button class="btn-primary" style="width:100%; margin-top:16px;" onclick="addWrongToBook()">加入错题本</button>
+  </div>
+</div>
+
+<div class="modal" id="wrongBookModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>本篇错题</h2><span class="modal-close" onclick="closeModal('wrongBookModal')">×</span></div>
+    <div id="wrongBookContent"></div>
+  </div>
+</div>
+
+<div class="modal" id="resetModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>重置练习</h2><span class="modal-close" onclick="closeModal('resetModal')">×</span></div>
+    <div style="margin:16px 0;">
+      <label style="display:block; margin-bottom:10px;"><input type="radio" name="resetType" value="answers" checked> 只清空答案</label>
+      <label style="display:block;"><input type="radio" name="resetType" value="all"> 清空答案和标记</label>
+    </div>
+    <button class="btn-primary" style="width:100%;" onclick="confirmReset()">确定</button>
+  </div>
+</div>
+
+<script>
+const PAPER_ID="R235";
+const ARTICLE_TITLE="The return of the black-footed ferret";
+
+let t=0;
+const timerEl=document.getElementById('timer');
+setInterval(()=>{ t++; timerEl.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0'); }, 1000);
+
+const divider=document.getElementById('divider'), left=document.getElementById('left'), right=document.getElementById('right');
+let dragging=false;
+divider.onmousedown=()=>{ dragging=true; document.body.style.cursor='ew-resize'; };
+window.onmousemove=(e)=>{ if(!dragging)return; const c=document.querySelector('.shell').getBoundingClientRect(); let x=e.clientX-c.left; x=Math.max(280,Math.min(c.width-280,x)); left.style.flex='0 0 '+x+'px'; right.style.flex='1 1 auto'; };
+window.onmouseup=()=>{ dragging=false; document.body.style.cursor=''; };
+
+const selbar=document.getElementById('selbar'), btnHL=document.getElementById('btnHL'), btnUH=document.getElementById('btnUH'), btnNote=document.getElementById('btnNote');
+let lastRange=null, currentHlNode=null;
+function posSelbar(r){ selbar.style.display='flex'; const t=window.scrollY+r.top-selbar.offsetHeight-8; const l=window.scrollX+r.left+r.width/2-selbar.offsetWidth/2; selbar.style.top=((t>0)?t:(window.scrollY+r.bottom+8))+'px'; selbar.style.left=Math.max(8,l)+'px'; }
+function updSel(){ const s=window.getSelection(); if(!s||s.rangeCount===0||s.isCollapsed){ if(!currentHlNode)selbar.style.display='none'; return; } const r=s.getRangeAt(0); lastRange=r.cloneRange(); currentHlNode=null; btnNote.style.display='block'; btnHL.style.display='block'; btnUH.style.display='none'; posSelbar(r.getBoundingClientRect()); }
+left.onmouseup=updSel; right.onmouseup=updSel;
+document.onselectionchange=()=>{ const s=window.getSelection(); if((!s||s.rangeCount===0||s.isCollapsed)&&!currentHlNode)selbar.style.display='none'; };
+document.addEventListener('click',(e)=>{ if(e.target.classList&&(e.target.classList.contains('hl')||e.target.classList.contains('note'))){ currentHlNode=e.target; lastRange=null; btnNote.style.display='none'; btnHL.style.display='none'; btnUH.style.display='block'; posSelbar(e.target.getBoundingClientRect()); const s=window.getSelection(); if(s)s.removeAllRanges(); }}, true);
+btnHL.onclick=()=>{ if(currentHlNode||!lastRange||lastRange.collapsed)return; const s=document.createElement('span'); s.className='hl'; try{ lastRange.surroundContents(s); }catch(e){ const w=document.createElement('span'); w.className='hl'; w.appendChild(lastRange.cloneContents()); lastRange.deleteContents(); lastRange.insertNode(w); } selbar.style.display='none'; saveHighlights(); };
+btnNote.onclick=()=>{ if(currentHlNode||!lastRange||lastRange.collapsed)return; const s=document.createElement('span'); s.className='note'; try{ lastRange.surroundContents(s); }catch(e){ const w=document.createElement('span'); w.className='note'; w.appendChild(lastRange.cloneContents()); lastRange.deleteContents(); lastRange.insertNode(w); } selbar.style.display='none'; saveHighlights(); };
+btnUH.onclick=()=>{ if(currentHlNode){ const p=currentHlNode.parentNode; while(currentHlNode.firstChild)p.insertBefore(currentHlNode.firstChild,currentHlNode); p.removeChild(currentHlNode); p.normalize(); currentHlNode=null; selbar.style.display='none'; saveHighlights(); }else if(lastRange){ const sR=lastRange.getBoundingClientRect(); const w=document.createTreeWalker(document.body,NodeFilter.SHOW_ELEMENT); const tr=[]; while(w.nextNode()){ const n=w.currentNode; if(n.classList&&(n.classList.contains('hl')||n.classList.contains('note'))){ const r=n.getBoundingClientRect(); if(!(r.right<sR.left||r.left>sR.right||r.bottom<sR.top||r.top>sR.bottom))tr.push(n); }} tr.forEach(el=>{ const p=el.parentNode; while(el.firstChild)p.insertBefore(el.firstChild,el); p.removeChild(el); p.normalize(); }); selbar.style.display='none'; saveHighlights(); }};
+
+document.querySelectorAll('.flag-btn').forEach(btn => { btn.onclick = e => { e.stopPropagation(); btn.classList.toggle('active'); saveFlags(); }; });
+
+const answerKey = {
+  "q1": "Siberian polecat",
+  "q2": "Europe",
+  "q3": "prairie dog",
+  "q4": "B",
+  "q5": "H",
+  "q6": "A",
+  "q7": "F",
+  "q8": "G",
+  "q9": "E",
+  "q10": "E",
+  "q11": "H",
+  "q12": "D",
+  "q13": "I"
+};
+let lastResults=[];
+
+function coveredIds(name){
+  // combined names drop the "q" on later ids and use "_" or "-":
+  // "q8_9"->["q8","q9"], "q12-13-14"->["q12","q13","q14"]
+  const parts = name.split(/[-_]/);
+  if(!parts.length) return [name];
+  const ids = [parts[0]];
+  for(let i=1;i<parts.length;i++){ ids.push(/^q/.test(parts[i]) ? parts[i] : 'q'+parts[i]); }
+  return ids;
+}
+function inputForKey(q){
+  let el = document.querySelector(`[name="${q}"]`);
+  if(el) return el;
+  // combined checkbox group (e.g. name="q8_9" covering q8,q9)
+  const grp = [...document.querySelectorAll('input[type="checkbox"]')].find(i => coveredIds(i.name).includes(q));
+  return grp || null;
+}
+function gradeOne(q){
+  const cA = answerKey[q];
+  const el = inputForKey(q);
+  let uA = "", iC = false;
+  if(el && el.type === 'checkbox'){
+    const vals = [...document.querySelectorAll(`input[name="${el.name}"]:checked`)].map(i=>i.value);
+    uA = vals.join(', ');
+    const lc = vals.map(x=>x.toLowerCase());
+    if(Array.isArray(cA)){
+      const exp = cA.map(x=>String(x).toLowerCase()).sort();
+      const got = [...lc].sort();
+      iC = exp.length===got.length && exp.every((v,i)=>v===got[i]);
+    } else {
+      iC = lc.includes(String(cA).toLowerCase());
+    }
+  } else if(el && el.type === 'radio'){
+    const ch = document.querySelector(`input[name="${q}"]:checked`);
+    uA = ch ? ch.value : "";
+    const alts = Array.isArray(cA) ? cA : [cA];
+    iC = alts.some(a => uA.toLowerCase() === String(a).toLowerCase());
+  } else if(el){
+    uA = (el.value||'').trim();
+    const alts = Array.isArray(cA) ? cA : [cA];
+    iC = alts.some(a => uA.toLowerCase() === String(a).toLowerCase());
+  }
+  const cADisp = Array.isArray(cA) ? cA.join(', ') : cA;
+  return { id:q, userAns:uA, correctAns:cADisp, isCorrect:iC };
+}
+
+function saveAnswers() {
+  const data = {};
+  const seen = {};
+  Object.keys(answerKey).forEach(q => {
+    const el = inputForKey(q);
+    if(!el) return;
+    if(el.type === 'checkbox'){
+      if(seen[el.name]) return; seen[el.name]=1;
+      data['cb:'+el.name] = [...document.querySelectorAll(`input[name="${el.name}"]:checked`)].map(i=>i.value);
+    } else if(el.type === 'radio'){
+      const ch = document.querySelector(`input[name="${q}"]:checked`);
+      if(ch) data[q] = ch.value;
+    } else {
+      data[q] = el.value;
+    }
+  });
+  localStorage.setItem(`${PAPER_ID}_answers`, JSON.stringify(data));
+}
+function loadAnswers() {
+  const data = JSON.parse(localStorage.getItem(`${PAPER_ID}_answers`) || '{}');
+  Object.keys(data).forEach(k => {
+    const val = data[k];
+    if(k.startsWith('cb:')){
+      const name = k.slice(3);
+      (val||[]).forEach(v => { const cb = document.querySelector(`input[name="${name}"][value="${v}"]`); if(cb) cb.checked = true; });
+      return;
+    }
+    const radio = document.querySelector(`input[name="${k}"][value="${val}"]`);
+    if(radio){ radio.checked = true; return; }
+    const el = document.querySelector(`[name="${k}"]`);
+    if(el && (el.type === 'text' || el.tagName === 'SELECT')) el.value = val;
+  });
+}
+function saveFlags() {
+  const flags = [...document.querySelectorAll('.flag-btn.active')].map(b => b.dataset.q);
+  localStorage.setItem(`${PAPER_ID}_flags`, JSON.stringify(flags));
+}
+function loadFlags() {
+  const flags = JSON.parse(localStorage.getItem(`${PAPER_ID}_flags`) || '[]');
+  flags.forEach(q => document.querySelector(`[data-q="${q}"]`)?.classList.add('active'));
+}
+function saveHighlights() {
+  const highlights = { left: [], right: [] };
+  document.querySelectorAll('#left .hl, #left .note').forEach((el, idx) => { highlights.left.push({ type: el.classList.contains('hl') ? 'hl' : 'note', text: el.textContent, index: idx }); });
+  document.querySelectorAll('#right .hl, #right .note').forEach((el, idx) => { highlights.right.push({ type: el.classList.contains('hl') ? 'hl' : 'note', text: el.textContent, index: idx }); });
+  localStorage.setItem(`${PAPER_ID}_highlights`, JSON.stringify(highlights));
+}
+function loadHighlights() {
+  const data = JSON.parse(localStorage.getItem(`${PAPER_ID}_highlights`) || '{"left":[],"right":[]}');
+  const restore = (pane, items) => {
+    if(!items || items.length === 0) return;
+    items.forEach(item => {
+      const walker = document.createTreeWalker(pane, NodeFilter.SHOW_TEXT);
+      let node;
+      while(node = walker.nextNode()) {
+        if(node.textContent.includes(item.text)) {
+          const span = document.createElement('span'); span.className = item.type;
+          const parent = node.parentNode; const text = node.textContent; const idx = text.indexOf(item.text);
+          if(idx >= 0) {
+            const before = text.substring(0, idx); const match = text.substring(idx, idx + item.text.length); const after = text.substring(idx + item.text.length);
+            parent.insertBefore(document.createTextNode(before), node); span.textContent = match; parent.insertBefore(span, node); parent.insertBefore(document.createTextNode(after), node); parent.removeChild(node); break;
+          }
+        }
+      }
+    });
+  };
+  restore(left, data.left); restore(right, data.right);
+}
+
+document.querySelectorAll('input, select').forEach(input => { input.addEventListener('change', saveAnswers); input.addEventListener('input', saveAnswers); });
+document.addEventListener('DOMContentLoaded', () => { loadAnswers(); loadFlags(); loadHighlights(); });
+
+function submitAnswers(){
+  const res=[]; let cor=0;
+  Object.keys(answerKey).forEach(q=>{ const r=gradeOne(q); if(r.isCorrect)cor++; res.push(r); });
+  lastResults=res;
+  const tot=Object.keys(answerKey).length;
+  const pct=((cor/tot)*100).toFixed(1);
+  localStorage.setItem(`ielts_score_${PAPER_ID}`, `${cor}/${tot}`);
+  document.getElementById('resultContent').innerHTML=`<div class="result-summary"><div class="result-score">${cor} / ${tot}</div><div style="margin-top:8px;font-size:18px;">${pct}%</div></div>${res.map(r=>`<div class="result-item ${r.isCorrect?'correct':'incorrect'}"><div><strong>${r.id}</strong> ${r.isCorrect?'✓':'✗'}</div><div>你的答案: ${r.userAns||'(未作答)'}</div>${!r.isCorrect?`<div>正确答案: ${r.correctAns}</div>`:''}</div>`).join('')}`;
+  document.getElementById('resultModal').classList.add('active');
+}
+function resetForm(){ document.getElementById('resetModal').classList.add('active'); }
+function confirmReset(){
+  const tp=document.querySelector('input[name="resetType"]:checked').value;
+  document.querySelectorAll('input[type="radio"],input[type="checkbox"]').forEach(i=>i.checked=false);
+  document.querySelectorAll('input[type="text"]').forEach(i=>i.value='');
+  document.querySelectorAll('select').forEach(i=>i.selectedIndex=0);
+  localStorage.removeItem(`${PAPER_ID}_answers`);
+  if(tp==='all'){
+    document.querySelectorAll('.hl').forEach(el=>{ const p=el.parentNode; while(el.firstChild)p.insertBefore(el.firstChild,el); p.removeChild(el); p.normalize(); });
+    document.querySelectorAll('.note').forEach(el=>{ const p=el.parentNode; while(el.firstChild)p.insertBefore(el.firstChild,el); p.removeChild(el); p.normalize(); });
+    document.querySelectorAll('.flag-btn').forEach(b => b.classList.remove('active'));
+    localStorage.removeItem(`${PAPER_ID}_highlights`);
+    localStorage.removeItem(`${PAPER_ID}_flags`);
+  }
+  closeModal('resetModal');
+}
+function addWrongToBook(){ const wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); const wr=lastResults.filter(r=>!r.isCorrect); wr.forEach(r=>{ const en={paperId:PAPER_ID,title:ARTICLE_TITLE,questionId:r.id,correctAnswer:r.correctAns,myAnswer:r.userAns||'(未作答)',date:new Date().toISOString().split('T')[0]}; const ix=wb.findIndex(i=>i.paperId===en.paperId&&i.questionId===en.questionId); if(ix>=0)wb[ix]=en; else wb.push(en); }); localStorage.setItem('ielts_wrong_book',JSON.stringify(wb)); alert(`已添加 ${wr.length} 道错题`); closeModal('resultModal'); }
+function deleteWrongItem(pId,qId){ if(!confirm('确定删除这道错题？'))return; let wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); wb=wb.filter(i=>!(i.paperId===pId&&i.questionId===qId)); localStorage.setItem('ielts_wrong_book',JSON.stringify(wb)); openWrongBook(); }
+function clearCurrentWrongBook(){ if(!confirm('确定清空本篇所有错题？'))return; let wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); wb=wb.filter(i=>i.paperId!==PAPER_ID); localStorage.setItem('ielts_wrong_book',JSON.stringify(wb)); openWrongBook(); }
+function openWrongBook(){ const wb=JSON.parse(localStorage.getItem('ielts_wrong_book')||'[]'); const cu=wb.filter(i=>i.paperId===PAPER_ID); const ct=document.getElementById('wrongBookContent'); if(cu.length===0)ct.innerHTML='<div style="text-align:center;padding:40px;color:#666;">暂无错题</div>'; else ct.innerHTML=`<div class="modal-actions"><button class="btn-danger" onclick="clearCurrentWrongBook()" style="width:100%;">🗑️ 清空本篇错题</button></div>${cu.map(i=>`<div class="wrong-item"><div class="wrong-item-content"><div style="font-weight:600;margin-bottom:8px;">${i.questionId}</div><div style="font-size:13px;color:#666;"><div>✓ 正确: ${i.correctAnswer}</div><div style="color:#d32f2f;">✗ 我的: ${i.myAnswer}</div></div></div><button class="btn-delete" onclick="deleteWrongItem('${i.paperId}','${i.questionId}')">删除</button></div>`).join('')}`; document.getElementById('wrongBookModal').classList.add('active'); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/lib/config.js"></script>
+<script src="/lib/supabase.js"></script>
+<script>window.READING_ID = 235;</script>
+<script src="/lib/reading-bridge.js"></script>
+</body>
+</html>
